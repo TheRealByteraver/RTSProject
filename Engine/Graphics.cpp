@@ -358,3 +358,683 @@ std::wstring Graphics::Exception::GetExceptionType() const
 {
 	return L"Chili Graphics Exception";
 }
+
+
+/**************************************/
+/*                                    */
+/*  Non-default part of the class     */
+/*  starts here                       */
+/*                                    */
+/**************************************/
+
+void Graphics::drawDisc( int cx,int cy,int r,Color color )
+{
+    int rSquared = r * r;
+    int xPivot = (int)(r * 0.707107f + 0.5f);
+    for ( int x = 0; x <= xPivot; x++ )
+    {
+        int y = (int)(sqrt( (float)(rSquared - x*x) ) + 0.5f);
+        int yHi = cy - y;
+        int yLo = cy + y;
+        for ( int ix = cx - x; ix <= cx + x; ix++ ) PutPixel( ix,yHi,color );
+        for ( int ix = cx - x; ix <= cx + x; ix++ ) PutPixel( ix,yLo,color );
+        yHi = cy - x;
+        yLo = cy + x;
+        for ( int ix = cx - y; ix <= cx + y; ix++ ) PutPixel( ix,yHi,color );
+        for ( int ix = cx - y; ix <= cx + y; ix++ ) PutPixel( ix,yLo,color );
+    }
+}
+
+void Graphics::drawLine( int x1,int y1,int x2,int y2,Color color )
+{
+    int dx = x2 - x1;
+    int dy = y2 - y1;
+    if ( dy == 0 && dx == 0 )
+    {
+        PutPixel( x1,y1,color );
+    } else if ( abs( dy ) > abs( dx ) )
+    {
+        if ( dy < 0 )
+        {
+            int temp = x1;
+            x1 = x2;
+            x2 = temp;
+            temp = y1;
+            y1 = y2;
+            y2 = temp;
+        }
+        float m = (float)dx / (float)dy;
+        float b = x1 - m*y1;
+        for ( int y = y1; y <= y2; y = y + 1 )
+        {
+            int x = (int)(m*y + b + 0.5f);
+            PutPixel( x,y,color );
+        }
+    } else
+    {
+        if ( dx < 0 )
+        {
+            int temp = x1;
+            x1 = x2;
+            x2 = temp;
+            temp = y1;
+            y1 = y2;
+            y2 = temp;
+        }
+        float m = (float)dy / (float)dx;
+        float b = y1 - m*x1;
+        for ( int x = x1; x <= x2; x = x + 1 )
+        {
+            int y = (int)(m*x + b + 0.5f);
+            PutPixel( x,y,color );
+        }
+    }
+}
+
+void Graphics::drawHorLine( int x1,int y,int x2,Color color )
+{
+    for ( int x = x1; x <= x2; x++ ) PutPixel( x,y,color );
+}
+
+void Graphics::drawVerLine( int x,int y1,int y2,Color color )
+{
+    for ( int y = y1; y <= y2; y++ ) PutPixel( x,y,color );
+}
+
+// can be slow since only meant for debugging
+void Graphics::drawMathLine( int x,int y,float m,int length,Color color )
+{
+    int l = length / 2;
+    int b = (int)(y - m * x);
+    int x1;
+    int x2;
+    int y1;
+    int y2;
+    if ( abs( m ) < 1.0f )
+    {
+        x1 = x - l;
+        x2 = x + l;
+        y1 = (int)(m * x1 + b);
+        y2 = (int)(m * x2 + b);
+    } else
+    {
+        y1 = y - l;
+        y2 = y + l;
+        x1 = (int)((y1 - b) / m);
+        x2 = (int)((y2 - b) / m);
+    }
+    //draw the Line ( x1,y1,x2,y2 ) :
+    int dx = x2 - x1;
+    int dy = y2 - y1;
+    if ( dy == 0 && dx == 0 )
+    {
+        if ( x >= 0 && x < ScreenWidth && y >= 0 && y < ScreenHeight )
+            PutPixel( x1,y1,color );
+    } else if ( abs( dy ) > abs( dx ) )
+    {
+        if ( dy < 0 )
+        {
+            int temp = x1;
+            x1 = x2;
+            x2 = temp;
+            temp = y1;
+            y1 = y2;
+            y2 = temp;
+        }
+        float m = (float)dx / (float)dy;
+        float b = x1 - m*y1;
+        for ( int y = y1; y <= y2; y = y + 1 )
+        {
+            int x = (int)(m*y + b + 0.5f);
+            if ( x >= 0 && x < ScreenWidth && y >= 0 && y < ScreenHeight )
+                PutPixel( x,y,color );
+        }
+    } else
+    {
+        if ( dx < 0 )
+        {
+            int temp = x1;
+            x1 = x2;
+            x2 = temp;
+            temp = y1;
+            y1 = y2;
+            y2 = temp;
+        }
+        float m = (float)dy / (float)dx;
+        float b = y1 - m*x1;
+        for ( int x = x1; x <= x2; x = x + 1 )
+        {
+            int y = (int)(m*x + b + 0.5f);
+            if ( x >= 0 && x < ScreenWidth && y >= 0 && y < ScreenHeight )
+                PutPixel( x,y,color );
+        }
+    }
+}
+
+void Graphics::drawCircle( int centerX,int centerY,int radius,Color color )
+{
+    int rSquared = radius*radius;
+    int xPivot = (int)(radius * 0.707107f + 0.5f);
+    for ( int x = 0; x <= xPivot; x++ )
+    {
+        int y = (int)(sqrt( (float)(rSquared - x*x) ) + 0.5f);
+        PutPixel( centerX + x,centerY + y,color );
+        PutPixel( centerX - x,centerY + y,color );
+        PutPixel( centerX + x,centerY - y,color );
+        PutPixel( centerX - x,centerY - y,color );
+        PutPixel( centerX + y,centerY + x,color );
+        PutPixel( centerX - y,centerY + x,color );
+        PutPixel( centerX + y,centerY - x,color );
+        PutPixel( centerX - y,centerY - x,color );
+    }
+}
+
+template <class V> inline void swap( V &a,V &b )
+{
+    V temp = a;
+    a = b;
+    b = temp;
+}
+
+void Graphics::drawBox( const Rect& coords,Color color )
+{
+    drawBox( coords.x1,coords.y1,coords.x2,coords.y2,color );
+}
+
+void Graphics::drawBox( int x1,int y1,int x2,int y2,Color color )
+{
+    for ( int x = x1; x <= x2; x++ )
+    {
+        PutPixel( x,y1,color );
+        PutPixel( x,y2,color );
+    }
+    for ( int y = y1; y <= y2; y++ )
+    {
+        PutPixel( x1,y,color );
+        PutPixel( x2,y,color );
+    }
+}
+
+void Graphics::drawBoxClipped( Rect coords,Rect clippedArea,Color color )
+{
+    int x1;
+    int y1;
+    int x2;
+    int y2;
+    if ( coords.x1 >= clippedArea.x1 ) x1 = coords.x1;
+    else x1 = clippedArea.x1;
+    if ( x1 > clippedArea.x2 ) x1 = clippedArea.x2;
+    if ( coords.x2 <= clippedArea.x2 ) x2 = coords.x2;
+    else x2 = clippedArea.x2;
+    if ( x2 < clippedArea.x1 ) x2 = clippedArea.x1;
+    if ( coords.y1 >= clippedArea.y1 ) y1 = coords.y1;
+    else y1 = clippedArea.y1;
+    if ( y1 > clippedArea.y2 ) y1 = clippedArea.y2;
+    if ( coords.y2 <= clippedArea.y2 ) y2 = coords.y2;
+    else y2 = clippedArea.y2;
+    if ( y2 < clippedArea.y1 ) y2 = clippedArea.y1;
+    if ( coords.y1 == y1 ) drawHorLine( x1,y1,x2,color );
+    if ( coords.y2 == y2 ) drawHorLine( x1,y2,x2,color );
+    if ( coords.x1 == x1 ) drawVerLine( x1,y1,y2,color );
+    if ( coords.x2 == x2 ) drawVerLine( x2,y1,y2,color );
+}
+
+void Graphics::drawBlock( Rect coords,Color color )
+{
+    drawBlock( coords.x1,coords.y1,coords.x2,coords.y2,color );
+}
+
+void Graphics::drawBlock( int x1,int y1,int x2,int y2,Color color )
+{
+    for ( int y = y1; y <= y2; y++ )
+        for ( int x = x1; x <= x2; x++ )
+            PutPixel( x,y,color );
+}
+
+void Graphics::printXY( int x,int y,const char *s )
+{
+    if ( s == nullptr ) return;
+    int slen = (int)strlen( s );
+    int height = font->height();
+    if ( !font->isBitmap() )
+    {
+        int width = font->width();
+        int stringWidth = width * slen;
+
+        assert( (x + stringWidth) < ScreenWidth );
+        assert( (y + height) < ScreenHeight );
+
+        Color *s1 = (Color *)pSysBuffer;
+        s1 += x + ScreenWidth * y;
+        for ( int iChar = 0; iChar < slen; iChar++ )
+        {
+            Color    *s2 = s1;
+            char *iData = font->getCharData( s[iChar] );
+            for ( int j = 0; j < height; j++ )
+            {
+                int iByte;
+                for ( int i = 0; i < width; i++ )
+                {
+                    iByte = i % 8;
+                    if ( (iByte == 0) && (i > 0) ) iData++;
+                    if ( ((*iData) & (1 << (7 - iByte))) != 0 )
+                        *s2 = textColor;
+                    s2++;
+                }
+                if ( iByte > 0 ) iData++;
+                s2 += ScreenWidth - width;
+            }
+            s1 += width;
+        }
+    } else {
+        int startX = x;
+        for ( int i = 0; i < slen; i++ )
+        {
+            paintBMPClearType( startX,y,*((Sprite *)(font->getBmpData( s[i] ))),0 );
+            startX += ((Sprite *)(font->getBmpData( s[i] )))->getWidth();
+        }
+    }
+}
+
+void Graphics::printXY( int x,int y,const char *s,int opacity )
+{
+    if ( s == nullptr ) return;
+    int slen = (int)strlen( s );
+    int height = font->height();
+    if ( font->isBitmap() == false )
+    {
+        int width = font->width();
+        int stringWidth = width * slen;
+        int destNextLine = ScreenWidth - width;
+
+        assert( (x + stringWidth) < ScreenWidth );
+        assert( (y + height) < ScreenHeight );
+
+        Color *s1 = (Color *)pSysBuffer;
+        s1 += x + ScreenWidth * y;
+        for ( int iChar = 0; iChar < slen; iChar++ )
+        {
+            Color    *s2 = s1;
+            char *iData = font->getCharData( s[iChar] );
+            for ( int j = 0; j < height; j++ )
+            {
+                int iByte;
+                for ( int i = 0; i < width; i++ )
+                {
+                    iByte = i % 8;
+                    if ( (iByte == 0) && (i > 0) ) iData++;
+                    if ( ((*iData) & (1 << (7 - iByte))) != 0 )
+                        *s2 = textColor;
+                    s2++;
+                }
+                if ( iByte > 0 ) iData++;
+                s2 += destNextLine;
+            }
+            s1 += width;
+        }
+    } else {
+        int startX = x;
+        for ( int i = 0; i < slen; i++ )
+        {
+            paintBMPClearType( startX,y,*((Sprite *)(font->getBmpData( s[i] ))),0,opacity );
+            startX += ((Sprite *)(font->getBmpData( s[i] )))->getWidth();
+        }
+    }
+}
+
+int Graphics::getStrLen( const char *s,Font *font )
+{
+    if ( s == nullptr ) return 0;
+    int width = font->width();
+    int slen = (int)strlen( s );
+    if ( font->isBitmap() == false ) return slen * width;
+    else {
+        width = 0;
+        for ( int i = 0; i < slen; i++ )
+            width += ((Sprite *)font->getBmpData( s[i] ))->getWidth();
+        return width;
+    }
+}
+
+void Graphics::printXY( int x,int y,const char *s,int opacity,Font& font )
+{
+    Font *oldFont = getFont();
+    setFont( &font );
+    printXY( x,y,s,opacity );
+    setFont( oldFont );
+}
+
+void Graphics::printXYSolid( int x,int y,int xSpacer,char *s,Color color /*, HRESULT *hres*/ )
+{
+    if ( s == nullptr ) return;
+    int width = font->width();
+    int height = font->height();
+    int slen = (int)strlen( s );
+    int stringWidth = (width + xSpacer) * slen;
+
+    assert( (x + stringWidth) < ScreenWidth );
+    assert( (y + height)     < ScreenHeight );
+
+    int i = x;
+    Color *s1 = (Color *)pSysBuffer;
+    s1 += x + ScreenWidth * y;
+    for ( int iChar = 0; iChar < slen; iChar++ )
+    {
+        unsigned char c = s[iChar];
+        char *charMask = font->getCharData( c );
+        Color    *s2 = s1;
+        for ( int py = 0; py < height; py++ )
+        {
+            unsigned char d = charMask[py];
+            for ( int px = 0; px < width; px++ )
+            {
+                if ( d & (1 << (7 - px)) ) *s2 = Color( 255,255,255 );
+                else                     *s2 = color;
+                s2++;
+            }
+            s2 += ScreenWidth - width;
+        }
+        s1 += width + xSpacer;
+    }
+}
+
+void Graphics::paintSprite( int x,int y,Sprite &sprite )
+{
+    //if( sprite.pixelData == nullptr ) return;
+    if ( !sprite.isImagePresent() ) return;
+    if ( (x >= ScreenWidth) || (y >= ScreenHeight) ) return;
+    int xStart,yStart;
+    int xEnd,yEnd;
+    int xOffset,yOffset;
+    if ( x < 0 ) { xStart = 0; xOffset = -x; } else { xStart = x; xOffset = 0; }
+    if ( y < 0 ) { yStart = 0; yOffset = -y; } else { yStart = y; yOffset = 0; }
+    xEnd = x + sprite.getWidth();
+    yEnd = y + sprite.getHeight();
+    if ( (xEnd <= 0) || (yEnd <= 0) ) return;
+    if ( xEnd > ScreenWidth ) xEnd = ScreenWidth;
+    if ( yEnd > ScreenHeight ) yEnd = ScreenHeight;
+    Color *data = sprite.getPixelData() + yOffset * sprite.getWidth() + xOffset;
+    Color *s = ((Color*)pSysBuffer) + ScreenWidth * yStart + xStart;
+    int sNextLine = ScreenWidth - (xEnd - xStart);
+    int dataNextLine = sprite.getWidth() - (xEnd - xStart);
+    for ( int j = yStart; j < yEnd; j++ )
+    {
+        for ( int i = xStart; i < xEnd; i++ ) { *s++ = *data++; }
+        data += dataNextLine;
+        s += sNextLine;
+    }
+}
+
+void Graphics::paintSpriteSection( int x,int y,Rect area,Sprite &sprite )
+{
+    assert( area.x1 >= 0 );
+    assert( area.y1 >= 0 );
+    if ( !sprite.isImagePresent() ) return;
+    if ( (x >= ScreenWidth) || (y >= ScreenHeight) ) return;
+    int xOffset = 0;
+    int yOffset = 0;
+    if ( x < 0 ) { xOffset = -x; x = 0; }
+    if ( y < 0 ) { yOffset = -y; y = 0; }
+    int sourceWidth = area.x2 - area.x1 + 1;
+    int sourceHeight = area.y2 - area.y1 + 1;
+    int drawWidth = sourceWidth - xOffset;
+    int drawHeight = sourceHeight - yOffset;
+    if ( x + drawWidth  > ScreenWidth ) drawWidth = ScreenWidth - x;
+    if ( y + drawHeight > ScreenHeight ) drawHeight = ScreenHeight - y;
+    if ( area.x1 + xOffset + drawWidth  > sprite.getWidth() )
+        drawWidth = sprite.getWidth() - xOffset - area.x1;
+    if ( area.y1 + yOffset + drawHeight > sprite.getHeight() )
+        drawHeight = sprite.getHeight() - yOffset - area.y1;
+    Color *src = sprite.getPixelData() + area.x1 + xOffset
+        + (area.y1 + yOffset) * sprite.getWidth();
+    Color *dst = ((Color *)pSysBuffer) + ScreenWidth * y + x;
+    int srcNextLine = sprite.getWidth() - drawWidth;
+    int dstNextLine = ScreenWidth - drawWidth;
+    for ( int j = 0; j < drawHeight; j++ )
+    {
+        for ( int i = 0; i < drawWidth; i++ ) *dst++ = *src++;
+        src += srcNextLine;
+        dst += dstNextLine;
+    }
+}
+
+void Graphics::paintSpriteKeyed( int x,int y,Sprite &sprite,Color keyColor )  // not tested
+{
+    //if( sprite.pixelData == nullptr ) return;
+    if ( !sprite.isImagePresent() ) return;
+    if ( (x >= ScreenWidth) || (y >= ScreenHeight) ) return;
+    int xStart,yStart;
+    int xEnd,yEnd;
+    int xOffset,yOffset;
+    if ( x < 0 ) { xStart = 0; xOffset = -x; } else { xStart = x; xOffset = 0; }
+    if ( y < 0 ) { yStart = 0; yOffset = -y; } else { yStart = y; yOffset = 0; }
+    xEnd = x + sprite.getWidth();
+    yEnd = y + sprite.getHeight();
+    if ( (xEnd < 0) || (yEnd < 0) ) return;
+    if ( xEnd > ScreenWidth ) xEnd = ScreenWidth;
+    if ( yEnd > ScreenHeight ) yEnd = ScreenHeight;
+    Color *data = sprite.getPixelData() + yOffset * sprite.getWidth() + xOffset;
+    Color *s = ((Color*)pSysBuffer) + ScreenWidth * yStart + xStart;
+    int sNextLine = ScreenWidth - (xEnd - xStart);
+    int dataNextLine = sprite.getWidth() - (xEnd - xStart);
+    for ( int j = yStart; j < yEnd; j++ )
+    {
+        for ( int i = xStart; i < xEnd; i++ )
+        {
+            Color c = *s++;
+            if ( c != keyColor ) *data = c;
+            data++;
+        }
+        data += dataNextLine;
+        s += sNextLine;
+    }
+}
+
+void Graphics::paintBMPClearType( int x,int y,Sprite &sprite,Color keyColor )
+{
+    //if( sprite.pixelData == nullptr ) return;
+    if ( !sprite.isImagePresent() ) return;
+    if ( (x >= ScreenWidth) || (y >= ScreenHeight) ) return;
+    int xStart,yStart;
+    int xEnd,yEnd;
+    int xOffset,yOffset;
+    if ( x < 0 ) { xStart = 0; xOffset = -x; } else { xStart = x; xOffset = 0; }
+    if ( y < 0 ) { yStart = 0; yOffset = -y; } else { yStart = y; yOffset = 0; }
+    xEnd = x + sprite.getWidth();
+    yEnd = y + sprite.getHeight();
+    if ( (xEnd < 0) || (yEnd < 0) ) return;
+    if ( xEnd > ScreenWidth ) xEnd = ScreenWidth;
+    if ( yEnd > ScreenHeight ) yEnd = ScreenHeight;
+    Color *bmpData = sprite.getPixelData() + yOffset * sprite.getWidth() + xOffset;
+    Color *dest = (Color*)pSysBuffer + ScreenWidth * yStart + xStart;
+    int destNextLine = ScreenWidth - (xEnd - xStart);
+    int bmpDataNextLine = sprite.getWidth() - (xEnd - xStart);
+    for ( int j = yStart; j < yEnd; j++ )
+    {
+        int pixelCnt = xOffset;
+        for ( int i = xStart; i < xEnd; i++ )
+        {
+            Color c = *bmpData++;
+            if ( c != keyColor )
+            {
+                if ( c == Color(0xFFFFFF) ) *dest = Color(0xFFFFFF);
+                else {
+                    // recycle MS cleartype technology a little ;)
+                    Color s = *dest;
+                    int sr = s.GetR();
+                    int sg = s.GetG();
+                    int sb = s.GetB();
+                    int dr = c.GetR();
+                    int dg = c.GetG();
+                    int db = c.GetB();
+                    sr = sr + dr; if ( sr > 255 ) sr = 255;
+                    sg = sg + dg; if ( sg > 255 ) sg = 255;
+                    sb = sb + db; if ( sb > 255 ) sb = 255;
+                    *dest = (Color)((sr << 16) + (sg << 8) + sb);
+                }
+            }
+            dest++;
+        }
+        bmpData += bmpDataNextLine;
+        dest += destNextLine;
+    }
+}
+
+void Graphics::paintBMPClearType( int x,int y,Sprite &sprite,Color keyColor,int opacity )
+{
+    if ( !sprite.isImagePresent() ) return;
+    if ( (x >= ScreenWidth) || (y >= ScreenHeight) ) return;
+    int xStart,yStart;
+    int xEnd,yEnd;
+    int xOffset,yOffset;
+    if ( x < 0 ) { xStart = 0; xOffset = -x; } else { xStart = x; xOffset = 0; }
+    if ( y < 0 ) { yStart = 0; yOffset = -y; } else { yStart = y; yOffset = 0; }
+    xEnd = x + sprite.getWidth();
+    yEnd = y + sprite.getHeight();
+    if ( (xEnd < 0) || (yEnd < 0) ) return;
+    if ( xEnd > ScreenWidth ) xEnd = ScreenWidth;
+    if ( yEnd > ScreenHeight ) yEnd = ScreenHeight;
+    Color *bmpData = sprite.getPixelData() + yOffset * sprite.getWidth() + xOffset;
+    Color *dest = (Color*)pSysBuffer + ScreenWidth * yStart + xStart;
+    int destNextLine = ScreenWidth - (xEnd - xStart);
+    int bmpDataNextLine = sprite.getWidth() - (xEnd - xStart);
+    for ( int j = yStart; j < yEnd; j++ )
+    {
+        int pixelCnt = xOffset;
+        for ( int i = xStart; i < xEnd; i++ )
+        {
+            Color c = *bmpData++;
+            if ( c != keyColor )
+            {
+                Color s = *dest;  // video memory read == slow!
+                int sr = s.GetR();
+                int sg = s.GetG();
+                int sb = s.GetB();
+                int dr = c.GetR();
+                int dg = c.GetG();
+                int db = c.GetB();
+                if ( c != Color(0xFFFFFF) ) {
+                    // recycle MS cleartype technology a little ;)
+                    dr = sr + dr; if ( dr > 255 ) dr = 255;
+                    dg = sg + dg; if ( dg > 255 ) dg = 255;
+                    db = sb + db; if ( db > 255 ) db = 255;
+                }
+                // blend it with the background based on the opacity
+                *dest = (((dr << 16) + ((opacity  * (sr - dr)) << 8)) & 0xFF0000)
+                    | (dg << 8) + ((opacity  * (sg - dg)) & 0xFF00)
+                    | (db + ((opacity  * (sb - db)) >> 8));
+            }
+            dest++;
+        }
+        bmpData += bmpDataNextLine;
+        dest += destNextLine;
+    }
+}
+
+/*
+Specialized drawing functions for interface
+*/
+void Graphics::drawNiceBlock( Rect r )
+{
+    int rd = frameColor.GetR() / frameWidth;
+    int gd = frameColor.GetG() / frameWidth;
+    int bd = frameColor.GetB() / frameWidth;
+    int red = rd;
+    int grn = gd;
+    int blu = bd;
+    int i;
+    for ( i = 0; i < frameWidth; i++ )
+    {
+        drawBox( r.x1 + i,r.y1 + i,r.x2 - i,r.y2 - i,Color( red,grn,blu ) );
+        red += rd;
+        grn += gd;
+        blu += bd;
+    }
+    drawBlock( r.x1 + i,r.y1 + i,r.x2 - i,r.y2 - i,frameColor );
+}
+
+void Graphics::drawNiceBlockInv( Rect r )
+{
+    int red = frameColor.GetR();
+    int grn = frameColor.GetG();
+    int blu = frameColor.GetB();
+    int rd = red / frameWidth;
+    int gd = grn / frameWidth;
+    int bd = blu / frameWidth;
+    int i;
+    Color c;
+    for ( i = 0; i < frameWidth; i++ )
+    {
+        c = Color( red,grn,blu );
+        drawBox( r.x1 + i,r.y1 + i,r.x2 - i,r.y2 - i,c );
+        red -= rd;
+        grn -= gd;
+        blu -= bd;
+    }
+    drawBlock( r.x1 + i,r.y1 + i,r.x2 - i,r.y2 - i,c );
+}
+
+void Graphics::drawButton( Rect r )
+{
+    drawBox( r.x1,r.y1,r.x2,r.y2,0 );
+    int colorDelta = 60;
+    int red = frameColor.GetR();
+    int grn = frameColor.GetG();
+    int blu = frameColor.GetB();
+    int rd = red - colorDelta; if ( rd < 0 ) rd = 0;
+    int gd = grn - colorDelta; if ( gd < 0 ) gd = 0;
+    int bd = blu - colorDelta; if ( bd < 0 ) bd = 0;
+    int darkColor = (rd << 16) + (gd << 8) + bd;
+    int rl = red + colorDelta; if ( rl > 0xFF ) rl = 0xFF;
+    int gl = grn + colorDelta; if ( gl > 0xFF ) gl = 0xFF;
+    int bl = blu + colorDelta; if ( bl > 0xFF ) bl = 0xFF;
+    int lightColor = (rl << 16) + (gl << 8) + bl;
+    for ( int i = 1; i < frameWidth - 1; i++ )
+    {
+        drawHorLine( r.x1 + i,r.y1 + i,r.x2 - i,lightColor );
+        drawVerLine( r.x2 - i,r.y1 + i,r.y2 - i,lightColor );
+        drawHorLine( r.x1 + i,r.y2 - i,r.x2 - i,darkColor );
+        drawVerLine( r.x1 + i,r.y1 + i,r.y2 - i,darkColor );
+    }
+}
+
+void Graphics::drawButtonPlusMinus( Rect r,int width )
+{
+    int ySplit = r.y1 + (r.y2 - r.y1) / 2 + 1;
+    Rect rUp = r;
+    rUp.y2 = ySplit;
+    Rect rDown = r;
+    rDown.y1 = ySplit;
+    drawButton( rUp );
+    drawButton( rDown );
+    for ( int i = 0; i < width; i++ )
+    {
+        int x = r.x1 + 5 + i * font->width();
+        printXY( x,r.y1 + 1,"+" );
+        printXY( x,ySplit,"-" );
+    }
+}
+
+void Graphics::paintConsole( int x,int y,EvoConsole *console )
+{
+    assert( console->columns > 0 );
+    assert( console->rows    > 0 );
+
+    char buf[2];
+    buf[1] = '\0';
+
+    for ( int r = 0; r < console->rows; r++ )
+        for ( int c = 0; c < console->columns; c++ )
+        {
+            buf[0] = console->data[r][c];
+            if ( !buf[0] ) buf[0] = ' ';
+            printXY( x + c * font->width(),y + r * font->height(),buf );
+        }
+}
+
+void Graphics::printText( int x,int y,const char *text[] )
+{
+    int iLine = 0;
+    for ( int j = y; text[iLine] != nullptr; j += font->height() )
+        printXY( x,j,text[iLine++] );
+}

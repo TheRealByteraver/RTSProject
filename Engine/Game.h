@@ -23,6 +23,9 @@
 #include "Keyboard.h"
 #include "Mouse.h"
 #include "Graphics.h"
+#include "Font.h"
+#include "CreateDefaultSprites.h"
+
 
 class Game
 {
@@ -39,8 +42,13 @@ private:
 	/********************************/
 private:
 	MainWindow& wnd;
-	Graphics gfx;
+    Graphics gfx;
 	/********************************/
 	/*  User Variables              */
 	/********************************/
+    Font                    font;
+    Font                    neuropolXBMP;
+    CreateDefaultSprites    createDefaultSprites;
+
+    int                     frameNr = 0;
 };

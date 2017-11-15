@@ -51,6 +51,16 @@ public:
 		dword = color.dword;
 		return *this;
 	}
+    //  added comparison operators:
+    bool operator ==( Color color )
+    {
+        return dword == color.dword;
+    }
+    bool operator !=( Color color )
+    {
+        return dword != color.dword;
+    }
+    // end of addition
 	constexpr unsigned char GetX() const
 	{
 		return dword >> 24u;
@@ -91,6 +101,7 @@ public:
 	{
 		dword = (dword & 0xFFFFFF00u) | b;
 	}
+
 };
 
 namespace Colors

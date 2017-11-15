@@ -20,12 +20,24 @@
  ******************************************************************************************/
 #include "MainWindow.h"
 #include "Game.h"
+#include "Math.h"
+#include "Graphics.h"
 
 Game::Game( MainWindow& wnd )
 	:
 	wnd( wnd ),
-	gfx( wnd )
+    gfx( wnd )
 {
+    font.loadFont( "C:\\RTSMedia\\Courier.TFT" );
+    neuropolXBMP.loadFont( "C:\\RTSMedia\\neuropolX.tft" );
+    gfx.setFont( &font );
+    // draw sprites on screen and save the screen capture to a .bmp file.
+    // we need to do at least one frame to clear the screen / video memory ;)
+    gfx.BeginFrame();
+    UpdateModel();
+    createDefaultSprites.init( &gfx );
+    gfx.EndFrame();
+    // finished creating sprite library
 }
 
 void Game::Go()
@@ -42,4 +54,8 @@ void Game::UpdateModel()
 
 void Game::ComposeFrame()
 {
+    frameNr++;
+    createDefaultSprites.drawTerrainSprites();
+    Sprite test;//(16,16,Sprite::brokenImageSpriteData);
+    gfx.paintSprite( 100,100,test );     // error
 }

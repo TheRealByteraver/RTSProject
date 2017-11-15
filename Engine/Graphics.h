@@ -24,6 +24,56 @@
 #include <wrl.h>
 #include "ChiliException.h"
 #include "Colors.h"
+#include "EvoConsole.h"
+#include "Font.h"
+
+// added to the original file:
+struct Rect
+{
+    int x1;
+    int y1;
+    int x2;
+    int y2;
+    Rect() {}
+    Rect( int x1_,int y1_,int x2_,int y2_ )
+    {
+        x1 = x1_;
+        y1 = y1_;
+        x2 = x2_;
+        y2 = y2_;
+    }
+    bool contains( int x,int y ) const
+    {
+        if ( x < x1 ) return false;
+        if ( x > x2 ) return false;
+        if ( y < y1 ) return false;
+        if ( y > y2 ) return false;
+        return true;
+    }
+    int width() const
+    {
+        return x2 - x1 + 1;
+    }
+    int height() const
+    {
+        return y2 - y1 + 1;
+    }
+    bool isValid()
+    {
+        return ((x2 > x1) && 
+                (y2 > y1) &&
+                (x1 >= 0) &&
+                (y1 >= 0) &&
+                (x2 > 0)  &&
+                (y2 > 0));
+    }
+};
+
+// forward declarations for stupid linker:
+class Font;
+class EvoConsole;
+class Sprite;
+// end of addition
 
 class Graphics
 {
@@ -73,6 +123,62 @@ private:
 	D3D11_MAPPED_SUBRESOURCE							mappedSysBufferTexture;
 	Color*                                              pSysBuffer = nullptr;
 public:
-	static constexpr int ScreenWidth = 800;
-	static constexpr int ScreenHeight = 600;
+	static constexpr int ScreenWidth = 1280;
+	static constexpr int ScreenHeight = 720;
+    /**************************************/
+    /*                                    */
+    /*  Non-default part of the class     */
+    /*  starts here                       */
+    /*                                    */
+    /**************************************/
+public:
+    Color   *getpSysBuffer() { return pSysBuffer; }
+    Color   darken( Color src,int darken )
+    {
+        int r = (src.dword & 0x00FF0000) >> 16;
+        int g = (src.dword & 0x0000FF00) >> 8;
+        int b = (src.dword & 0x000000FF);
+        return Color(
+            (unsigned char)((r > darken) ? r - darken : 0),
+            (unsigned char)((g > darken) ? g - darken : 0),
+            (unsigned char)((b > darken) ? b - darken : 0)
+        );
+    }
+    void    drawLine( int x1,int y1,int x2,int y2,Color color );
+    void    drawHorLine( int x1,int y,int x2,Color color );
+    void    drawVerLine( int x,int y1,int y2,Color color );
+    void    drawMathLine( int x,int y,float m,int length,Color color );
+    void    drawCircle( int cx,int cy,int radius,Color color );
+    void    drawDisc( int cx,int cy,int r,Color color );
+    void    drawBox( const Rect& coords,Color color );
+    void    drawBox( int x1,int y1,int x2,int y2,Color color );
+    void    drawBoxClipped( Rect coords,Rect clippedArea,Color color );
+    void    drawBlock( Rect coords,Color color );
+    void    drawBlock( int x1,int y1,int x2,int y2,Color color );
+    void    setTextColor( Color color ) { textColor = color; }
+    void    setFont( Font *f ) { font = f; }
+    Font    *getFont() { return font; }
+    int     getStrLen( const char *s,Font *font );
+    void    printXY( int x,int y,const char *s );
+    void    printXY( int x,int y,const char *s,int opacity );
+    void    printXY( int x,int y,const char *s,int opacity,Font& font );
+    void    printXYSolid( int x,int y,int xSpacer,char *s,Color color /*, HRESULT *hres*/ );
+    void    paintConsole( int x,int y,EvoConsole *console );
+    void    paintSprite( int x,int y,Sprite &sprite );
+    void    paintSpriteSection( int x,int y,Rect area,Sprite &sprite );
+    void    paintSpriteKeyed( int x,int y,Sprite &sprite,Color keyColor );
+    void    paintBMPClearType( int x,int y,Sprite &sprite,Color keyColor );
+    void    paintBMPClearType( int x,int y,Sprite &sprite,Color keyColor,int opacity );
+    void    drawNiceBlock( Rect r );
+    void    drawNiceBlockInv( Rect r );
+    void    drawButton( Rect r );
+    void    drawButtonPlusMinus( Rect r,int width );
+    void    printText( int x,int y,const char *text[] );
+private:
+    Color   textColor = Colors::White;
+    int     frameWidth;
+    Color   frameColor = Colors::Gray;
+    Font    *font;
+
+
 };
