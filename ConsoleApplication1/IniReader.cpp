@@ -28,7 +28,7 @@
 *                                                                             *
 *******************************************************************************
 */
-#define INIFILE_FOLDER      "C:\\RTSMedia\\"
+#define INIFILE_FOLDER      ".\\RTSMedia\\"
 #define INIFILE_FILENAME    "RTSProject.ini"
 /*
     MAX_LINE_LENGTH has an arbitrary high value, because the code will bug if 
@@ -1939,7 +1939,7 @@ void Terrain::show( int curX,int curY )
 
 int main()
 {
-    /*
+    
     IniFile iniFile;
     iniFile.readFile( INIFILE_FOLDER INIFILE_FILENAME );
 
@@ -1960,7 +1960,8 @@ int main()
     error = iniFile.getKeyStatus( "RadarHouse","HasRadarCapability",boolResult );
     if ( error != 0 ) std::cout << "Error " << error << " occured" << std::endl;
     else std::cout << "HasRadarCapability = " << boolResult << std::endl;    
-    */
+    _getch();
+
 
     int curX = (COLUMNS / 2) & 0xFFFE;
     int curY = (ROWS / 2) & 0xFFFE;
