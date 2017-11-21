@@ -21,13 +21,11 @@
 
 //#define DEBUG_MODE
 
-/*
-*******************************************************************************
+/******************************************************************************
 *                                                                             *
 * Start of INI Reader Code                                                    *
 *                                                                             *
-*******************************************************************************
-*/
+******************************************************************************/
 #define INIFILE_FOLDER      ".\\RTSMedia\\"
 #define INIFILE_FILENAME    "RTSProject.ini"
 /*
@@ -40,30 +38,35 @@
 class IniFile
 {
 public:
-    IniFile() { stringList.clear(); }
-    IniFile( char *filename ) { readFile( filename ); }
+    //IniFile() { stringList.clear(); }
+    IniFile( const std::string& filename ) { readFile( filename ); }
+    bool    isLoaded() const { return iniFileLoaded_; }
     // These functions return non zero on error
-    int     readFile( char *filename );      
-    int     getKey( const char *section,const char *key,std::string& dest );
-    int     getKeyInt( const char *section,const char *key,int& value );
-    int     getKeyStatus( const char *section,const char *key,bool& value );
+    int     getKey( const std::string& section,const std::string& key,std::string& dest ) const;
+    int     getKey( const std::string& section,const std::string& key,int& value ) const;
+    int     getKey( const std::string& section,const std::string& key,bool& value ) const;
+    int     getNextSection( std::string& section );
 private:
     std::vector<std::string>  stringList;
-    char    *deleteWhiteSpace( char *buf );
+private:
+    bool    iniFileLoaded_ = false;
+    int     currentRow_ = 0;
+    int     readFile( const std::string& filename );
+    char    *deleteWhiteSpace( char *buf ) const;
 };
 
-int IniFile::readFile( char * filename )
+int IniFile::readFile( const std::string& filename )
 {
+    // start with a clean empty string list
+    stringList.clear();
+    iniFileLoaded_ = false;
     // Open the ini file
-    std::ifstream iniFile;
-    iniFile.open( filename );
+    std::ifstream iniFile( filename.c_str() );
     if ( !iniFile.is_open() ) return -1;
     // read the whole file into memory
     std::stringstream rawData;
     rawData << iniFile.rdbuf();
     iniFile.close();
-    // start with a clean empty string list
-    stringList.clear();
     // read the list line by line and remove comments, whitespace and illegal
     // commands
     char strBuf[INIFILE_MAX_LINE_LENGTH];
@@ -109,7 +112,6 @@ int IniFile::readFile( char * filename )
         std::transform( str.begin(),str.end(),str.begin(),::toupper );
         // push the data into the buffer
         stringList.push_back( str );
-
         /*
         // debug:
         //std::cout << *(stringList.end() - 1);
@@ -117,10 +119,27 @@ int IniFile::readFile( char * filename )
         std::cout << std::endl;
         */
     }
+    iniFileLoaded_ = true;
     return 0;
 }
 
-int IniFile::getKey( const char *section,const char *key,std::string& dest )   // to be tested
+int IniFile::getNextSection( std::string& section )
+{
+    for ( ; currentRow_ < (int)stringList.size(); currentRow_++ )
+    {
+        if ( stringList[currentRow_][0] == '[' ) break;
+    }
+    if ( currentRow_ < (int)stringList.size() )
+    {
+        section.clear();
+        section = stringList[currentRow_];
+        currentRow_++;
+        return 0;
+    } 
+    else return -1;
+}
+// to be tested
+int IniFile::getKey( const std::string& section,const std::string& key,std::string& dest ) const
 {
     // Transform the strings to upper case for correct comparison
     std::string sectionStr;
@@ -154,7 +173,7 @@ int IniFile::getKey( const char *section,const char *key,std::string& dest )   /
     return -1;
 }
 
-int IniFile::getKeyInt( const char *section,const char *key,int& value )
+int IniFile::getKey( const std::string& section,const std::string& key,int& value ) const
 {
     std::string dest;
     int error = getKey( section,key,dest );
@@ -182,7 +201,7 @@ int IniFile::getKeyInt( const char *section,const char *key,int& value )
     return 0;
 }
 
-int IniFile::getKeyStatus( const char *section,const char *key,bool& value )
+int IniFile::getKey( const std::string& section,const std::string& key,bool& value ) const
 {
     value = false;
     std::string dest;
@@ -197,7 +216,7 @@ int IniFile::getKeyStatus( const char *section,const char *key,bool& value )
     return 0;
 }
 
-char *IniFile::deleteWhiteSpace( char *buf )
+char *IniFile::deleteWhiteSpace( char *buf ) const
 {
     char *d = buf;
     char *s = buf;
@@ -208,13 +227,11 @@ char *IniFile::deleteWhiteSpace( char *buf )
         return buf;
 }
 
-/*
-*******************************************************************************
+/******************************************************************************
 *                                                                             *
 * Start of Terrain class code                                                 *
 *                                                                             *
-*******************************************************************************
-*/
+******************************************************************************/
 #define COLUMNS     80 // must be even, only for testing purposes
 #define ROWS        48 // must be even, only for testing purposes
 /*
@@ -1937,11 +1954,397 @@ void Terrain::show( int curX,int curY )
               << std::endl << "Navigate with o, k, l, m or 8,5,4,6";
 }
 
+/******************************************************************************
+*                                                                             *
+* Start of the Race class code                                                *
+*                                                                             *
+******************************************************************************/
+/*
+// Fied names for units & buildings
+const std::vector<std::string> FieldNameStrings =
+{
+    std::string( "type" ),
+    std::string( "HasRadarCapability" ),
+    std::string( "CanMove" ),
+    std::string( "CanFLy" ),
+    std::string( "CanJump" ),
+    std::string( "MoveSpeed" ),
+    std::string( "MaxHealth" ),
+    std::string( "MaxShield" ),
+    std::string( "MaxEnergy" ),
+    std::string( "FiringRange" ),
+    std::string( "AntiAirFirePower" ),
+    std::string( "AntiGroundFirePower" ),
+    std::string( "FiringRate" ),
+    std::string( "NeededCargoSpace" ),
+    std::string( "CostToProduce" ),
+    std::string( "CargoCapacity" ),
+    std::string( "Requires" )
+};
+
+// Field values
+#define STR_UNIT_TYPE_UNIT      "unit"
+#define STR_UNIT_TYPE_BUILDING  "building"
+#define STR_BOOLEAN_YES         "yes"
+#define STR_BOOLEAN_NO          "no"
+#define STR_BOOLEAN_TRUE        "true"
+#define STR_BOOLEAN_FALSE       "false"
+*/
+
+
+class Unit
+{
+public:
+    Unit() {}
+    int                 loadFromIniFile(
+        IniFile& iniFile,
+        const std::string& unitName 
+    );
+    void                setID( int id ) { assert( id >= 0 ); id_ = id; }
+    int                 getId() const { return id_;  }
+    const std::string&  getName() const { return name_; }
+    bool                hasRadarCapability() const { return hasRadarCapability_; }
+    bool                canMove() const { return canMove_; }
+    bool                canFLy() const { return canFLy_; }
+    bool                canJump() const { return canJump_; }
+    int                 moveSpeed() const { return moveSpeed_; }
+    int                 maxHealth() const { return maxHealth_; }
+    int                 maxShield() const { return maxShield_; }
+    int                 maxEnergy() const { return maxEnergy_; }
+    int                 firingRange() const { return firingRange_; }
+    int                 antiAirFirePower() const { return antiAirFirePower_; }
+    int                 antiGroundFirePower() const { return antiGroundFirePower_; }
+    int                 firingRate() const { return firingRate_; }
+    int                 neededCargoSpace() const { return neededCargoSpace_; }
+    int                 costToProduce() const { return costToProduce_; }
+    int                 cargoCapacity() const { return cargoCapacity_; }
+    const std::vector <std::string>& canProduce() const { return canProduce_; }
+    const std::vector <std::string>& requires() const { return requires_; }
+private:
+    int             id_;                 // index in list of all units / buildings
+    std::string     name_;
+    bool            hasRadarCapability_; // whether it can detect hidden units
+    bool            canMove_;            // whether it can move
+    bool            canFLy_;             // whether the unit is an airplane
+    bool            canJump_;            // whether it can jump onto higher ground or from a cliff
+    int             moveSpeed_;          // how fast it can move
+    int             maxHealth_;          // its maximum health,can be more than 100
+    int             maxShield_;          // its maximum shield level
+    int             maxEnergy_;          // its maximum energy level
+    int             firingRange_;        // how close units have to be before unit can shoot them
+    int             antiAirFirePower_;   // how effective unit is against enemy aircraft
+    int             antiGroundFirePower_;// how effective unit is against enemy ground units
+    int             firingRate_;         // how fast it shoots
+    int             neededCargoSpace_;   // how much it occupies if transported
+    int             costToProduce_;      // How much money it costs to produce this unit
+    int             cargoCapacity_;      // how much cargo it can carry
+    std::vector <std::string> canProduce_;// Can be used if a unit can evolve maybe ?
+    std::vector <std::string> requires_; // building( s ) required to produce the unit/building
+};
+
+int Unit::loadFromIniFile( 
+    IniFile& iniFile,
+    const std::string& unitName )
+{
+    int error;
+    if ( !iniFile.isLoaded() ) return -1;
+    name_ = unitName;
+    error = iniFile.getKey( unitName,"hasRadarCapability",hasRadarCapability_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,"canMove",canMove_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,"canFLy",canFLy_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,"canJump",canJump_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,"moveSpeed",moveSpeed_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,"maxHealth",maxHealth_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,"maxShield",maxShield_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,"maxEnergy",maxEnergy_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,"firingRange",firingRange_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,"antiAirFirePower",antiAirFirePower_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,"antiGroundFirePower",antiGroundFirePower_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,"firingRate",firingRate_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,"neededCargoSpace",neededCargoSpace_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,"costToProduce",costToProduce_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,"cargoCapacity",cargoCapacity_ );
+    if ( error != 0 ) return -1;
+    // temporary, should make a list of units & buildings and assign them a number
+    {
+        std::string strList;
+        error = iniFile.getKey( unitName,"Requires",strList );
+        if ( error != 0 ) return -1;
+        const char *c = strList.c_str();
+        char *buf = new char[strList.length() + 1];
+        buf[0] = '\0';
+        for ( int i = 0; *c != '\0'; c++ )
+        {
+            buf[i] = *c;
+            i++;
+            if ( *c == ',' )
+            {
+                buf[i - 1] = '\0';
+                requires_.push_back( std::string( buf ) );
+                i = 0;
+            } else if ( c[1] == '\0' )
+            {
+                buf[i] = '\0';
+                requires_.push_back( std::string( buf ) );
+            }
+        }
+        delete buf;
+        strList.clear();
+    }
+    {
+        std::string strList;
+        error = iniFile.getKey( unitName,"CanProduce",strList );
+        if ( error != 0 ) return -1;
+        const char *c = strList.c_str();
+        char *buf = new char[strList.length() + 1];
+        buf[0] = '\0';
+        for ( int i = 0; *c != '\0'; c++ )
+        {
+            buf[i] = *c;
+            i++;
+            if ( *c == ',' )
+            {
+                buf[i - 1] = '\0';
+                i = 0;
+                canProduce_.push_back( std::string( buf ) );
+            } else if ( c[1] == '\0' )
+            {
+                buf[i] = '\0';
+                canProduce_.push_back( std::string( buf ) );
+            }
+        }
+        delete buf;
+        strList.clear();
+    }
+    // end temporary
+    return 0;
+}
+
+class Building
+{
+public:
+    Building() {}
+    int                 loadFromIniFile(
+        IniFile& iniFile,
+        const std::string& unitName
+    );
+    void                setID( int id ) { assert( id >= 0 ); id_ = id; }
+    int                 getId() const { return id_; }
+    const std::string&  getName() const { return name_; }
+    bool                hasRadarCapability() const { return hasRadarCapability_; }
+    bool                canMove() const { return canMove_; }
+    bool                canFLy() const { return canFLy_; }
+    bool                canJump() const { return canJump_; }
+    int                 moveSpeed() const { return moveSpeed_; }
+    int                 maxHealth() const { return maxHealth_; }
+    int                 maxShield() const { return maxShield_; }
+    int                 maxEnergy() const { return maxEnergy_; }
+    int                 firingRange() const { return firingRange_; }
+    int                 antiAirFirePower() const { return antiAirFirePower_; }
+    int                 antiGroundFirePower() const { return antiGroundFirePower_; }
+    int                 firingRate() const { return firingRate_; }
+    int                 neededCargoSpace() const { return neededCargoSpace_; }
+    int                 costToProduce() const { return costToProduce_; }
+    int                 cargoCapacity() const { return cargoCapacity_; }
+    const std::vector <std::string>& canProduce() const { return canProduce_; }
+    const std::vector <std::string>& requires() const { return requires_; }
+private:
+    int             id_;                 // index in list of all units / buildings
+    std::string     name_;
+    bool            hasRadarCapability_; // whether it can detect hidden units
+    bool            canMove_;            // whether it can move
+    bool            canFLy_;             // whether the unit is an airplane
+    bool            canJump_;            // whether it can jump onto higher ground or from a cliff
+    int             moveSpeed_;          // how fast it can move
+    int             maxHealth_;          // its maximum health,can be more than 100
+    int             maxShield_;          // its maximum shield level
+    int             maxEnergy_;          // its maximum energy level
+    int             firingRange_;        // how close units have to be before unit can shoot them
+    int             antiAirFirePower_;   // how effective unit is against enemy aircraft
+    int             antiGroundFirePower_;// how effective unit is against enemy ground units
+    int             firingRate_;         // how fast it shoots
+    int             neededCargoSpace_;   // how much it occupies if transported
+    int             costToProduce_;      // How much money it costs to produce this unit
+    int             cargoCapacity_;      // how much cargo it can carry
+    std::vector <std::string> canProduce_;// Can be used if a unit can evolve maybe ?
+    std::vector <std::string> requires_; // building( s ) required to produce the unit/building
+};
+
+int Building::loadFromIniFile(
+    IniFile& iniFile,
+    const std::string& unitName )
+{
+    int error;
+    if ( !iniFile.isLoaded() ) return -1;
+    /*
+    int keyNr = 0;
+    error = iniFile.getKey( unitName,FieldNameStrings[keyNr++],name_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,FieldNameStrings[keyNr++],hasRadarCapability_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,FieldNameStrings[keyNr++],canMove_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,FieldNameStrings[keyNr++],canFLy_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,FieldNameStrings[keyNr++],canJump_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,FieldNameStrings[keyNr++],moveSpeed_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,FieldNameStrings[keyNr++],maxHealth_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,FieldNameStrings[keyNr++],maxShield_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,FieldNameStrings[keyNr++],maxEnergy_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,FieldNameStrings[keyNr++],firingRange_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,FieldNameStrings[keyNr++],antiAirFirePower_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,FieldNameStrings[keyNr++],antiGroundFirePower_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,FieldNameStrings[keyNr++],firingRate_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,FieldNameStrings[keyNr++],neededCargoSpace_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,FieldNameStrings[keyNr++],costToProduce_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,FieldNameStrings[keyNr++],cargoCapacity_ );
+    if ( error != 0 ) return -1;
+    std::string reqList;
+    error = iniFile.getKey( unitName,FieldNameStrings[keyNr++],reqList );
+    if ( error != 0 ) return -1;
+    */
+    name_ = unitName;
+    error = iniFile.getKey( unitName,"hasRadarCapability",hasRadarCapability_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,"canMove",canMove_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,"canFLy",canFLy_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,"canJump",canJump_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,"moveSpeed",moveSpeed_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,"maxHealth",maxHealth_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,"maxShield",maxShield_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,"maxEnergy",maxEnergy_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,"firingRange",firingRange_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,"antiAirFirePower",antiAirFirePower_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,"antiGroundFirePower",antiGroundFirePower_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,"firingRate",firingRate_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,"neededCargoSpace",neededCargoSpace_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,"costToProduce",costToProduce_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKey( unitName,"cargoCapacity",cargoCapacity_ );
+    if ( error != 0 ) return -1;
+    // temporary, should make a list of units & buildings and assign them a number
+    {
+        std::string strList;
+        error = iniFile.getKey( unitName,"Requires",strList );
+        if ( error != 0 ) return -1;
+        const char *c = strList.c_str();
+        char *buf = new char[strList.length() + 1];
+        buf[0] = '\0';
+        for ( int i = 0; *c != '\0'; c++ )
+        {
+            buf[i] = *c;
+            i++;
+            if ( *c == ',' )
+            {
+                buf[i - 1] = '\0';
+                requires_.push_back( std::string( buf ) );
+                i = 0;
+            } else if ( c[1] == '\0' )
+            {
+                buf[i] = '\0';
+                requires_.push_back( std::string( buf ) );
+            }
+        }
+        delete buf;
+        strList.clear();
+    }
+    {
+        std::string strList;
+        error = iniFile.getKey( unitName,"CanProduce",strList );
+        if ( error != 0 ) return -1;
+        const char *c = strList.c_str();
+        char *buf = new char[strList.length() + 1];
+        buf[0] = '\0';
+        for ( int i = 0; *c != '\0'; c++ )
+        {
+            buf[i] = *c;
+            i++;
+            if ( *c == ',' )
+            {
+                buf[i - 1] = '\0';
+                i = 0;
+                canProduce_.push_back( std::string( buf ) );
+            } else if ( c[1] == '\0' )
+            {
+                buf[i] = '\0';
+                canProduce_.push_back( std::string( buf ) );
+            }
+        }
+        delete buf;
+        strList.clear();
+    }
+    // end temporary
+    return 0;
+}
+
+
+/*
+    A race is a collection of units and buildings
+*/
+class Race
+{
+public:
+private:
+};
+
+/*
+    A faction is an instance of a race in a specific scenario. The scenario can
+    apply limits to the functionality of the race, for instance certain units 
+    or buildings might not be available.
+*/
+class Faction
+{
+};
+
+/*
+    A scenario contains a terrain, a collection of factions with their 
+    buildings and units, alliances between factions, goals for the player(s)
+*/
+class Scenario
+{
+};
+
 int main()
 {
     
-    IniFile iniFile;
-    iniFile.readFile( INIFILE_FOLDER INIFILE_FILENAME );
+    IniFile iniFile( std::string( INIFILE_FOLDER INIFILE_FILENAME ) );
 
     std::string result;
     int error = iniFile.getKey( "HeavyFactory","CanProduce",result );
@@ -1952,14 +2355,28 @@ int main()
     std::cout << "---------------------------------------------" << std::endl;
 
     int intResult;
-    error = iniFile.getKeyInt( "RadarHouse","MaxHealth",intResult );
+    error = iniFile.getKey( "RadarHouse","MaxHealth",intResult );
     if( error != 0 ) std::cout << "Error " << error << " occured" << std::endl;
     else std::cout << "MaxHealth = " << intResult << std::endl;
 
     bool boolResult;
-    error = iniFile.getKeyStatus( "RadarHouse","HasRadarCapability",boolResult );
+    error = iniFile.getKey( "RadarHouse","HasRadarCapability",boolResult );
     if ( error != 0 ) std::cout << "Error " << error << " occured" << std::endl;
-    else std::cout << "HasRadarCapability = " << boolResult << std::endl;    
+    else std::cout << "HasRadarCapability = " << boolResult << std::endl;   
+    std::cout << std::endl;
+    Unit unit;
+    unit.loadFromIniFile( iniFile,std::string( "HEAVYFACTORY" ) );
+
+    for ( const std::string& s : unit.requires() ) std::cout << s << std::endl;
+    std::cout << std::endl;
+    for ( const std::string& s : unit.canProduce() ) std::cout << s << std::endl;
+    std::cout << std::endl;
+    std::string dst;
+    while ( iniFile.getNextSection( dst ) == 0 )
+    {
+        std::cout << dst << std::endl;
+        //_getch();
+    }
     _getch();
 
 
@@ -1968,24 +2385,30 @@ int main()
     Terrain terrain( COLUMNS,ROWS );
     /*
     srand( time( NULL ) );
-    for ( int i = 0; i < 400; i++ )
+    for ( int i = 0; i < 800; i++ )
     {
-        int t = rand() % 3;
-        switch ( t )
+        int x = (rand() % COLUMNS) & 0xFFFFE;
+        int y = (rand() % ROWS) & 0xFFFFE;
+        switch ( rand() % 4 )
         {
             case 0:
             {
-                terrain.assign( rand() % COLUMNS,rand() % ROWS,T_LOW );
+                terrain.assign( x,y,T_LOW );
                 break;
             }
             case 1:
             {
-                terrain.assign( rand() % COLUMNS,rand() % ROWS,T_HIGH );
+                terrain.assign( x,y,T_HIGH );
                 break;
             }
             case 2:
             {
-                terrain.assign( rand() % COLUMNS,rand() % ROWS,T_TRANS );
+                terrain.assign( x,y,T_LOW_WATER );
+                break;
+            }
+            case 3:
+            {
+                terrain.assign( x,y,T_HIGH_WATER );
                 break;
             }
         }
