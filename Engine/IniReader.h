@@ -9,23 +9,16 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <time.h>
-#include <conio.h>    // for getch();
 #include <windows.h>
 
-//#define DEBUG_MODE
-
-/*
-*******************************************************************************
+/******************************************************************************
 *                                                                             *
 * Start of INI Reader Code                                                    *
 *                                                                             *
-*******************************************************************************
-*/
-#define INIFILE_FOLDER      "C:\\RTSMedia\\"
-#define INIFILE_FILENAME    "RTSProject.ini"
+******************************************************************************/
 /*
-    MAX_LINE_LENGTH has an arbitrary high value, because the code will bug if 
-    the length of the line found in the ini file exceeds this number
+MAX_LINE_LENGTH has an arbitrary high value, because the code will bug if
+the length of the line found in the ini file exceeds this number
 */
 #define INIFILE_MAX_LINE_LENGTH     255
 #define INIFILE_COMMENT_CHAR        ';'
@@ -33,30 +26,36 @@
 class IniFile
 {
 public:
-    IniFile() { stringList.clear(); }
-    IniFile( char *filename ) { readFile( filename ); }
+    IniFile( const std::string& filename ) { readFile( filename ); }
+    bool    isLoaded() const { return iniFileLoaded_; }
     // These functions return non zero on error
-    int     readFile( char *filename );      
-    int     getKey( const char *section,const char *key,std::string& dest );
-    int     getKeyInt( const char *section,const char *key,int& value );
-    int     getKeyStatus( const char *section,const char *key,bool& value );
+    int     getKeyValue( const std::string& section,const std::string& key,std::string& dest ) const;
+    int     getKeyValue( const std::string& section,const std::string& key,int& value ) const;
+    int     getKeyValue( const std::string& section,const std::string& key,bool& value ) const;
+    int     getNextSection( std::string& section );
+    int     getNextKey( std::string& section );
+    int     rewind() { currentRow_ = 0; return (iniFileLoaded_ ? 0 : -1); }
 private:
     std::vector<std::string>  stringList;
-    char    *deleteWhiteSpace( char *buf );
+private:
+    bool    iniFileLoaded_ = false;
+    int     currentRow_ = 0;
+    int     readFile( const std::string& filename );
+    char    *deleteWhiteSpace( char *buf ) const;
 };
 
-int IniFile::readFile( char * filename )
+int IniFile::readFile( const std::string& filename )
 {
+    // start with a clean empty string list
+    stringList.clear();
+    iniFileLoaded_ = false;
     // Open the ini file
-    std::ifstream iniFile;
-    iniFile.open( filename );
+    std::ifstream iniFile( filename.c_str() );
     if ( !iniFile.is_open() ) return -1;
     // read the whole file into memory
     std::stringstream rawData;
     rawData << iniFile.rdbuf();
     iniFile.close();
-    // start with a clean empty string list
-    stringList.clear();
     // read the list line by line and remove comments, whitespace and illegal
     // commands
     char strBuf[INIFILE_MAX_LINE_LENGTH];
@@ -97,12 +96,11 @@ int IniFile::readFile( char * filename )
                 sectionFound = true;
             }
         }
-        // put alles in upper case for easy comparing later on
+        // put everything in upper case for easy comparing later on
         std::string str( strBuf );
         std::transform( str.begin(),str.end(),str.begin(),::toupper );
         // push the data into the buffer
         stringList.push_back( str );
-
         /*
         // debug:
         //std::cout << *(stringList.end() - 1);
@@ -110,10 +108,38 @@ int IniFile::readFile( char * filename )
         std::cout << std::endl;
         */
     }
+    iniFileLoaded_ = true;
     return 0;
 }
 
-int IniFile::getKey( const char *section,const char *key,std::string& dest )   // to be tested
+int IniFile::getNextSection( std::string& section )
+{
+    for ( ; currentRow_ < (int)stringList.size(); currentRow_++ )
+    {
+        if ( stringList[currentRow_][0] == '[' ) break;
+    }
+    if ( currentRow_ < (int)stringList.size() )
+    {
+        section.clear();
+        for ( int i = 1; i < (int)stringList[currentRow_].length() - 1; i++ )
+            section += stringList[currentRow_][i];
+        //section = stringList[currentRow_];
+        currentRow_++;
+        return 0;
+    } else return -1;
+}
+
+int IniFile::getNextKey( std::string& section )
+{
+    section.clear();
+    if ( currentRow_ >= (int)stringList.size() ) return -1;
+    if ( stringList[currentRow_][0] == '[' ) return -1;
+    section = stringList[currentRow_];
+    currentRow_++;
+    return 0;
+}
+
+int IniFile::getKeyValue( const std::string& section,const std::string& key,std::string& dest ) const
 {
     // Transform the strings to upper case for correct comparison
     std::string sectionStr;
@@ -147,10 +173,10 @@ int IniFile::getKey( const char *section,const char *key,std::string& dest )   /
     return -1;
 }
 
-int IniFile::getKeyInt( const char *section,const char *key,int& value )
+int IniFile::getKeyValue( const std::string& section,const std::string& key,int& value ) const
 {
     std::string dest;
-    int error = getKey( section,key,dest );
+    int error = getKeyValue( section,key,dest );
     if ( error != 0 ) return -1;
     value = 0;
     try {
@@ -158,14 +184,14 @@ int IniFile::getKeyInt( const char *section,const char *key,int& value )
     }
     /*
     catch ( std::invalid_argument& e ) {
-        // if no conversion could be performed
-        return -1;
+    // if no conversion could be performed
+    return -1;
     }
     catch ( std::out_of_range& e ) {
-        // if the converted value would fall out of the range of the result type 
-        // or if the underlying function (std::strtol or std::strtoull) sets errno 
-        // to ERANGE.
-        return -1;
+    // if the converted value would fall out of the range of the result type
+    // or if the underlying function (std::strtol or std::strtoull) sets errno
+    // to ERANGE.
+    return -1;
     }
     */
     catch ( ... ) {
@@ -175,11 +201,11 @@ int IniFile::getKeyInt( const char *section,const char *key,int& value )
     return 0;
 }
 
-int IniFile::getKeyStatus( const char *section,const char *key,bool& value )
+int IniFile::getKeyValue( const std::string& section,const std::string& key,bool& value ) const
 {
     value = false;
     std::string dest;
-    int error = getKey( section,key,dest );
+    int error = getKeyValue( section,key,dest );
     if ( error != 0 ) return -1;
     if ( (dest.compare( "TRUE" ) == 0) ||
         (dest.compare( "YES" ) == 0) ||
@@ -190,7 +216,7 @@ int IniFile::getKeyStatus( const char *section,const char *key,bool& value )
     return 0;
 }
 
-char *IniFile::deleteWhiteSpace( char *buf )
+char *IniFile::deleteWhiteSpace( char *buf ) const
 {
     char *d = buf;
     char *s = buf;
