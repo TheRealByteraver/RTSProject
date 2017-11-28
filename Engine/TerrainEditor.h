@@ -120,6 +120,7 @@ BTT = Bottom-to-top
 nr 1 is always closest to HIGH terrain
 nr 4 is always closest to LOW terrain
 */
+/*
 #define T_RIGHT_RAMP_MASK               (T_RAMPS_LOWER_LIMIT + 0)
 #define T_RIGHT_RAMP_CENTRAL_LTR1       68
 #define T_RIGHT_RAMP_CENTRAL_LTR2       69
@@ -180,6 +181,7 @@ nr 4 is always closest to LOW terrain
 #define T_RAMPS_WALKABLE_MASK           
 #define T_RAMPS_LOWER_LIMIT             64
 #define T_RAMPS_UPPER_LIMIT             127
+*/
 /*
 Initialization constants: default terrain
 */
@@ -225,6 +227,9 @@ public:
         data_ = new char[size_];
         std::fill_n( data_,size_,terrain );
     }
+    const std::string& getName() const { return name_; }
+    int     loadTerrain( std::string filename );
+    int     saveTerrain( std::string filename );
     void    drawTerrain( int i,char terrain );
     void    drawTerrain( int i,int j,char terrain )
     {
@@ -254,10 +259,13 @@ public:
     }
     void    show( int curX,int curY );
 private:
+    static const char *hexstr;// = "0123456789ABCDEF"
+    std::string name_;
     int     columns_;
     int     rows_;
     int     size_;
     char    *data_;
+private:
     bool    isBasicTerrain( const char data )
     {
         return (data >= T_BASIC_TERRAIN_LOWER_LIMIT) &&
@@ -287,7 +295,9 @@ private:
     {
         return
             isHigh( data ) ||
-            isHighWater( data ) ||
+            isHighWater( data ) 
+            /*
+            ||
             (data == T_RIGHT_RAMP_TOPSIDE_LTR1) ||
             (data == T_RIGHT_RAMP_CENTRAL_LTR1) ||
             (data == T_RIGHT_RAMP_BTMSIDE_LTR1) ||
@@ -299,8 +309,11 @@ private:
             (data == T_LEFT_RAMP_BTMSIDE_RTL1) ||
             (data == T_UP_RAMP_LEFTSIDE_BTT1) ||
             (data == T_UP_RAMP_CENTRAL_BTT1) ||
-            (data == T_UP_RAMP_RIGHTSIDE_BTT1);
+            (data == T_UP_RAMP_RIGHTSIDE_BTT1)
+            */
+            ;
     }
+    /*
     bool    isRamp( const char data )
     {
         return (data >= T_RAMPS_LOWER_LIMIT) && (data <= T_RAMPS_UPPER_LIMIT);
@@ -325,9 +338,10 @@ private:
         return isRamp( data ) &&
             ((data & T_RAMPS_TYPE_MASK) == T_UP_RAMP_MASK);
     }
+    */
     char    getMasterTerrainType( const char data )
     {
-        if ( isRamp( data ) ) return data & T_RAMPS_TYPE_MASK;
+        // if ( isRamp( data ) ) return data & T_RAMPS_TYPE_MASK;
         if ( isBasicTerrain( data ) ) return data & T_BASIC_TERRAIN_TYPE_MASK;
         return -1;
     }
@@ -349,10 +363,12 @@ private:
             case T_HIGH: { return T_LOW;       break; }
             case T_LOW: { return T_LOW_WATER; break; }
             case T_LOW_WATER: { return T_LOW_WATER; break; }
+            /*
             case T_RIGHT_RAMP_MASK:
             case T_DOWN_RAMP_MASK:
             case T_LEFT_RAMP_MASK:
             case T_UP_RAMP_MASK: { return T_LOW_WATER; break; }
+            */
         }
         return -1;
     }
@@ -364,13 +380,16 @@ private:
             case T_HIGH: { return T_HIGH_WATER; break; }
             case T_LOW: { return T_HIGH;       break; }
             case T_LOW_WATER: { return T_LOW;        break; }
+            /*
             case T_RIGHT_RAMP_MASK:
             case T_DOWN_RAMP_MASK:
             case T_LEFT_RAMP_MASK:
             case T_UP_RAMP_MASK: { return T_HIGH;       break; }
+            */
         }
         return -1;
     }
+    /*
     void    deleteRamp( int i,char rampType );
     void    deleteRamp( int i,int j,char rampType )
     {
@@ -381,6 +400,7 @@ private:
     {
         drawRamp( j * columns_ + i,rampType );
     }
+    */
     void    adapt( int i );
     void    fixTransitions( int x1,int y1,int x2,int y2 );
     bool    isValidLocationFor( int i,char terrain );

@@ -1,4 +1,22 @@
-﻿#include "TerrainEditor.h"
+﻿#include <iostream>
+#include <fstream>
+#include "TerrainEditor.h"
+#include "IniFile.h"
+
+
+/*
+Ramps are 4x4 big squares (big squares are 2x2 small ones)
+The origin is always the top left, no matter
+how the ramp is oriented. Conditions:
+- high ground should be two 2x2 squares wide were the ramp
+is attached
+- there should be one strip of low ground next
+to the ramp (at the bottom)
+- the ramp should not be attached to a corner of high ground
+- high ground may not be adjacent to the sides of the ramp
+*/
+
+const char *Terrain::hexstr = "0123456789ABCDEFx";
 
 bool Terrain::isValidLocationFor( int i,char terrain )
 {
@@ -7,22 +25,13 @@ bool Terrain::isValidLocationFor( int i,char terrain )
     assert( data_ != NULL );
     assert( (i & 0x1) == 0 ); // i must be even and start on an even row
     assert( ((i / columns_) & 0x1) == 0 );
-    assert( isBasicTerrain( terrain ) || isRamp( terrain ) );
+    assert( isBasicTerrain( terrain ) /* || isRamp( terrain ) */ );
     int y = i / columns_;
     int x = i % columns_;
+    return true;
+    /*
     switch ( terrain )
-    {
-        /*
-        Ramps are 4x4 big squares (big squares are 2x2 small ones)
-        The origin is always the top left, no matter
-        how the ramp is oriented. Conditions:
-        - high ground should be two 2x2 squares wide were the ramp
-        is attached
-        - there should be one strip of low ground next
-        to the ramp (at the bottom)
-        - the ramp should not be attached to a corner of high ground
-        - high ground may not be adjacent to the sides of the ramp
-        */
+    {        
         case T_RIGHT_RAMP_MASK:
         {
             if ( x < 4 ) return false;
@@ -122,15 +131,110 @@ bool Terrain::isValidLocationFor( int i,char terrain )
             }
             break;
         }
-        /*
-        Other master terrain types have no restrictions
-        */
+        // Other master terrain types have no restrictions
         default:
         {
             return true;
             break;
         }
     }
+    */
+}
+
+/*
+    Terrain needs:
+    - columns
+    - rows
+    - tileset
+    - actual terrain, comma separated
+
+[Characteristics]
+name=wastelands
+rows=40
+columns=80
+
+[TerrainData]
+row000=8F,15,14,...
+row001=8F,34,01,...
+
+*/
+int Terrain::loadTerrain( std::string filename )
+{
+    IniFile iniFile( filename );
+    if ( !iniFile.isLoaded() ) return -1;
+    int error = iniFile.getKeyValue( "Characteristics","name",name_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKeyValue( "Characteristics","columns",columns_ );
+    if ( error != 0 ) return -1;
+    error = iniFile.getKeyValue( "Characteristics","rows",rows_ );
+    if ( error != 0 ) return -1;
+    // load with default data:
+    init( columns_,rows_ );
+    for ( int rowNr = 0; rowNr < rows_; rowNr++ )
+    {
+        std::string rowValue;
+        std::string rowStr = "ROW";
+        if ( rowNr < 100 ) rowStr += "0";
+        if ( rowNr < 10 ) rowStr += "0";
+        rowStr += std::to_string( rowNr );
+        int error = iniFile.getKeyValue( "TerrainData",rowStr,rowValue );
+        if ( error != 0 ) return -1;
+        int i = 0;
+        int iMax = rowValue.length() - 1;
+        char buf[3];
+        buf[2] = '\0';
+        for ( int columnNr = 0; columnNr < columns_; columnNr++ )
+        {
+            if ( i > iMax ) return -1;
+            int charsCopied = rowValue.copy( buf,2,i );
+            if ( charsCopied != 2 ) return -1;
+            int v;
+            for ( v = 0; v < 16; v++ ) if ( buf[0] == hexstr[v] ) break;
+            if ( buf[0] != hexstr[v] ) return -1;
+            int value = v << 4;
+            for ( v = 0; v < 16; v++ ) if ( buf[1] == hexstr[v] ) break;
+            if ( buf[1] != hexstr[v] ) return -1;
+            value += v;
+            data_[rowNr * columns_ + columnNr] = value;
+            i += 3;
+        }
+    }
+    return 0;
+}
+
+int Terrain::saveTerrain( std::string filename )
+{
+    std::ofstream terrainFile( filename.c_str() );
+    if ( !terrainFile.is_open() ) return -1;
+    terrainFile << "; terrain saved by editor" << std::endl;
+    terrainFile << std::endl;
+    terrainFile << "[Characteristics]" << std::endl;
+    terrainFile << "name=" << name_ << std::endl;
+    terrainFile << "rows=" << rows_ << std::endl;
+    terrainFile << "columns=" << columns_ << std::endl;
+    terrainFile << std::endl;
+    terrainFile << "[TerrainData]" << std::endl;
+    char buf[3];
+    buf[2] = '\0';
+    for ( int rowNr = 0; rowNr < rows_; rowNr++ )
+    {
+        terrainFile << "Row";
+        if ( rowNr < 100 ) terrainFile << "0";
+        if ( rowNr < 10 ) terrainFile << "0";
+        terrainFile << rowNr;
+        terrainFile << "=";
+        for ( int columnNr = 0; columnNr < columns_; columnNr++ )
+        {
+            int value = data_[rowNr * columns_ + columnNr];
+            assert( (value <= 0xFF) && (value >= 0) );
+            buf[0] = hexstr[value >> 4];
+            buf[1] = hexstr[value & 0xF];
+            terrainFile << buf << ",";
+        }
+        terrainFile << std::endl;
+    }
+    terrainFile.close();
+    return 0;
 }
 
 void Terrain::drawTerrain( int i,char terrain )
@@ -140,10 +244,11 @@ void Terrain::drawTerrain( int i,char terrain )
     assert( data_ != NULL );
     assert( (i & 0x1) == 0 ); // i must be even and start on an even row
     assert( ((i / columns_) & 0x1) == 0 );
-    assert( isBasicTerrain( terrain ) || isRamp( terrain ) );
+    assert( isBasicTerrain( terrain ) /* || isRamp( terrain ) */ );
     if ( !isValidLocationFor( i,terrain ) ) return;
     int y = i / columns_;
     int x = i % columns_;
+    /*
     if ( isRamp( terrain ) )
     {
         drawRamp( i,terrain );
@@ -152,7 +257,10 @@ void Terrain::drawTerrain( int i,char terrain )
         int x2 = x + 4;
         int y2 = y + 4;
         fixTransitions( x1,y1,x2,y2 );
-    } else {
+    } 
+    else 
+    */
+    {
         if ( y > 0 )
         {
             if ( x > 0 ) assign( i - columns_ * 2 - 2,terrain );
@@ -172,6 +280,7 @@ void Terrain::drawTerrain( int i,char terrain )
     }
 }
 
+/*
 void Terrain::drawRamp( int i,char rampType )
 {
     assert( i < (size_ - columns_ - 1) );
@@ -264,7 +373,9 @@ void Terrain::drawRamp( int i,char rampType )
         }
     }
 }
+*/
 
+/*
 void Terrain::deleteRamp( int i,char rampType )
 {
     assert( i < (size_ - columns_ - 1) );
@@ -276,7 +387,7 @@ void Terrain::deleteRamp( int i,char rampType )
     int x = i % columns_;
 
     if ( isRamp( data_[i] ) && (rampType == getMasterTerrainType( data_[i] ))
-        ) assign( i,T_LOW /*getLowerTerrain( data_[i] ) */ );
+        ) assign( i,T_LOW );
     else return;
     if ( y > 1 )
     {
@@ -294,6 +405,7 @@ void Terrain::deleteRamp( int i,char rampType )
         if ( x < columns_ - 1 ) deleteRamp( i + columns_ * 2 + 2,rampType );
     }
 }
+*/
 
 /*
 The adapt function will make sure that there are no inconsistencies in the
@@ -353,7 +465,7 @@ void Terrain::adapt( int i )
                 int iDest = iSource - columns_ * 2 + 2;
                 int srcT = getMasterTerrainType( iSource );
                 int dstT = getMasterTerrainType( iDest );
-                if ( (srcT > T_LOW) && isRamp( dstT ) ) deleteRamp( iDest,dstT );
+                //if ( (srcT > T_LOW) && isRamp( dstT ) ) deleteRamp( iDest,dstT );
                 if ( srcT > getHigherTerrain( dstT ) )
                 {
                     assign( iDest,getLowerTerrain( srcT ) );
@@ -369,7 +481,7 @@ void Terrain::adapt( int i )
                 int iDest = iSource + 2;
                 int srcT = getMasterTerrainType( iSource );
                 int dstT = getMasterTerrainType( iDest );
-                if ( (srcT != T_LOW) && isRamp( dstT ) ) deleteRamp( iDest,dstT );
+                //if ( (srcT != T_LOW) && isRamp( dstT ) ) deleteRamp( iDest,dstT );
                 if ( srcT > getHigherTerrain( dstT ) )
                 {
                     assign( iDest,getLowerTerrain( srcT ) );
@@ -397,7 +509,7 @@ void Terrain::adapt( int i )
                 int iDest = iSource + columns_ * 2 + 2;
                 int srcT = getMasterTerrainType( iSource );
                 int dstT = getMasterTerrainType( iDest );
-                if ( (srcT > T_LOW) && isRamp( dstT ) ) deleteRamp( iDest,dstT );
+                //if ( (srcT > T_LOW) && isRamp( dstT ) ) deleteRamp( iDest,dstT );
                 if ( srcT > getHigherTerrain( dstT ) )
                 {
                     assign( iDest,getLowerTerrain( srcT ) );
@@ -413,7 +525,7 @@ void Terrain::adapt( int i )
                 int iDest = iSource + columns_ * 2;
                 int srcT = getMasterTerrainType( iSource );
                 int dstT = getMasterTerrainType( iDest );
-                if ( (srcT != T_LOW) && isRamp( dstT ) ) deleteRamp( iDest,dstT );
+                //if ( (srcT != T_LOW) && isRamp( dstT ) ) deleteRamp( iDest,dstT );
                 if ( srcT > getHigherTerrain( dstT ) )
                 {
                     assign( iDest,getLowerTerrain( srcT ) );
@@ -441,7 +553,7 @@ void Terrain::adapt( int i )
                 int iDest = iSource + columns_ * 2 - 2;
                 int srcT = getMasterTerrainType( iSource );
                 int dstT = getMasterTerrainType( iDest );
-                if ( (srcT > T_LOW) && isRamp( dstT ) ) deleteRamp( iDest,dstT );
+                //if ( (srcT > T_LOW) && isRamp( dstT ) ) deleteRamp( iDest,dstT );
                 if ( srcT > getHigherTerrain( dstT ) )
                 {
                     assign( iDest,getLowerTerrain( srcT ) );
@@ -457,7 +569,7 @@ void Terrain::adapt( int i )
                 int iDest = iSource - 2;
                 int srcT = getMasterTerrainType( iSource );
                 int dstT = getMasterTerrainType( iDest );
-                if ( (srcT != T_LOW) && isRamp( dstT ) ) deleteRamp( iDest,dstT );
+                //if ( (srcT != T_LOW) && isRamp( dstT ) ) deleteRamp( iDest,dstT );
                 if ( srcT > getHigherTerrain( dstT ) )
                 {
                     assign( iDest,getLowerTerrain( srcT ) );
@@ -485,7 +597,7 @@ void Terrain::adapt( int i )
                 int iDest = iSource - columns_ * 2 - 2;
                 int srcT = getMasterTerrainType( iSource );
                 int dstT = getMasterTerrainType( iDest );
-                if ( (srcT > T_LOW) && isRamp( dstT ) ) deleteRamp( iDest,dstT );
+                //if ( (srcT > T_LOW) && isRamp( dstT ) ) deleteRamp( iDest,dstT );
                 if ( srcT > getHigherTerrain( dstT ) )
                 {
                     assign( iDest,getLowerTerrain( srcT ) );
@@ -501,7 +613,7 @@ void Terrain::adapt( int i )
                 int iDest = iSource - columns_ * 2;
                 int srcT = getMasterTerrainType( iSource );
                 int dstT = getMasterTerrainType( iDest );
-                if ( (srcT != T_LOW) && isRamp( dstT ) ) deleteRamp( iDest,dstT );
+                //if ( (srcT != T_LOW) && isRamp( dstT ) ) deleteRamp( iDest,dstT );
                 if ( srcT > getHigherTerrain( dstT ) )
                 {
                     assign( iDest,getLowerTerrain( srcT ) );
@@ -1121,6 +1233,7 @@ void Terrain::show( int curX,int curY )
                         std::cout << ' ';
                         break;
                     }
+                    /*
                     case T_RIGHT_RAMP_TOPSIDE_LTR1:
                     {
                         SetConsoleTextAttribute( hStdout,FOREGROUND_LIGHTCYAN | BACKGROUND_RED );
@@ -1349,6 +1462,7 @@ void Terrain::show( int curX,int curY )
                         std::cout << '|';
                         break;
                     }
+                    */
                     default:
                     {
                         SetConsoleTextAttribute( hStdout,

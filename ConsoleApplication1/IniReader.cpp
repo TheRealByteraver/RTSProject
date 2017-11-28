@@ -20,10 +20,12 @@
 #include <conio.h>    // for getch();
 #include <windows.h>
 #include "TerrainEditor.h"
-#include "IniReader.h"
+#include "IniFile.h"
 
-#define INIFILE_FOLDER      ".\\RTSMedia\\Races\\"
-#define INIFILE_FILENAME    "humans.ini"
+#define FOLDER_RACES            ".\\RTSMedia\\Races\\"
+#define FOLDER_TERRAINS         ".\\RTSMedia\\Terrains\\"
+#define FILE_TERRAIN_WASTELAND  "testterrain.ini"
+#define FILE_RACE_HUMAN         "humans.ini"
 
 
 /******************************************************************************
@@ -346,7 +348,7 @@ class Scenario
 
 int main()
 {   
-    IniFile iniFile( std::string( INIFILE_FOLDER INIFILE_FILENAME ) );
+    IniFile iniFile( std::string( FOLDER_RACES FILE_RACE_HUMAN ) );
     Race race( iniFile );
     for ( int buildingNr = 0; buildingNr < race.nrBuildings(); buildingNr++ )
     {
@@ -443,10 +445,14 @@ int main()
         else if ( wait == 'z' ) terrain.drawTerrain( curX,curY,T_LOW );
         else if ( wait == 'e' ) terrain.drawTerrain( curX,curY,T_HIGH );
         else if ( wait == 'r' ) terrain.drawTerrain( curX,curY,T_HIGH_WATER );
+        else if ( wait == 'p' ) terrain.saveTerrain( std::string( FOLDER_TERRAINS FILE_TERRAIN_WASTELAND ) );
+        else if ( wait == 'i' ) terrain.loadTerrain( std::string( FOLDER_TERRAINS FILE_TERRAIN_WASTELAND ) );
+        /*
         else if ( wait == 'q' ) terrain.drawTerrain( curX,curY,T_RIGHT_RAMP_MASK );
         else if ( wait == 's' ) terrain.drawTerrain( curX,curY,T_DOWN_RAMP_MASK );
         else if ( wait == 'd' ) terrain.drawTerrain( curX,curY,T_LEFT_RAMP_MASK );
         else if ( wait == 'f' ) terrain.drawTerrain( curX,curY,T_UP_RAMP_MASK );
+        */
         //else if ( wait == 'c' ) terrain.deleteRamp( curX,curY,terrain.getMasterTerrainType( curX,curY ) );
         else continue;
         terrain.show( curX,curY );
