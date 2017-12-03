@@ -16,8 +16,19 @@ to the ramp (at the bottom)
 - high ground may not be adjacent to the sides of the ramp
 */
 
-const char *Terrain::hexstr = "0123456789ABCDEFx";
-
+/*
+    We use our own integer-to-ascii conversion table for the possible terrain
+    values as not all characters are safe for use in an ini file, such as:
+    = ; [ ]
+    It is 64 characters long, as we need the 0 .. 63 range:
+    alphabet + decimals + special characters <=> 2 * 26 + 10 + 2 = 64 
+    We can't use the alphabet twice because the ini file system is case 
+    insensitive. The "!" characters are unused in the code.
+*/
+const char *Terrain::encodestr = 
+//  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ&@#'(^\"!{})-_*+§~/\\:.,?|%$<>";
+    "0!!!456789ABCDEFG!!!!!!!!!!!!!!!W!!!&@#'(^\"Z{})-_!!!~/\\:.,?|%$<>";
+//   01        10        20        30        40         50         60
 bool Terrain::isValidLocationFor( int i,char terrain )
 {
     assert( i < (size_ - columns_ - 1) );
@@ -142,6 +153,8 @@ bool Terrain::isValidLocationFor( int i,char terrain )
 }
 
 /*
+    MAJOR ISSUE: INI READER CAN ONLY READ ROWS UP TILL 255 BYTES LONG!!!
+    80 columns ~~ 250 characters
     Terrain needs:
     - columns
     - rows
@@ -179,6 +192,21 @@ int Terrain::loadTerrain( std::string filename )
         rowStr += std::to_string( rowNr );
         int error = iniFile.getKeyValue( "TerrainData",rowStr,rowValue );
         if ( error != 0 ) return -1;
+        if ( rowValue.length() != columns_ ) return -1;
+        for ( int columnNr = 0; columnNr < columns_; columnNr++ )
+        {
+            char value = rowValue[columnNr];
+            int i;
+            for ( i = 0; i < (int)strlen( encodestr ); i++ )
+            {
+                if ( value == encodestr[i] ) break;
+            }
+            if ( value != encodestr[i] ) return -1;
+            data_[rowNr * columns_ + columnNr] = i;
+        }
+        /*
+        // the version below uses to much space (3 times more) and the ini file
+        // wouldn't be able to handle that
         int i = 0;
         int iMax = rowValue.length() - 1;
         char buf[3];
@@ -198,6 +226,7 @@ int Terrain::loadTerrain( std::string filename )
             data_[rowNr * columns_ + columnNr] = value;
             i += 3;
         }
+        */
     }
     return 0;
 }
@@ -222,7 +251,16 @@ int Terrain::saveTerrain( std::string filename )
         if ( rowNr < 100 ) terrainFile << "0";
         if ( rowNr < 10 ) terrainFile << "0";
         terrainFile << rowNr;
-        terrainFile << "=";
+        terrainFile << "=";        
+        for ( int columnNr = 0; columnNr < columns_; columnNr++ )
+        {
+            int value = data_[rowNr * columns_ + columnNr];
+            assert( (value < (int)strlen( encodestr ) ) && (value >= 0) );
+            terrainFile << encodestr[value];
+        }
+        /*
+        // the version below uses to much space (3 times more) and the ini file
+        // wouldn't be able to handle that
         for ( int columnNr = 0; columnNr < columns_; columnNr++ )
         {
             int value = data_[rowNr * columns_ + columnNr];
@@ -231,6 +269,7 @@ int Terrain::saveTerrain( std::string filename )
             buf[1] = hexstr[value & 0xF];
             terrainFile << buf << ",";
         }
+        */
         terrainFile << std::endl;
     }
     terrainFile.close();

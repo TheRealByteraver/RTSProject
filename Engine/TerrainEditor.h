@@ -31,6 +31,10 @@ should be kept separate in the code.
 #define COLUMNS     80 // must be even, only for testing purposes
 #define ROWS        48 // must be even, only for testing purposes
 /*
+    We add this value to each terrain element so we don't use control 
+    characters such as tab, bell, carriage return, and so on:
+*/
+/*
 Transitions from low water to low ground
 */
 #define T_RIGHTWARDS_TO_LOW_WATER       4 
@@ -259,7 +263,7 @@ public:
     }
     void    show( int curX,int curY );
 private:
-    static const char *hexstr;// = "0123456789ABCDEF"
+    static const char *encodestr;
     std::string name_;
     int     columns_;
     int     rows_;

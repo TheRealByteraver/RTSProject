@@ -22,7 +22,7 @@
     <ProjectGuid>{C01C7478-F91E-41A8-BD8E-BC3BD330F19D}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>ConsoleApplication1</RootNamespace>
-    <ProjectName>IniReader</ProjectName>
+    <ProjectName>ConsoleDebug</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -154,11 +154,12 @@
   <ItemGroup>
     <ClCompile Include="..\Engine\IniFile.cpp" />
     <ClCompile Include="..\Engine\TerrainEditor.cpp" />
-    <ClCompile Include="IniReader.cpp" />
+    <ClCompile Include="ConsoleDebug.cpp" />
     <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="RTSMedia\Races\humans.ini" />
+    <None Include="RTSMedia\Resources.ini" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
