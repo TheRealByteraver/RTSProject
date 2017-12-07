@@ -36,107 +36,37 @@
 ******************************************************************************/
 
 /*
-    A small pair value class for the more complex keys:
-*/
-
-#define KEYPAIR_SEPARATOR   ':'
-#define KEYPAIR_NEXT        ','
-class KeyPair
-{
-public:
-    KeyPair() {}
-    KeyPair( std::string toDecode ) { decode( toDecode ); }
-    const std::string&  getName() const { assert( isDecoded_ ); return name_; }
-    int                 getValue() const { assert( isDecoded_ ); return value_; }
-    bool                isDecoded() const { return isDecoded_; }
-    int                 decode( std::string toDecode );
-    int                 charsDecoded() const { return charsDecoded_; }
-private:
-    bool                isDecoded_ = false;
-    std::string         name_;
-    int                 value_ = 0;
-    int                 charsDecoded_ = 0;
-};
-/*
-    transforms the string:
-    "Crystals:50"
-    into:
-    std::string "Crystals"
-    integer value 50
-*/
-int KeyPair::decode( std::string toDecode )
-{
-    name_.clear();
-    isDecoded_ = false;
-    value_ = 0;
-    charsDecoded_ = 0;
-    const char *c = toDecode.c_str();
-    char *buf = new char[toDecode.length() + 1];
-    for ( ;; )
-    {
-        if ( (*c == '\0') || (*c == KEYPAIR_SEPARATOR) || (*c == KEYPAIR_NEXT) )
-            break;
-        name_ += *c;
-        charsDecoded_++;
-        c++;
-    }
-    if ( *c == KEYPAIR_SEPARATOR )
-    {
-        c++;
-        std::string valueStr;
-        for ( ;; )
-        {
-            if ( (*c == '\0') || 
-                 (*c == KEYPAIR_SEPARATOR) || 
-                 (*c == KEYPAIR_NEXT) ||
-                 ( ! isdigit( *c ) )
-                )
-                break;
-            valueStr += *c;
-            charsDecoded_++;
-            c++;
-        }
-        if ( valueStr.length() > 0 )
-        {
-            value_ = 0;
-            try {
-                value_ = std::stoi( valueStr );
-            }
-            /*
-            catch ( std::invalid_argument& e )
-            {
-            // if no conversion could be performed
-            return -1;
-            }
-            catch ( std::out_of_range& e )
-            {
-            // if the converted value would fall out of the range of the result type
-            // or if the underlying function (std::strtol or std::strtoull) sets errno
-            // to ERANGE.
-            return -1;
-            }
-            */
-            catch ( ... )
-            {
-                // everything else
-                charsDecoded_ = 0;
-                return 0;
-            }
-        }
-    }
-    delete buf;
-    if ( charsDecoded_ > 0 ) isDecoded_ = true;
-    return charsDecoded_;
-}
-
-/*
     The Unit class describes the basic parameters of a Race element. It can be 
     a unit (soldier, tank, etc) or a building.
 */
+
+// some possible error codes:
+#define RACE_NO_ERROR                   0
+#define RACE_INIFILE_NOT_LOADED         1
+#define RACE_INVALID_DEFAULT_SECTION    2
+#define RACE_BUILDING_NOT_FOUND         3
+#define RACE_UNIT_NOT_FOUND             4
+#define RACE_INVALID_RACE_ELEMENT       5
+#define RACE_NR_OF_ERRORS               6 // latest error + 1 please :)
+
+// and there corresponding description strings:
+const std::string raceerrorstringlist[]
+{ 
+    "race parsed successfully",
+    "error loading ini file",
+    "error loading default race element [Default]",
+    "building used in key parameter but not found as section",
+    "error in race element description",
+    "unit used in key parameter but not found as section"
+};
+
 class Unit
 {
 public:
-    Unit( IniFile& iniFile,const std::string& unitName );
+    Unit( IniFile& iniFile,const std::string& unitName )
+    {
+        initialized_ = (loadFromIniFile( iniFile,unitName ) == RACE_NO_ERROR);
+    }
     bool                isInitialized() { return initialized_; }
     bool                isAUnit() const { return isAUnit_; }
     bool                isABuilding() const { return isABuilding_; }
@@ -163,10 +93,17 @@ public:
     const std::vector <std::string>& requires() const { return requires_; }
     bool                defaultsLoaded() const { return defaultsLoaded_; }
     static void         resetDefaultsLoadedtoFalse() { defaultsLoaded_ = false; }
+    int                 getErrorStatus() const { return errorStatus_; }
+    const std::string&  getErrorString( int errorNr ) const
+    {
+        assert( errorNr >= 0 );
+        assert( errorNr < RACE_NR_OF_ERRORS );
+        return( raceerrorstringlist[errorNr] );
+    }
 private:
 // here we set the default values for each member variable. We also load these 
 // values from the ini file. The [Default] section must be present in the 
-// ini file defining the race.
+// ini file that defines the race.    
     static bool         defaultsLoaded_;
     static std::string  nameDefault_;
     static bool         hasRadarCapabilityDefault_; 
@@ -188,6 +125,7 @@ private:
     static std::vector <std::string> canProduceDefault_;   
     static std::vector <std::string> requiresDefault_;     
 private:
+    int                 errorStatus_ = RACE_NO_ERROR;
     bool                isAUnit_ = false;
     bool                isABuilding_ = false;
     bool                initialized_ = false;
@@ -209,14 +147,12 @@ private:
     int                 neededCargoSpace_;   // how much it occupies if transported
     int                 costToProduce_;      // How much money it costs to produce this unit
     int                 cargoCapacity_;      // how much cargo it can carry
-    std::vector<KeyPair> canHarvest_;        // list of resources it can harvest, and the amount of it it can carry
+    std::vector <KeyPair> canHarvest_;       // list of resources it can harvest, and the amount of it it can carry
     std::vector <std::string> canProduce_;   // Can be used if a unit can evolve maybe ?
     std::vector <std::string> requires_;     // building( s ) required to produce the unit/building
 private:
     int                 loadDefaults( IniFile& iniFile );
     int                 loadFromIniFile( IniFile& iniFile, const std::string& unitName );
-    int                 explodeStringToKeyPairList( const std::string& sourceStr,std::vector<KeyPair>& destList );
-    int                 explodeStringToStringList( const std::string& sourceStr,std::vector<std::string>& destList );
 };
 
 bool        Unit::defaultsLoaded_;
@@ -237,119 +173,86 @@ int         Unit::firingRateDefault_;
 int         Unit::neededCargoSpaceDefault_;
 int         Unit::costToProduceDefault_;
 int         Unit::cargoCapacityDefault_;
+std::vector <KeyPair> canHarvestDefault_;
 std::vector <std::string> Unit::canProduceDefault_;
 std::vector <std::string> Unit::requiresDefault_;
 
 int Unit::loadDefaults( IniFile& iniFile )
 {
-    if ( !iniFile.isLoaded() ) return -1;
+    if ( !iniFile.isLoaded() ) return RACE_INIFILE_NOT_LOADED;
     int error;
     std::string typeStr;
-    std::string unitName( "Default" );
-    nameDefault_ = "Default";
+    std::string unitName( "DEFAULT" );
+    nameDefault_ = "DEFAULT";
     error = iniFile.getKeyValue( unitName,"hasRadarCapability",hasRadarCapabilityDefault_ );
-    if ( error != 0 ) return -1;
+    if ( error != 0 ) return RACE_INVALID_DEFAULT_SECTION;
     error = iniFile.getKeyValue( unitName,"canMove",canMoveDefault_ );
-    if ( error != 0 ) return -1;
+    if ( error != 0 ) return RACE_INVALID_DEFAULT_SECTION;
     error = iniFile.getKeyValue( unitName,"canFLy",canFLyDefault_ );
-    if ( error != 0 ) return -1;
+    if ( error != 0 ) return RACE_INVALID_DEFAULT_SECTION;
     error = iniFile.getKeyValue( unitName,"canJump",canJumpDefault_ );
-    if ( error != 0 ) return -1;
+    if ( error != 0 ) return RACE_INVALID_DEFAULT_SECTION;
     error = iniFile.getKeyValue( unitName,"moveSpeed",moveSpeedDefault_ );
-    if ( error != 0 ) return -1;
+    if ( error != 0 ) return RACE_INVALID_DEFAULT_SECTION;
     error = iniFile.getKeyValue( unitName,"maxHealth",maxHealthDefault_ );
-    if ( error != 0 ) return -1;
+    if ( error != 0 ) return RACE_INVALID_DEFAULT_SECTION;
     error = iniFile.getKeyValue( unitName,"maxShield",maxShieldDefault_ );
-    if ( error != 0 ) return -1;
+    if ( error != 0 ) return RACE_INVALID_DEFAULT_SECTION;
     error = iniFile.getKeyValue( unitName,"maxEnergy",maxEnergyDefault_ );
-    if ( error != 0 ) return -1;
+    if ( error != 0 ) return RACE_INVALID_DEFAULT_SECTION;
     error = iniFile.getKeyValue( unitName,"firingRange",firingRangeDefault_ );
-    if ( error != 0 ) return -1;
+    if ( error != 0 ) return RACE_INVALID_DEFAULT_SECTION;
     error = iniFile.getKeyValue( unitName,"antiAirFirePower",antiAirFirePowerDefault_ );
-    if ( error != 0 ) return -1;
+    if ( error != 0 ) return RACE_INVALID_DEFAULT_SECTION;
     error = iniFile.getKeyValue( unitName,"antiGroundFirePower",antiGroundFirePowerDefault_ );
-    if ( error != 0 ) return -1;
+    if ( error != 0 ) return RACE_INVALID_DEFAULT_SECTION;
     error = iniFile.getKeyValue( unitName,"firingRate",firingRateDefault_ );
-    if ( error != 0 ) return -1;
+    if ( error != 0 ) return RACE_INVALID_DEFAULT_SECTION;
     error = iniFile.getKeyValue( unitName,"neededCargoSpace",neededCargoSpaceDefault_ );
-    if ( error != 0 ) return -1;
+    if ( error != 0 ) return RACE_INVALID_DEFAULT_SECTION;
     error = iniFile.getKeyValue( unitName,"costToProduce",costToProduceDefault_ );
-    if ( error != 0 ) return -1;
+    if ( error != 0 ) return RACE_INVALID_DEFAULT_SECTION;
     error = iniFile.getKeyValue( unitName,"cargoCapacity",cargoCapacityDefault_ );
-    if ( error != 0 ) return -1;
-    std::string strList;                     
+    if ( error != 0 ) return RACE_INVALID_DEFAULT_SECTION;
+    std::string strList;
     error = iniFile.getKeyValue( unitName,"CanHarvest",strList );
-    if ( error != 0 ) return -1;
-
-    error = iniFile.getKeyValue( unitName,"Requires",strList );
-    if ( error != 0 ) return -1;
-
-    const char *c = strList.c_str();
-    char *buf = new char[strList.length() + 1];
-    buf[0] = '\0';
-    for ( int i = 0; *c != '\0'; c++ )
-    {
-        buf[i] = *c;
-        i++;
-        if ( *c == ',' )
-        {
-            buf[i - 1] = '\0';
-            requires_.push_back( std::string( buf ) );
-            i = 0;
-        } else if ( c[1] == '\0' )
-        {
-            buf[i] = '\0';
-            requires_.push_back( std::string( buf ) );
-        }
-    }
-    delete buf;
-    strList.clear();
+    if ( error != 0 ) return RACE_INVALID_DEFAULT_SECTION;
+    // no error checking for the next fn as it may be an empty list:
+    iniFile.explodeStringToKeyPairList( strList,canHarvestDefault_ );
     error = iniFile.getKeyValue( unitName,"CanProduce",strList );
-    if ( error != 0 ) return -1;
-    c = strList.c_str();
-    buf = new char[strList.length() + 1];
-    buf[0] = '\0';
-    for ( int i = 0; *c != '\0'; c++ )
-    {
-        buf[i] = *c;
-        i++;
-        if ( *c == ',' )
-        {
-            buf[i - 1] = '\0';
-            i = 0;
-            canProduce_.push_back( std::string( buf ) );
-        } else if ( c[1] == '\0' )
-        {
-            buf[i] = '\0';
-            canProduce_.push_back( std::string( buf ) );
-        }
-    }
-    delete buf;
+    if ( error != 0 ) return RACE_INVALID_DEFAULT_SECTION;
+    iniFile.explodeStringToStringList( strList,canProduceDefault_ );
+    error = iniFile.getKeyValue( unitName,"Requires",strList );
+    if ( error != 0 ) return RACE_INVALID_DEFAULT_SECTION;
+    iniFile.explodeStringToStringList( strList,requiresDefault_ );
     defaultsLoaded_ = true;
-    return 0;
-}
-
-Unit::Unit( IniFile& iniFile,const std::string& unitName )
-{ 
-    initialized_ = ( loadFromIniFile( iniFile,unitName ) == 0 );
+    return RACE_NO_ERROR;
 }
 
 int Unit::loadFromIniFile( IniFile& iniFile,const std::string& unitName )
 {
-    if ( !iniFile.isLoaded() ) return -1;
-    int error;
+    if ( !iniFile.isLoaded() )
+    {
+        errorStatus_ = RACE_INIFILE_NOT_LOADED;
+        return RACE_INIFILE_NOT_LOADED;
+    }
     if ( !defaultsLoaded_ )
     {
-        error = loadDefaults( iniFile );
-        if ( error != 0 ) return -1;
+        errorStatus_ = loadDefaults( iniFile );        
+        if ( errorStatus_ != RACE_NO_ERROR ) return errorStatus_;
     }
+    errorStatus_ = RACE_NO_ERROR;
+    int error;
     std::string typeStr;
     name_ = unitName;
     error = iniFile.getKeyValue( unitName,"TYPE",typeStr );
-    if ( error != 0 ) return -1;
+    if ( error != 0 ) return RACE_INVALID_RACE_ELEMENT;
     if ( typeStr.compare( "BUILDING" ) == 0 ) isABuilding_ = true;
     else if ( typeStr.compare( "UNIT" ) == 0 ) isAUnit_ = true;
-    else return -1;
+    else {
+        errorStatus_ = RACE_INVALID_RACE_ELEMENT;
+        return errorStatus_;
+    }
     error = iniFile.getKeyValue( unitName,"hasRadarCapability",hasRadarCapability_ );
     if ( error != 0 ) hasRadarCapability_ = hasRadarCapabilityDefault_;
     error = iniFile.getKeyValue( unitName,"canMove",canMove_ );
@@ -383,103 +286,13 @@ int Unit::loadFromIniFile( IniFile& iniFile,const std::string& unitName )
     error = iniFile.getKeyValue( unitName,"cargoCapacity",cargoCapacity_ );
     if ( error != 0 ) cargoCapacity_ = cargoCapacityDefault_;
     std::string strList;
-    iniFile.getKeyValue( unitName,"CanHarvest",strList );
-    explodeStringToKeyPairList( strList,canHarvest_ );
+    iniFile.getKeyValue( unitName,"CanHarvest",strList );    
+    iniFile.explodeStringToKeyPairList( strList,canHarvest_ );
     iniFile.getKeyValue( unitName,"Requires",strList );
-    explodeStringToStringList( strList,requires_ );
+    iniFile.explodeStringToStringList( strList,requires_ );
     iniFile.getKeyValue( unitName,"CanProduce",strList );
-    explodeStringToStringList( strList,canProduce_ );
-    /*
-    error = iniFile.getKeyValue( unitName,"Requires",strList );
-    if ( error != 0 ) return -1;
-    const char *c = strList.c_str();
-    char *buf = new char[strList.length() + 1];
-    buf[0] = '\0';
-    for ( int i = 0; *c != '\0'; c++ )
-    {
-        buf[i] = *c;
-        i++;
-        if ( *c == ',' )
-        {
-            buf[i - 1] = '\0';
-            requires_.push_back( std::string( buf ) );
-            i = 0;
-        } else if ( c[1] == '\0' )
-        {
-            buf[i] = '\0';
-            requires_.push_back( std::string( buf ) );
-        }
-    }
-    delete buf;
-    strList.clear();
-    error = iniFile.getKeyValue( unitName,"CanProduce",strList );
-    if ( error != 0 ) return -1;
-    c = strList.c_str();
-    buf = new char[strList.length() + 1];
-    buf[0] = '\0';
-    for ( int i = 0; *c != '\0'; c++ )
-    {
-        buf[i] = *c;
-        i++;
-        if ( *c == ',' )
-        {
-            buf[i - 1] = '\0';
-            i = 0;
-            canProduce_.push_back( std::string( buf ) );
-        } else if ( c[1] == '\0' )
-        {
-            buf[i] = '\0';
-            canProduce_.push_back( std::string( buf ) );
-        }
-    }
-    delete buf;
-    */
-    return 0;
-}
-
-int Unit::explodeStringToKeyPairList( const std::string& sourceStr,std::vector<KeyPair>& destList )
-{
-    const char *str = sourceStr.c_str();
-    int iterations = 0;
-    for ( ;; )
-    {
-        KeyPair keyPair;
-        str += keyPair.decode( std::string( str ) );
-        if ( !keyPair.isDecoded() )
-        {
-            return -1;
-        }
-        destList.push_back( keyPair );
-        iterations++;
-        if ( std::string( str ).length() > 2 ) str += 2;
-        else break;
-    }
-    if ( iterations > 0 ) return 0;
-    else return -1;
-}
-
-int Unit::explodeStringToStringList( const std::string& sourceStr,std::vector<std::string>& destList )
-{
-    const char *c = sourceStr.c_str();
-    char *buf = new char[sourceStr.length() + 1];
-    buf[0] = '\0';
-    for ( int i = 0; *c != '\0'; c++ )
-    {
-        buf[i] = *c;
-        i++;
-        if ( *c == ',' )
-        {
-            buf[i - 1] = '\0';
-            destList.push_back( std::string( buf ) );
-            i = 0;
-        } else if ( c[1] == '\0' )
-        {
-            buf[i] = '\0';
-            destList.push_back( std::string( buf ) );
-        }
-    }
-    delete buf;
-    return 0;
+    iniFile.explodeStringToStringList( strList,canProduce_ );
+    return errorStatus_;
 }
 
 /*
@@ -592,13 +405,14 @@ Race::Race( IniFile& iniFile )
         std::string section;
         std::string keyValue;
         int error = iniFile.getNextSection( section );
-        if ( error != 0 ) break;                   // no sections left
-        error = iniFile.getKeyValue( section,"TYPE",keyValue );
-        if ( error != 0 ) continue;                // skip invalid unit
+        if ( error != 0 ) break;                              // no sections left
+        error = iniFile.getKeyValue( section,"TYPE",keyValue );        
+        if ( error != RACE_NO_ERROR ) continue;               // skip invalid unit
         if ( keyValue.compare( "BUILDING" ) == 0 ) 
         {             
-            Unit unit( iniFile,section );
-            if ( !unit.isInitialized() ) continue; // skip invalid unit
+            Unit unit( iniFile,section ); 
+            if ( unit.getErrorStatus() == RACE_INVALID_DEFAULT_SECTION ) return;  // fatal error, stop
+            if ( !unit.isInitialized() ) continue;            // skip invalid unit
             unit.setID( nrBuildings_ );
             raceElements_.push_back( unit );
             nrBuildings_++;
@@ -617,6 +431,7 @@ Race::Race( IniFile& iniFile )
         if ( keyValue.compare( "UNIT" ) == 0 )
         {
             Unit unit( iniFile,section );
+            if ( unit.getErrorStatus() == RACE_INVALID_DEFAULT_SECTION ) return;  // fatal error, stop
             if ( !unit.isInitialized() ) continue; 
             unit.setID( nrBuildings_ + nrUnits_ );
             raceElements_.push_back( unit );
@@ -644,8 +459,6 @@ Race::Race( IniFile& iniFile )
         unitCanProduceList.push_back( canProduceList );
         unitRequiresList.push_back( requiresList );
     }
-    //std::cout << "unitCanProduceList.size: " << unitCanProduceList.size() << std::endl;
-    //std::cout << "unitRequiresList.size: " << unitRequiresList.size() << std::endl;
     initialized_ = true;
 }
 
@@ -687,20 +500,20 @@ int main()
         if ( std::string( str ).length() > 2 ) str += 2;
         else break;
     }
-    */
-    /*
+    
+    
     int val;
     std::string resourceStr;
-    keyPair testRes( test );
+    KeyPair testRes( testStr );
     std::cout << "resource: " << testRes.getName() << std::endl;
     std::cout << "value: " << testRes.getValue() << std::endl;
 
     int nextIndex = testRes.charsDecoded() + 2;
-    nextIndex += testRes.decode( &(test[nextIndex]) );
+    nextIndex += testRes.decode( &(testStr[nextIndex]) );
     std::cout << "resource: " << testRes.getName() << std::endl;
     std::cout << "value: " << testRes.getValue() << std::endl;
 
-    nextIndex += testRes.decode( &(test[nextIndex + 2]) );
+    nextIndex += testRes.decode( &(testStr[nextIndex + 2]) );
     std::cout << "resource: " << testRes.getName() << std::endl;
     std::cout << "value: " << testRes.getValue() << std::endl;
     std::cout << std::endl;

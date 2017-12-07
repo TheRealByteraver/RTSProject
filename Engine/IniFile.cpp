@@ -10,6 +10,81 @@
 #include "IniFile.h"
 
 
+/*
+    KeyPair class code:
+*/
+
+
+// transforms the string: "Crystals:50" into the string "Crystals" and the int 50
+// There should be no whitespace present in the string or any other characters
+int KeyPair::decode( std::string toDecode )
+{
+    name_.clear();
+    isDecoded_ = false;
+    value_ = 0;
+    charsDecoded_ = 0;
+    const char *c = toDecode.c_str();
+    char *buf = new char[toDecode.length() + 1];
+    for ( ;; )
+    {
+        if ( (*c == '\0') || (*c == KEYPAIR_SEPARATOR) || (*c == KEYPAIR_NEXT) )
+            break;
+        name_ += *c;
+        charsDecoded_++;
+        c++;
+    }
+    if ( *c == KEYPAIR_SEPARATOR )
+    {
+        c++;
+        std::string valueStr;
+        for ( ;; )
+        {
+            if ( (*c == '\0') ||
+                (*c == KEYPAIR_SEPARATOR) ||
+                (*c == KEYPAIR_NEXT) ||
+                (!isdigit( *c ))
+                )
+                break;
+            valueStr += *c;
+            charsDecoded_++;
+            c++;
+        }
+        if ( valueStr.length() > 0 )
+        {
+            value_ = 0;
+            try {
+                value_ = std::stoi( valueStr );
+            }
+            /*
+            catch ( std::invalid_argument& e )
+            {
+            // if no conversion could be performed
+            return -1;
+            }
+            catch ( std::out_of_range& e )
+            {
+            // if the converted value would fall out of the range of the result type
+            // or if the underlying function (std::strtol or std::strtoull) sets errno
+            // to ERANGE.
+            return -1;
+            }
+            */
+            catch ( ... )
+            {
+                // everything else
+                charsDecoded_ = 0;
+                return 0;
+            }
+        }
+    }
+    delete buf;
+    if ( charsDecoded_ > 0 ) isDecoded_ = true;
+    return charsDecoded_;
+}
+
+/*
+    IniFile code:
+*/
 int IniFile::readFile( const std::string& filename )
 {
     // start with a clean empty string list
@@ -137,41 +212,7 @@ int IniFile::getKeyValue( const std::string& section,const std::string& key,std:
     }
     return -1;
 }
-/*
-int IniFile::getKeyValue( const std::string& section,const std::string& key,std::string& dest ) const
-{
-// Transform the strings to upper case for correct comparison
-std::string sectionStr;
-sectionStr.assign( "[" );
-sectionStr.append( section );
-sectionStr.append( "]" );
-std::transform( sectionStr.begin(),sectionStr.end(),sectionStr.begin(),::toupper );
-std::string keyStr( key );
-std::transform( keyStr.begin(),keyStr.end(),keyStr.begin(),::toupper );
-for ( int line = 0; line < (int)stringList.size(); line++ )
-{
-if ( stringList[line].compare( sectionStr ) != 0 ) continue;
-line++;
-for ( ; line < (int)stringList.size(); line++ )
-{
-if ( stringList[line][0] == '[' ) break; // end of this section
-char strBuf[INIFILE_MAX_LINE_LENGTH];
-const char *src = stringList[line].c_str();
-char *dst = strBuf;
-for ( ; (*src != '=') && (*src != '\0'); ) *dst++ = *src++;
-*dst = '\0';
-if ( strcmp( keyStr.c_str(),strBuf ) == 0 ) // found the key!
-{
-if ( *src == '=' ) dest.assign( src + 1 );
-else dest.clear();
-return 0;
-}
-}
-break;
-}
-return -1;
-}
-*/
+
 int IniFile::getKeyValue( const std::string& section,const std::string& key,int& value )
 {
     std::string dest;
@@ -223,9 +264,56 @@ char *IniFile::deleteWhiteSpace( char *buf ) const
     char *d = buf;
     char *s = buf;
     for ( ; *s != NULL; )
+    {
         if ( (*s != ' ') && (*s != '\t') ) *d++ = *s++;
         else s++;
-        *d = '\0';
-        return buf;
+    }
+    *d = '\0';
+     return buf;
+}
+
+int IniFile::explodeStringToKeyPairList( const std::string& sourceStr,std::vector<KeyPair>& destList )
+{
+    const char *str = sourceStr.c_str();
+    int iterations = 0;
+    for ( ;; )
+    {
+        KeyPair keyPair;
+        str += keyPair.decode( std::string( str ) );
+        if ( !keyPair.isDecoded() )
+        {
+            return -1;
+        }
+        destList.push_back( keyPair );
+        iterations++;
+        if ( std::string( str ).length() > 2 ) str += 2;
+        else break;
+    }
+    if ( iterations > 0 ) return 0;
+    else return -1;
+}
+
+int IniFile::explodeStringToStringList( const std::string& sourceStr,std::vector<std::string>& destList )
+{
+    const char *c = sourceStr.c_str();
+    char *buf = new char[sourceStr.length() + 1];
+    buf[0] = '\0';
+    for ( int i = 0; *c != '\0'; c++ )
+    {
+        buf[i] = *c;
+        i++;
+        if ( *c == ',' )
+        {
+            buf[i - 1] = '\0';
+            destList.push_back( std::string( buf ) );
+            i = 0;
+        } else if ( c[1] == '\0' )
+        {
+            buf[i] = '\0';
+            destList.push_back( std::string( buf ) );
+        }
+    }
+    delete buf;
+    return 0;
 }
 
