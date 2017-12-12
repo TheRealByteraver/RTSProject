@@ -212,6 +212,7 @@ public:
         data_ = NULL;
         init( columns,rows,terrain );
     }
+    Terrain( std::string filename ) { loadTerrain( filename ); }
     ~Terrain()
     {
         if ( data_ != NULL ) delete data_;

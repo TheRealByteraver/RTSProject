@@ -40,6 +40,9 @@ namespace FramebufferShaders
 
 using Microsoft::WRL::ComPtr;
 
+int Graphics::ScreenWidth = 1280;
+int Graphics::ScreenHeight = 720;
+
 Graphics::Graphics( HWNDKey& key )
 {
 	assert( key.hWnd != nullptr );

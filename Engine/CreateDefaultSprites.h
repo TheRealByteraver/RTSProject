@@ -29,7 +29,7 @@ public:
             gfx.getpSysBuffer(),
             gfx.ScreenWidth );
         // now save the sprites to a .bmp file:
-        screenCapture.saveToBMP( INIFILE_FOLDER TERRAIN_SPRITE_LIB_FILENAME );
+        screenCapture.saveToBMP( GAME_FOLDER TERRAIN_SPRITE_LIB_FILENAME );
     }
     void drawTerrainSprites();
 private:

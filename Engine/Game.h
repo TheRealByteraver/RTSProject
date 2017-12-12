@@ -25,6 +25,8 @@
 #include "Graphics.h"
 #include "Font.h"
 #include "CreateDefaultSprites.h"
+#include "IniFile.h"
+#include "Globals.h"
 
 
 class Game
@@ -46,6 +48,7 @@ private:
 	/********************************/
 	/*  User Variables              */
 	/********************************/
+    IniFile                 masterIniFile = GAME_FOLDER MASTER_INIFILE_FILENAME;
     Font                    font;
     Font                    neuropolXBMP;
     CreateDefaultSprites    createDefaultSprites;

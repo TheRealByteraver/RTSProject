@@ -28,6 +28,7 @@ Game::Game( MainWindow& wnd )
 	wnd( wnd ),
     gfx( wnd )
 {
+    if ( !masterIniFile.isLoaded() ) PostQuitMessage( -1 );
     font.loadFont( "C:\\RTSMedia\\Courier.TFT" );
     neuropolXBMP.loadFont( "C:\\RTSMedia\\neuropolX.tft" );
     gfx.setFont( &font );
@@ -55,7 +56,9 @@ void Game::UpdateModel()
 void Game::ComposeFrame()
 {
     frameNr++;
+    //gfx.ScreenWidth = 1600;
     createDefaultSprites.drawTerrainSprites();
-    Sprite test;//(16,16,Sprite::brokenImageSpriteData);
-    gfx.paintSprite( 100,100,test );     // error
+    gfx.paintSprite( 100,100,Sprite() );
+    //PostMessage( HWND( wnd ),WM_CLOSE,0,0 ); // proper way to exit program?
+
 }
