@@ -164,6 +164,7 @@
     <ClCompile Include="EvoConsole.cpp" />
     <ClCompile Include="font.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="Globals.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="IniFile.cpp" />
     <ClCompile Include="Keyboard.cpp" />
