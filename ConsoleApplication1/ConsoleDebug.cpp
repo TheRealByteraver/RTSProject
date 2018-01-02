@@ -23,8 +23,8 @@
 #include "TerrainEditor.h"
 #include "IniFile.h"
 
-#define FOLDER_RACES            ".\\RTSMedia\\Races\\"
-#define FOLDER_TERRAINS         ".\\RTSMedia\\Terrains\\"
+#define FOLDER_RACES            "c:\\RTSMedia\\Races\\"
+#define FOLDER_TERRAINS         "c:\\RTSMedia\\Terrains\\"
 #define FILE_TERRAIN_WASTELAND  "testterrain.ini"
 #define FILE_RACE_HUMAN         "humans.ini"
 

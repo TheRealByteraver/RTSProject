@@ -9,7 +9,11 @@
 
 #pragma comment ( lib,"gdiplus.lib" )
 
-
+/*
+    The constant below is a small image that any uninitialized sprite is 
+    initialized with. It is a small black square with a diagonal red cross 
+    in it, symbolizing a missing image.
+*/
 Color const Sprite::brokenImageSpriteData[BROKEN_IMAGE_SPRITE_WIDTH * BROKEN_IMAGE_SPRITE_HEIGHT] = {
     0x000000,0x000000,0x000000,0x000000,0x000000,0x000000,0x000000,0x000000,0x000000,0x000000,0x000000,0x000000,0x000000,0x000000,0x000000,0x000000,
     0x000000,0xFFFFFF,0xFFFFFF,0xFFFFFF,0xFFFFFF,0xFFFFFF,0xFFFFFF,0xFFFFFF,0xFFFFFF,0xFFFFFF,0xFFFFFF,0xFFFFFF,0xFFFFFF,0xFFFFFF,0xFFFFFF,0x000000,
@@ -34,71 +38,80 @@ const Sprite brokenImageSprite = {
     BROKEN_IMAGE_SPRITE_HEIGHT,
     Sprite::brokenImageSpriteData
 };
+
 void Sprite::loadBrokenImageSpriteData()
 {
-    assert( width == 0 );
-    assert( height == 0 );
-    assert( pixelData == nullptr );
-    width = BROKEN_IMAGE_SPRITE_WIDTH;
-    height = BROKEN_IMAGE_SPRITE_HEIGHT;
-    const int size = width * height;
-    pixelData = new Color[size];
-    for ( int i = 0; i < size; i++ ) 
-        pixelData[i] = Sprite::brokenImageSpriteData[i];
+    *this = brokenImageSprite;
 }
 /*
     This constructor initializes the sprite by copying the 
-    (width * height) -sized image from pixelData_ to itself.
+    (width * height) -sized image from pixelData to itself.
 */
-Sprite::Sprite( int width_,int height_,const Color *pixelData_ )
+Sprite::Sprite( int width,int height,const Color *pixelData )
 {
-    assert( width_ > 0 );
-    assert( height_ > 0 );
-    assert( pixelData_ != nullptr );
-    width = width_;
-    height = height_;
-    const int size = width * height;
-    pixelData = new Color[size];
-    for ( int i = 0; i < size; i++ ) pixelData[i] = pixelData_[i];
+    assert( width > 0 );
+    assert( height > 0 );
+    assert( pixelData != nullptr );
+    width_ = width;
+    height_ = height;
+    const int size = width_ * height_;
+    pixelData_ = new Color[size];
+    for ( int i = 0; i < size; i++ ) pixelData_[i] = pixelData[i];
 }
-Sprite::Sprite( const char *fileName )
+/*
+    this constructor initializes the sprite with a .bmp bitmap file
+*/
+Sprite::Sprite( const char *bmpFileName )
 {
-    width = 0;
-    height = 0;
-    pixelData = nullptr;
-    loadBitmap( fileName );
-    if ( pixelData == nullptr ) loadBrokenImageSpriteData();
+    width_ = 0;
+    height_ = 0;
+    pixelData_ = nullptr;
+    loadBitmap( bmpFileName );
 }
+// this function removes the sprite data from memory
 void Sprite::unloadSprite()
 {
-    width = 0;
-    height = 0;
-    if ( pixelData != nullptr ) delete pixelData;
-    pixelData = nullptr;
+    width_ = 0;
+    height_ = 0;
+    if ( pixelData_ != nullptr ) delete pixelData_;
+    pixelData_ = nullptr;
 }
+// free data on destruction
 Sprite::~Sprite()
 {
     unloadSprite();
 }
+/*
+    the assignment operator copies the data and creates an additional 
+    copy of the sprite
+*/
 Sprite& Sprite::operator=( const Sprite& sourceSprite )
 {
-    if ( this != &sourceSprite ) {
+    if ( this != &sourceSprite )
+    {
         unloadSprite();
-        if ( sourceSprite.getWidth() <= 0 ) return *this;
-        if ( sourceSprite.getHeight() <= 0 ) return *this;
-        if ( sourceSprite.getPixelData() == nullptr ) return *this;
-        width = sourceSprite.getWidth();
-        height = sourceSprite.getHeight();
-        int size = width * height;
-        pixelData = new Color[size];
+        if ( ( sourceSprite.getWidth() <= 0 ) ||
+             ( sourceSprite.getHeight() <= 0 ) ||
+             ( sourceSprite.getPixelData() == nullptr ) )
+        {
+            loadBrokenImageSpriteData();
+            return *this;
+        }
+        width_ = sourceSprite.getWidth();
+        height_ = sourceSprite.getHeight();
+        int size = width_ * height_;
+        pixelData_ = new Color[size];
         Color *s = sourceSprite.getPixelData();
-        Color *d = pixelData;
-        Color *e = pixelData + size;
+        Color *d = pixelData_;
+        Color *e = pixelData_ + size;
         for ( ; d < e; ) *d++ = *s++;
     }
     return *this;
 }
-// It will only load 24 bit uncompressed bitmaps
+/*
+    It will only load 24 bit uncompressed bitmaps. If an error occurs it 
+    creates a sprite with the broken image icon.
+*/ 
 int Sprite::loadBitmap( const char *fileName )
 {
     /*
@@ -109,42 +122,54 @@ int Sprite::loadBitmap( const char *fileName )
     BitmapInfoHeader    header2;
     std::ifstream       BMPFile;
     BMPFile.open( fileName, std::ios_base::in | std::ios_base::binary );
-    if ( ! BMPFile ) return - 1;
+    if ( !BMPFile )
+    {
+        loadBrokenImageSpriteData();
+        return -1;
+    }
     BMPFile.read( (char *)(&header1), sizeof(BitmapHeader) );
-    if ( ! ((header1.charB == 'B') && (header1.charM == 'M')) ) return - 1;
+    if ( ! ((header1.charB == 'B') && (header1.charM == 'M')) )
+    {
+        loadBrokenImageSpriteData();
+        return -1;
+    }
     BMPFile.read( (char *)(&header2), sizeof(BitmapInfoHeader) );
     if ( ! ((header2.headerSize      == 40) &&
             (header2.nrOfColorPlanes == 1 ) &&
             (header2.bitsPerPixel    == 24) &&
-            (header2.compressionType == 0 ) )) return - 1;
+            (header2.compressionType == 0 ) ))
+    {
+        loadBrokenImageSpriteData();
+        return -1;
+    }
     /*
         read the image data.
         rowSize is expressed in bytes
         dataSize is expressed in integers (32 bit)
     */
-    width = header2.width;
-    height = header2.height;
-    int rowSize = ((width * (unsigned)header2.bitsPerPixel + 31) / 32) * 4;
-    int dataSize = abs( width * height );
+    width_ = header2.width;
+    height_ = header2.height;
+    int rowSize = ((width_ * (unsigned)header2.bitsPerPixel + 31) / 32) * 4;
+    int dataSize = abs( width_ * height_ );
     int nextLine;
     unsigned char *buf = new unsigned char[rowSize];
-    pixelData = new Color[dataSize];
+    pixelData_ = new Color[dataSize];
     Color *data;
-    if ( height > 0 ) 
+    if ( height_ > 0 ) 
     {
-        nextLine = - width;
-        data = pixelData + dataSize;
+        nextLine = - width_;
+        data = pixelData_ + dataSize;
     } else {
-        nextLine = width;
-        data = pixelData - width;
+        nextLine = width_;
+        data = pixelData_ - width_;
     }        
     BMPFile.seekg( header1.imageDataOffset );
-    for ( int row = 0; row < height; row++ )
+    for ( int row = 0; row < height_; row++ )
     {
         data += nextLine;
         BMPFile.read( (char *)buf,rowSize );
         unsigned char *p = buf;
-        for ( int x = 0; x < width; x++ ) 
+        for ( int x = 0; x < width_; x++ ) 
         {
             unsigned b = *p; p++;
             unsigned g = *p; p++;
@@ -158,19 +183,19 @@ int Sprite::loadBitmap( const char *fileName )
 
 /*
 //  See constructor( int, int, const Color * )
-void Sprite::loadFromMemory( int width_,int height_,Color *pixelData_ )
+void Sprite::loadFromMemory( int width,int height,Color *pixelData )
 {
     unloadSprite();
-    if ( width_ <= 0 ) return;
-    if ( height_ <= 0 ) return;
-    if ( pixelData_ == nullptr ) return;
-    width = width_;
-    height = height_;
-    int size = width * height;
-    pixelData = new Color[size];
-    Color *s = pixelData_;
-    Color *d = pixelData;
-    Color *e = pixelData + size;
+    if ( width <= 0 ) return;
+    if ( height <= 0 ) return;
+    if ( pixelData == nullptr ) return;
+    width_ = width;
+    height_ = height;
+    int size = width_ * height_;
+    pixelData_ = new Color[size];
+    Color *s = pixelData;
+    Color *d = pixelData_;
+    Color *e = pixelData_ + size;
     for ( ; d < e; ) *d++ = *s++;
 }
 */
@@ -184,32 +209,29 @@ void Sprite::captureFromMemory( Rect area,Color *source,const int sourceWidth )
     assert( area.isValid() );
     createEmptySprite( area.width(),area.height() );
     Color *s = source + area.y1 * sourceWidth + area.x1;
-    Color *d = pixelData;
-    int nextLine = sourceWidth - width;
-    for ( int j = 0; j < height; j++ )
+    Color *d = pixelData_;
+    int nextLine = sourceWidth - width_;
+    for ( int j = 0; j < height_; j++ )
     {
-        for ( int i = 0; i < width; i++ ) *d++ = *s++;
+        for ( int i = 0; i < width_; i++ ) *d++ = *s++;
         s += nextLine;
     }
 }
-void Sprite::createEmptySprite( int width_,int height_ )
+
+void Sprite::createEmptySprite( int width,int height )
 {
-    assert( width_ > 0 );
-    assert( height_ > 0 );
+    assert( width > 0 );
+    assert( height > 0 );
     unloadSprite();
-    width = width_;
-    height = height_;
-    pixelData = new Color[width_ * height_];
+    width_ = width;
+    height_ = height;
+    pixelData_ = new Color[width * height];
 }
-void Sprite::createEmptySprite( int width_,int height_,Color fillColor )
+
+void Sprite::createEmptySprite( int width,int height,Color fillColor )
 {
-    createEmptySprite( width_,height_ );
+    createEmptySprite( width,height );
     fill( fillColor );
-    /*
-    Color *d = pixelData;
-    Color *e = pixelData + width_ * height_;
-    for ( ; d < e; ) *d++ = fillColor;
-    */
 }
 /*
 //  todo: add error checking! Can't be used -> huge memory leak
@@ -221,12 +243,12 @@ int Sprite::loadPNG( const char *filename )
     const wchar_t *wFilename = wCharStr.c_str();
     Gdiplus::Sprite bitmap( wFilename );
     Gdiplus::Color pixel;
-    height = bitmap.GetHeight();
-    width = bitmap.GetWidth();
-    pixelData = new Color[height * width];
-    Color *d = pixelData;
-    for( int y = 0; y < height; y++ )
-        for( int x = 0; x < width; x++ )
+    height_ = bitmap.GetHeight();
+    width_ = bitmap.GetWidth();
+    pixelData_ = new Color[height_ * width_];
+    Color *d = pixelData_;
+    for( int y = 0; y < height_; y++ )
+        for( int x = 0; x < width_; x++ )
         {
             bitmap.GetPixel( x,y,&pixel );
             *d++ = D3DCOLOR_ARGB( 
@@ -253,14 +275,26 @@ int Sprite::loadFromBMP( const char *fileName, Rect area )
     BitmapInfoHeader    header2;
     std::ifstream       BMPFile;
     BMPFile.open( fileName, std::ios_base::in | std::ios_base::binary );
-    if ( ! BMPFile ) return - 1;
+    if ( ! BMPFile )
+    {
+        loadBrokenImageSpriteData();
+        return -1;
+    }
     BMPFile.read( (char *)(&header1), sizeof(BitmapHeader) );
-    if ( ! ((header1.charB == 'B') && (header1.charM == 'M')) ) return - 1;
+    if ( ! ((header1.charB == 'B') && (header1.charM == 'M')) )
+    {
+        loadBrokenImageSpriteData();
+        return -1;
+    }
     BMPFile.read( (char *)(&header2), sizeof(BitmapInfoHeader) );
     if ( ! ((header2.headerSize      == 40) &&
             (header2.nrOfColorPlanes == 1 ) &&
             (header2.bitsPerPixel    == 24) &&
-            (header2.compressionType == 0 ) )) return - 1;
+            (header2.compressionType == 0 ) ))
+    {
+        loadBrokenImageSpriteData();
+        return -1;
+    }
     /*
         read the image data.
         rowSize is expressed in bytes
@@ -268,11 +302,11 @@ int Sprite::loadFromBMP( const char *fileName, Rect area )
     */
     int destW = area.x2 - area.x1 + 1;
     int destH = area.y2 - area.y1 + 1;
-    width = destW;
-    height = destH;
+    width_ = destW;
+    height_ = destH;
     int destSize = destW * destH;
-    pixelData = new Color[destSize];
-    memset( pixelData,0,destSize );
+    pixelData_ = new Color[destSize];
+    memset( pixelData_,0,destSize );
     if ( area.x1 >= header2.width) return 0;
     if ( area.y1 >= header2.height ) return 0;
     int maxX;
@@ -291,14 +325,13 @@ int Sprite::loadFromBMP( const char *fileName, Rect area )
     if (header2.height > 0 )
     {
         nextLine = - destW;
-        data = pixelData + destSize;
+        data = pixelData_ + destSize;
         yOffset = (header2.height - 1 - maxY) * rowSize;
     } else {
         nextLine = destW;
-        data = pixelData - destW;
+        data = pixelData_ - destW;
         yOffset = area.y1 * rowSize;
     }        
-
     BMPFile.seekg( header1.imageDataOffset + yOffset); 
     for ( int row = area.y1; row <= maxY; row++ )
     {
@@ -320,18 +353,18 @@ int Sprite::loadFromBMP( const char *fileName, Rect area )
 int Sprite::saveToBMP( const char *fileName )
 {
     // Prepare headers
-    assert( width > 0 );
-    assert( height > 0 );
-    assert( pixelData != nullptr );
+    assert( width_ > 0 );
+    assert( height_ > 0 );
+    assert( pixelData_ != nullptr );
     BitmapHeader        header1;
     BitmapInfoHeader    header2;
     header2.headerSize = sizeof( BitmapInfoHeader );
-    header2.width = width;
-    header2.height = height;
+    header2.width = width_;
+    header2.height = height_;
     header2.nrOfColorPlanes = 1;
     header2.bitsPerPixel = 24;
     header2.compressionType = 0;
-    header2.imageSize = ((width * 3 + 3) / 4) * 4 * height; // calc padding
+    header2.imageSize = ((width_ * 3 + 3) / 4) * 4 * height_; // calc padding
     header2.horizontalResolution = 2835;
     header2.verticalResolution = 2835;
     header2.nrColorsInPalette = 0;
@@ -351,122 +384,174 @@ int Sprite::saveToBMP( const char *fileName )
     BMPFile.write( (char *)(&header1),sizeof( BitmapHeader ) );
     BMPFile.write( (char *)(&header2),sizeof( BitmapInfoHeader ) );
     // write the image data. We start with the last row (.BMP logic)
-    Color *source = pixelData + width * (height - 1);
-    int nrPaddingBytes = (4 - ((width * 3) % 4)) % 4;
+    // copy data to buffer first
+    char *bmpData = new char[header2.imageSize];
+    Color *source = pixelData_ + width_ * (height_ - 1);
+    int nrPaddingBytes = (4 - ((width_ * 3) % 4)) % 4;
     char padByte = 0;
-    for ( int j = height - 1; j >= 0; j-- )
+    int index = 0;
+    for ( int j = height_ - 1; j >= 0; j-- )
     {
-        for ( int i = 0; i < width; i++ )
+        for ( int i = 0; i < width_; i++ )
         {
-            Color pixel = *source++; 
-            char c = pixel.GetB();
-            BMPFile.write( &c,sizeof( char ) );
-            c = pixel.GetG();
-            BMPFile.write( &c,sizeof( char ) );
-            c = pixel.GetR();
-            BMPFile.write( &c,sizeof( char ) );
+            Color pixel = *source++;
+            bmpData[index++] = pixel.GetB();
+            bmpData[index++] = pixel.GetG();
+            bmpData[index++] = pixel.GetR();
         }
-        for ( int i = 0; i < nrPaddingBytes; i++ ) 
-            BMPFile.write( &padByte,sizeof( padByte ) );
-        source -= width * 2;
+        for ( int i = 0; i < nrPaddingBytes; i++ ) bmpData[index++] = padByte;
+        source -= width_ * 2;        
     }
+    BMPFile.write( bmpData,header2.imageSize );
     BMPFile.close();
+    delete bmpData;
     return 0;
 }
 
 bool Sprite::isEmpty( Rect area,Color color )
 {
-    if ( pixelData == nullptr ) return true;
-    if (area.x1 >= width)  return true;
-    if (area.y1 >= height) return true;
-    if (area.x2 >= width)  area.x2 = width  - 1;
-    if (area.y2 >= height) area.y2 = height - 1;
+    if ( pixelData_ == nullptr ) return true;
+    if (area.x1 >= width_)  return true;
+    if (area.y1 >= height_) return true;
+    if (area.x2 >= width_)  area.x2 = width_  - 1;
+    if (area.y2 >= height_) area.y2 = height_ - 1;
     for (int j = area.y1; j <= area.y2; j++ )
         for (int i = area.x1; i <= area.x2; i++)
         {
-            if (pixelData[j * width + i] != color) return false;
+            if (pixelData_[j * width_ + i] != color) return false;
         }
     return true;
 }
 
+/*
+    Primitive drawing functions:
+*/
+
 void Sprite::fill( Color color )
 {
-    for ( int i = 0; i < width * height; i++ )
-        pixelData[i] = color;
+    for ( int i = 0; i < width_ * height_; i++ )
+        pixelData_[i] = color;
 }
 
-void Sprite::putPixel( int i,Color c )
+void Sprite::putPixel( int i,Color color )
 {
-    assert( i < width * height );
+    assert( i < width_ * height_ );
     assert( i >= 0 );
-    pixelData[i] = c;
+    pixelData_[i] = color;
 }
 
-void Sprite::putPixel( int x,int y,Color c )
+void Sprite::putPixel( int x,int y,Color color )
 {
     assert( x >= 0 );
     assert( y >= 0 );
-    assert( x < width );
-    assert( y < height );
-    pixelData[y * width + x] = c;
+    assert( x < width_ );
+    assert( y < height_ );
+    pixelData_[y * width_ + x] = color;
 }
 
-Color Sprite::getPixel( int x,int y )  const
+void Sprite::drawHorLine( int x1,int y,int x2,Color color )
 {
-    assert( x >= 0 );
-    assert( y >= 0 );
-    assert( x < width );
-    assert( y < height );
-    /*
-    if ( (x >= width) || (y >= height) || (x < 0) || (y < 0) ) 
-        return Colors::Black;
-    */
-    return pixelData[y * width + x];
+    for ( int x = x1; x <= x2; x++ ) putPixel( x,y,color );
 }
 
-void Sprite::copyFromSprite( const Sprite& source,Rect area ) 
+void Sprite::drawVerLine( int x,int y1,int y2,Color color )
+{
+    for ( int y = y1; y <= y2; y++ ) putPixel( x,y,color );
+}
+
+void Sprite::drawBox( const Rect& coords,Color color )
+{
+    drawBox( coords.x1,coords.y1,coords.x2,coords.y2,color );
+}
+
+void Sprite::drawBox( int x1,int y1,int x2,int y2,Color color )
+{
+    for ( int x = x1; x <= x2; x++ )
+    {
+        putPixel( x,y1,color );
+        putPixel( x,y2,color );
+    }
+    for ( int y = y1; y <= y2; y++ )
+    {
+        putPixel( x1,y,color );
+        putPixel( x2,y,color );
+    }
+}
+
+void Sprite::drawBlock( Rect coords,Color color )
+{
+    drawBlock( coords.x1,coords.y1,coords.x2,coords.y2,color );
+}
+
+void Sprite::drawBlock( int x1,int y1,int x2,int y2,Color color )
+{
+    for ( int y = y1; y <= y2; y++ )
+        for ( int x = x1; x <= x2; x++ )
+            putPixel( x,y,color );
+}
+
+/*
+    This function creates a sprite by copying a section from a bigger sprite.
+    The original contents of the sprite that calls the function is discarded.
+*/
+void Sprite::createFromSprite( const Sprite& source,Rect area )
 {
     assert( area.x1 >= 0 );
     assert( area.y1 >= 0 );
     assert( area.isValid() );
     unloadSprite();
     /*
-    width  = area.x2 - area.x1 + 1;
-    height = area.y2 - area.y1 + 1;
-    pixelData = new Color[width * height];
-    memset( pixelData, 0, width * height );
+    width_  = area.x2 - area.x1 + 1;
+    height_ = area.y2 - area.y1 + 1;
+    pixelData_ = new Color[width_ * height_];
+    memset( pixelData_, 0, width_ * height_ );
     */
     createEmptySprite( area.width(),area.height(),Colors::Black );
-    if ( (area.x1 >= source.width) || (area.y1 >= source.height) ) return;
-    if (area.x2 >= source.width)  area.x2 = source.width  - 1;
-    if (area.y2 >= source.height) area.y2 = source.height - 1;
-    Color *src = source.pixelData + area.y1 * source.width + area.x1;
-    int srcNextLine = source.width - width;
-    Color *dst = pixelData;
-    for (int j = 0; j < height; j++)
+    if ( (area.x1 >= source.width_) || (area.y1 >= source.height_) ) return;
+    if ( area.x2 >= source.width_ )  area.x2 = source.width_ - 1;
+    if ( area.y2 >= source.height_ ) area.y2 = source.height_ - 1;
+    Color *src = source.pixelData_ + area.y1 * source.width_ + area.x1;
+    int srcNextLine = source.width_ - width_;
+    Color *dst = pixelData_;
+    for ( int j = 0; j < height_; j++ )
     {
-        for (int i = 0; i < width; i++) *dst++ = *src++;
+        for ( int i = 0; i < width_; i++ ) *dst++ = *src++;
         src += srcNextLine;
     }
 }
+
+
+Color Sprite::getPixel( int x,int y )  const
+{
+    assert( x >= 0 );
+    assert( y >= 0 );
+    assert( x < width_ );
+    assert( y < height_ );
+    /*
+    if ( (x >= width_) || (y >= height_) || (x < 0) || (y < 0) ) 
+        return Colors::Black;
+    */
+    return pixelData_[y * width_ + x];
+}
+
 
 void Sprite::insertFromSprite( int x,int y,const Sprite& source )
 {
     assert( x >= 0 );
     assert( y >= 0 );
-    assert( pixelData != nullptr );
-    if ( x >= width ) return;
-    if ( y >= height ) return;
-    int xEnd = x + source.width - 1;
-    int yEnd = y + source.height - 1;
-    if ( xEnd >= width  ) xEnd = width - 1;
-    if ( yEnd >= height ) yEnd = height - 1;
+    assert( pixelData_ != nullptr );
+    if ( x >= width_ ) return;
+    if ( y >= height_ ) return;
+    int xEnd = x + source.width_ - 1;
+    int yEnd = y + source.height_ - 1;
+    if ( xEnd >= width_  ) xEnd = width_ - 1;
+    if ( yEnd >= height_ ) yEnd = height_ - 1;
     
-    Color *src = source.pixelData;
-    Color *dst = pixelData + y * width + x;
+    Color *src = source.pixelData_;
+    Color *dst = pixelData_ + y * width_ + x;
     int drawWidth = xEnd - x + 1;
-    int dstNextLine = width - drawWidth;
-    int srcNextLine = source.width - drawWidth;
+    int dstNextLine = width_ - drawWidth;
+    int srcNextLine = source.width_ - drawWidth;
     for ( int j = y; j <= yEnd; j++ )
     {
         for ( int i = x; i <= xEnd; i++ ) *dst++ = *src++;
@@ -482,17 +567,17 @@ void Sprite::printXY( int x,int y,const char *s,Font *font )
 {
     if ( s == nullptr ) return;
     int slen = (int)strlen ( s );
-    int fontHeight = font->height ();
+    int fontHeight = font->height();
     if ( ! font->isBitmap () )
     {
-        int fontWidth = font->width ();
+        int fontWidth = font->width();
         int stringWidth = fontWidth * slen;
         /*
         assert ( (x + stringWidth) < ScreenWidth );
         assert ( (y + fontHeight) < ScreenHeight );
         */
-        Color *s1 = pixelData;
-        s1 += x + width * y;
+        Color *s1 = pixelData_;
+        s1 += x + width_ * y;
         for ( int iChar = 0; iChar < slen; iChar++ )
         {
             Color *s2 = s1;
@@ -509,7 +594,7 @@ void Sprite::printXY( int x,int y,const char *s,Font *font )
                     s2++;
                 }
                 if ( iByte > 0 ) iData++;
-                s2 += width - fontWidth;
+                s2 += width_ - fontWidth;
             }
             s1 += fontWidth;
         }
@@ -521,7 +606,7 @@ void Sprite::printXY( int x,int y,const char *s,Font *font )
         for ( int i = 0; i < slen; i++ )
         {
             ((D3DGraphics *)gfx)->PaintBMPClearType ( startX,y,*((Sprite *)(font->getBmpData ( s[i] ))),0 );
-            startX += ((Sprite *)(font->getBmpData ( s[i] )))->width;
+            startX += ((Sprite *)(font->getBmpData ( s[i] )))->width_;
         }
     }     
     */
@@ -538,26 +623,26 @@ Rect Sprite::getSpriteCoordsAt( int x,int y )
     r.x2 = -1;
     r.y1 = -1;
     r.y2 = -1;
-    if ( pixelData == nullptr ) return r;
+    if ( pixelData_ == nullptr ) return r;
     assert ( x >= 0 );
     assert ( y >= 0 );
-    assert ( x < width );
-    assert ( y < height );
+    assert ( x < width_ );
+    assert ( y < height_ );
     // find a pixel with a color:
-    Color *endOfImage = pixelData + width * height;
-    Color *o = pixelData + y * width + x;
+    Color *endOfImage = pixelData_ + width_ * height_;
+    Color *o = pixelData_ + y * width_ + x;
     Color *s;
-    for ( s = o; s < endOfImage; s += width + 1 )
+    for ( s = o; s < endOfImage; s += width_ + 1 )
     {
         if ( *s != 0x0 ) break;
     }
     if ( s >= endOfImage )
     {
-        for ( s = o; s > pixelData; s -= width + 1 )
+        for ( s = o; s > pixelData_; s -= width_ + 1 )
         {
             if ( *s != 0x0 ) break;
         }       
-        if ( s <= pixelData )
+        if ( s <= pixelData_ )
         {
             r.x1 = 0;
             r.x2 = 0;
@@ -566,16 +651,16 @@ Rect Sprite::getSpriteCoordsAt( int x,int y )
             return r;
         }
     }
-    r.y1 = r.y2 = (int)((s - pixelData) / width);
-    r.x1 = r.x2 = (int)((s - pixelData) % width);
+    r.y1 = r.y2 = (int)((s - pixelData_) / width_);
+    r.x1 = r.x2 = (int)((s - pixelData_) % width_);
     x = r.x1;
     y = r.y1;
     // find the black frame:
-    o = pixelData;
-    for ( s = o + y * width + r.x1; *s != 0x00 && r.x1 > 0         ; r.x1--, s-- );
-    for ( s = o + y * width + r.x2; *s != 0x00 && r.x2 < width  - 1; r.x2++, s++ );
-    for ( s = o + r.y1 * width + x; *s != 0x00 && r.y1 > 0         ; r.y1--, s -= width );
-    for ( s = o + r.y2 * width + x; *s != 0x00 && r.y2 < height - 1; r.y2++, s += width );
+    o = pixelData_;
+    for ( s = o + y * width_ + r.x1; *s != 0x00 && r.x1 > 0         ; r.x1--, s-- );
+    for ( s = o + y * width_ + r.x2; *s != 0x00 && r.x2 < width_  - 1; r.x2++, s++ );
+    for ( s = o + r.y1 * width_ + x; *s != 0x00 && r.y1 > 0         ; r.y1--, s -= width_ );
+    for ( s = o + r.y2 * width_ + x; *s != 0x00 && r.y2 < height_ - 1; r.y2++, s += width_ );
     r.x1++;
     r.x2--;
     r.y1++;
@@ -587,9 +672,9 @@ Rect Sprite::getSpriteCoordsAt( int x,int y )
 */
 void Sprite::makeButtonEdges()
 {
-    int w = width;
-    int h = height;
-    Color *y1 = pixelData + 1;
+    int w = width_;
+    int h = height_;
+    Color *y1 = pixelData_ + 1;
     Color *y2 = y1 + (h - 1) * w - 1;
     for ( int i = 1; i < w; i++ )
     {
@@ -612,7 +697,7 @@ void Sprite::makeButtonEdges()
         y1++;
         y2++;
     }
-    Color *x1 = pixelData;
+    Color *x1 = pixelData_;
     Color *x2 = x1 + w * 2 - 1;
     for ( int j = 1; j < h; j++ )
     {
@@ -640,7 +725,7 @@ void Sprite::makeButtonEdges()
 /*
 int Sprite::saveBitmapTNTFontFile()
 {
-    if ( ! pixelData ) return - 1;
+    if ( ! pixelData_ ) return - 1;
 
     const int charColums = 10;
     const int charRows = 10;
@@ -688,7 +773,7 @@ int Sprite::saveBitmapTNTFontFile()
         int charHeight = 0;
         for ( int j = 0; j < (int)spY; j++ )
             for ( int i = 0; i < (int)spX; i++ )
-                if ( pixelData[(y1 + j) * width + x1 + i] != keyColor ) 
+                if ( pixelData_[(y1 + j) * width_ + x1 + i] != keyColor ) 
                 {
                     if ( i > mostRight ) mostRight = i;
                     charHeight = j;
@@ -700,7 +785,7 @@ int Sprite::saveBitmapTNTFontFile()
         fontFile.write( (char *)(&nrCharInAscii),sizeof(char) );
         unsigned packedSize = (charHeight << 16) + mostRight;
         fontFile.write( (char *)(&packedSize),sizeof(packedSize) );
-        int *pD = pixelData + x1 + y1 * width;
+        int *pD = pixelData_ + x1 + y1 * width_;
         for (int j = 0; j < charHeight; j++ )
         {
             for (int i = 0; i < mostRight; i++ )
@@ -713,7 +798,7 @@ int Sprite::saveBitmapTNTFontFile()
                 fontFile.write( (char *)(&g),sizeof(char) );
                 fontFile.write( (char *)(&b),sizeof(char) );
             }
-            pD += width;
+            pD += width_;
         }
     }        
     fontFile.close();
@@ -721,7 +806,7 @@ int Sprite::saveBitmapTNTFontFile()
 }
 int Sprite::saveMonoCTNTFontFile()
 {
-    if ( ! pixelData ) return - 1;
+    if ( ! pixelData_ ) return - 1;
     const int charColums = 10;
     const int charRows = 10;
     float ofsX = 61.0f;
@@ -767,7 +852,7 @@ int Sprite::saveMonoCTNTFontFile()
         unsigned char nrCharInAscii = firstChar + iChar;
         fontFile.write( (char *)(&nrCharInAscii),sizeof(char) );
 
-        int *pD = pixelData + x1 + y1 * width;
+        int *pD = pixelData_ + x1 + y1 * width_;
         for (int j = 0; j < fontHeader.nrScanLines; j++ )
         {
             memset( buf,0,fontHeader.nrBytesScanline );
@@ -785,7 +870,7 @@ int Sprite::saveMonoCTNTFontFile()
                 if ( pD[i] == 0xFFFFFF ) t += 1 << (7 - iByte);
             }
             buf[iBuf] = t;
-            pD += width;
+            pD += width_;
             fontFile.write( buf,fontHeader.nrBytesScanline );
         }
     }        

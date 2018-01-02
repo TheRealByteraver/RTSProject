@@ -5,15 +5,15 @@
 
 
 /*
-Ramps are 4x4 big squares (big squares are 2x2 small ones)
-The origin is always the top left, no matter
-how the ramp is oriented. Conditions:
-- high ground should be two 2x2 squares wide were the ramp
-is attached
-- there should be one strip of low ground next
-to the ramp (at the bottom)
-- the ramp should not be attached to a corner of high ground
-- high ground may not be adjacent to the sides of the ramp
+    Ramps are 4x4 big squares (big squares are 2x2 small ones)
+    The origin is always the top left, no matter
+    how the ramp is oriented. Conditions:
+    - high ground should be two 2x2 squares wide were the ramp
+    is attached
+    - there should be one strip of low ground next
+    to the ramp (at the bottom)
+    - the ramp should not be attached to a corner of high ground
+    - high ground may not be adjacent to the sides of the ramp
 */
 
 /*
@@ -153,7 +153,7 @@ bool Terrain::isValidLocationFor( int i,char terrain )
 }
 
 /*
-    MAJOR ISSUE: INI READER CAN ONLY READ ROWS UP TILL 255 BYTES LONG!!!
+    MAJOR ISSUE: INI READER CAN ONLY READ ROWS UP TILL 300 BYTES LONG!!!
     80 columns ~~ 250 characters
     Terrain needs:
     - columns
@@ -204,29 +204,6 @@ int Terrain::loadTerrain( std::string filename )
             if ( value != encodestr[i] ) return -1;
             data_[rowNr * columns_ + columnNr] = i;
         }
-        /*
-        // the version below uses to much space (3 times more) and the ini file
-        // wouldn't be able to handle that
-        int i = 0;
-        int iMax = rowValue.length() - 1;
-        char buf[3];
-        buf[2] = '\0';
-        for ( int columnNr = 0; columnNr < columns_; columnNr++ )
-        {
-            if ( i > iMax ) return -1;
-            int charsCopied = rowValue.copy( buf,2,i );
-            if ( charsCopied != 2 ) return -1;
-            int v;
-            for ( v = 0; v < 16; v++ ) if ( buf[0] == hexstr[v] ) break;
-            if ( buf[0] != hexstr[v] ) return -1;
-            int value = v << 4;
-            for ( v = 0; v < 16; v++ ) if ( buf[1] == hexstr[v] ) break;
-            if ( buf[1] != hexstr[v] ) return -1;
-            value += v;
-            data_[rowNr * columns_ + columnNr] = value;
-            i += 3;
-        }
-        */
     }
     return 0;
 }
@@ -258,18 +235,6 @@ int Terrain::saveTerrain( std::string filename )
             assert( (value < (int)strlen( encodestr ) ) && (value >= 0) );
             terrainFile << encodestr[value];
         }
-        /*
-        // the version below uses to much space (3 times more) and the ini file
-        // wouldn't be able to handle that
-        for ( int columnNr = 0; columnNr < columns_; columnNr++ )
-        {
-            int value = data_[rowNr * columns_ + columnNr];
-            assert( (value <= 0xFF) && (value >= 0) );
-            buf[0] = hexstr[value >> 4];
-            buf[1] = hexstr[value & 0xF];
-            terrainFile << buf << ",";
-        }
-        */
         terrainFile << std::endl;
     }
     terrainFile.close();

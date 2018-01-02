@@ -141,6 +141,7 @@
     <ClInclude Include="Colors.h" />
     <ClInclude Include="COMInitializer.h" />
     <ClInclude Include="CreateDefaultSprites.h" />
+    <ClInclude Include="GameScreens.h" />
     <ClInclude Include="DXErr.h" />
     <ClInclude Include="EvoConsole.h" />
     <ClInclude Include="font.h" />
@@ -164,6 +165,7 @@
     <ClCompile Include="EvoConsole.cpp" />
     <ClCompile Include="font.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="GameScreens.cpp" />
     <ClCompile Include="Globals.cpp" />
     <ClCompile Include="Graphics.cpp" />
     <ClCompile Include="IniFile.cpp" />

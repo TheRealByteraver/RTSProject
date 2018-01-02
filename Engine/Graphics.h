@@ -158,6 +158,12 @@ public:
     void    drawBoxClipped( Rect coords,Rect clippedArea,Color color );
     void    drawBlock( Rect coords,Color color );
     void    drawBlock( int x1,int y1,int x2,int y2,Color color );
+    void    setFrameWidth( int frameWidth ) 
+        { assert( frameWidth >= 0 ); frameWidth_ = frameWidth; }
+    void    setFrameColor( Color color )
+    {
+        frameColor_ = color;
+    }
     void    setTextColor( Color color ) { textColor = color; }
     void    setFont( Font *f ) { font = f; }
     Font    *getFont() { return font; }
@@ -167,7 +173,7 @@ public:
     void    printXY( int x,int y,const char *s,int opacity,Font& font );
     void    printXYSolid( int x,int y,int xSpacer,char *s,Color color /*, HRESULT *hres*/ );
     void    paintConsole( int x,int y,EvoConsole *console );
-    void    paintSprite( int x,int y,Sprite &sprite );
+    void    paintSprite( int x,int y,const Sprite &sprite );
     void    paintSpriteSection( int x,int y,Rect area,Sprite &sprite );
     void    paintSpriteKeyed( int x,int y,Sprite &sprite,Color keyColor );
     void    paintBMPClearType( int x,int y,Sprite &sprite,Color keyColor );
@@ -179,8 +185,8 @@ public:
     void    printText( int x,int y,const char *text[] );
 private:
     Color   textColor = Colors::White;
-    int     frameWidth;
-    Color   frameColor = Colors::Gray;
+    int     frameWidth_ = 3;
+    Color   frameColor_ = Colors::LightGray;
     Font    *font;
 
 

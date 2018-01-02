@@ -37,6 +37,23 @@ class IniFile
 {
 public:
     IniFile( const std::string& filename ) { readFile( filename ); }
+    IniFile( const std::string& filename,std::ofstream& debugLogFile ) 
+    {        
+        if ( debugLogFile.is_open() )
+        {
+            debugLogFile_ = &debugLogFile;
+            writeDebugLogFile_ = true;
+        }
+        readFile( filename ); 
+    }
+    void    setDebugLog( std::ofstream& debugLogFile )
+    {
+        if ( debugLogFile.is_open() )
+        {
+            debugLogFile_ = &debugLogFile;
+            writeDebugLogFile_ = true;
+        }
+    }
     bool    isLoaded() const { return iniFileLoaded_; }
     // These functions return non zero on error
     int     getKeyValue( const std::string& section,const std::string& key,std::string& dest );
@@ -48,10 +65,13 @@ public:
     int     getNextKey( std::string& key );
     int     rewind() { currentRow_ = 0; return (iniFileLoaded_ ? 0 : -1); }
 private:
-    std::vector<std::string>  stringList;
+    std::vector<std::string>    stringList_;
+    std::ofstream*              debugLogFile_;
+    std::string                 iniFilename_;   // only used for debugging
+    bool                        writeDebugLogFile_ = false;
+    bool                        iniFileLoaded_ = false;
+    int                         currentRow_ = 0;
 private:
-    bool    iniFileLoaded_ = false;
-    int     currentRow_ = 0;
     int     readFile( const std::string& filename );
     char    *deleteWhiteSpace( char *buf ) const;
 };

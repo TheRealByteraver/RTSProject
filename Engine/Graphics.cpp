@@ -40,8 +40,8 @@ namespace FramebufferShaders
 
 using Microsoft::WRL::ComPtr;
 
-int Graphics::ScreenWidth = 1280;
-int Graphics::ScreenHeight = 720;
+int Graphics::ScreenWidth = 640;
+int Graphics::ScreenHeight = 400;
 
 Graphics::Graphics( HWNDKey& key )
 {
@@ -741,7 +741,7 @@ void Graphics::printXYSolid( int x,int y,int xSpacer,char *s,Color color /*, HRE
     }
 }
 
-void Graphics::paintSprite( int x,int y,Sprite &sprite )
+void Graphics::paintSprite( int x,int y,const Sprite &sprite )
 {
     //if( sprite.pixelData == nullptr ) return;
     if ( !sprite.isImagePresent() ) return;
@@ -939,34 +939,34 @@ Specialized drawing functions for interface
 */
 void Graphics::drawNiceBlock( Rect r )
 {
-    int rd = frameColor.GetR() / frameWidth;
-    int gd = frameColor.GetG() / frameWidth;
-    int bd = frameColor.GetB() / frameWidth;
+    int rd = frameColor_.GetR() / frameWidth_;
+    int gd = frameColor_.GetG() / frameWidth_;
+    int bd = frameColor_.GetB() / frameWidth_;
     int red = rd;
     int grn = gd;
     int blu = bd;
     int i;
-    for ( i = 0; i < frameWidth; i++ )
+    for ( i = 0; i < frameWidth_; i++ )
     {
         drawBox( r.x1 + i,r.y1 + i,r.x2 - i,r.y2 - i,Color( red,grn,blu ) );
         red += rd;
         grn += gd;
         blu += bd;
     }
-    drawBlock( r.x1 + i,r.y1 + i,r.x2 - i,r.y2 - i,frameColor );
+    drawBlock( r.x1 + i,r.y1 + i,r.x2 - i,r.y2 - i,frameColor_ );
 }
 
 void Graphics::drawNiceBlockInv( Rect r )
 {
-    int red = frameColor.GetR();
-    int grn = frameColor.GetG();
-    int blu = frameColor.GetB();
-    int rd = red / frameWidth;
-    int gd = grn / frameWidth;
-    int bd = blu / frameWidth;
+    int red = frameColor_.GetR();
+    int grn = frameColor_.GetG();
+    int blu = frameColor_.GetB();
+    int rd = red / frameWidth_;
+    int gd = grn / frameWidth_;
+    int bd = blu / frameWidth_;
     int i;
     Color c;
-    for ( i = 0; i < frameWidth; i++ )
+    for ( i = 0; i < frameWidth_; i++ )
     {
         c = Color( red,grn,blu );
         drawBox( r.x1 + i,r.y1 + i,r.x2 - i,r.y2 - i,c );
@@ -981,9 +981,9 @@ void Graphics::drawButton( Rect r )
 {
     drawBox( r.x1,r.y1,r.x2,r.y2,0 );
     int colorDelta = 60;
-    int red = frameColor.GetR();
-    int grn = frameColor.GetG();
-    int blu = frameColor.GetB();
+    int red = frameColor_.GetR();
+    int grn = frameColor_.GetG();
+    int blu = frameColor_.GetB();
     int rd = red - colorDelta; if ( rd < 0 ) rd = 0;
     int gd = grn - colorDelta; if ( gd < 0 ) gd = 0;
     int bd = blu - colorDelta; if ( bd < 0 ) bd = 0;
@@ -992,7 +992,7 @@ void Graphics::drawButton( Rect r )
     int gl = grn + colorDelta; if ( gl > 0xFF ) gl = 0xFF;
     int bl = blu + colorDelta; if ( bl > 0xFF ) bl = 0xFF;
     int lightColor = (rl << 16) + (gl << 8) + bl;
-    for ( int i = 1; i < frameWidth - 1; i++ )
+    for ( int i = 1; i < frameWidth_ - 1; i++ )
     {
         drawHorLine( r.x1 + i,r.y1 + i,r.x2 - i,lightColor );
         drawVerLine( r.x2 - i,r.y1 + i,r.y2 - i,lightColor );

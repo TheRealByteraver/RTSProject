@@ -87,8 +87,10 @@ int KeyPair::decode( std::string toDecode )
 */
 int IniFile::readFile( const std::string& filename )
 {
+    // keep track of the filename for debugging purposes:
+    iniFilename_ = filename;
     // start with a clean empty string list
-    stringList.clear();
+    stringList_.clear();
     iniFileLoaded_ = false;
     // Open the ini file
     std::ifstream iniFile( filename.c_str() );
@@ -141,7 +143,7 @@ int IniFile::readFile( const std::string& filename )
         std::string str( strBuf );
         std::transform( str.begin(),str.end(),str.begin(),::toupper );
         // push the data into the buffer
-        stringList.push_back( str );
+        stringList_.push_back( str );
         /*
         // debug:
         //std::cout << *(stringList.end() - 1);
@@ -156,15 +158,15 @@ int IniFile::readFile( const std::string& filename )
 
 int IniFile::getNextSection( std::string& section )
 {
-    for ( ; currentRow_ < (int)stringList.size(); currentRow_++ )
+    for ( ; currentRow_ < (int)stringList_.size(); currentRow_++ )
     {
-        if ( stringList[currentRow_][0] == '[' ) break;
+        if ( stringList_[currentRow_][0] == '[' ) break;
     }
-    if ( currentRow_ < (int)stringList.size() )
+    if ( currentRow_ < (int)stringList_.size() )
     {
         section.clear();
-        for ( int i = 1; i < (int)stringList[currentRow_].length() - 1; i++ )
-            section += stringList[currentRow_][i];
+        for ( int i = 1; i < (int)stringList_[currentRow_].length() - 1; i++ )
+            section += stringList_[currentRow_][i];
         //section = stringList[currentRow_];
         currentRow_++;
         return 0;
@@ -174,9 +176,9 @@ int IniFile::getNextSection( std::string& section )
 int IniFile::getNextKey( std::string& key )
 {
     key.clear();
-    if ( currentRow_ >= (int)stringList.size() ) return -1;
-    if ( stringList[currentRow_][0] == '[' ) return -1;
-    key = stringList[currentRow_];
+    if ( currentRow_ >= (int)stringList_.size() ) return -1;
+    if ( stringList_[currentRow_][0] == '[' ) return -1;
+    key = stringList_[currentRow_];
     currentRow_++;
     return 0;
 }
@@ -188,15 +190,15 @@ int IniFile::getKeyValue( const std::string& section,const std::string& key,std:
     // Transform the strings to upper case for correct comparison
     std::transform( sectionStr.begin(),sectionStr.end(),sectionStr.begin(),::toupper );
     std::transform( keyStr.begin(),keyStr.end(),keyStr.begin(),::toupper );
-    for ( currentRow_ = 0; currentRow_ < (int)stringList.size(); currentRow_++ )
+    for ( currentRow_ = 0; currentRow_ < (int)stringList_.size(); currentRow_++ )
     {
-        if ( stringList[currentRow_].compare( sectionStr ) != 0 ) continue;
+        if ( stringList_[currentRow_].compare( sectionStr ) != 0 ) continue;
         currentRow_++;
-        for ( ; currentRow_ < (int)stringList.size(); currentRow_++ )
+        for ( ; currentRow_ < (int)stringList_.size(); currentRow_++ )
         {
-            if ( stringList[currentRow_][0] == '[' ) break; // end of this section
+            if ( stringList_[currentRow_][0] == '[' ) break; // end of this section
             char strBuf[INIFILE_MAX_LINE_LENGTH];
-            const char *src = stringList[currentRow_].c_str();
+            const char *src = stringList_[currentRow_].c_str();
             char *dst = strBuf;
             for ( ; (*src != '=') && (*src != '\0'); ) *dst++ = *src++;
             *dst = '\0';
@@ -210,6 +212,10 @@ int IniFile::getKeyValue( const std::string& section,const std::string& key,std:
         }
         break;
     }
+    if ( writeDebugLogFile_ )
+        *debugLogFile_  << "Couldn't find key \"" << key << "\" "
+                        << "in section \"" << section << "\" " 
+                        << " in .ini file " << iniFilename_ << "\n";
     return -1;
 }
 

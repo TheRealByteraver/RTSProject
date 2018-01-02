@@ -27,6 +27,10 @@
 #include "Font.h"
 #include "CreateDefaultSprites.h"
 #include "IniFile.h"
+#include "GameScreens.h"
+
+extern class Defaults defaults;
+
 
 
 class Game
@@ -48,10 +52,11 @@ private:
 	/********************************/
 	/*  User Variables              */
 	/********************************/
-    IniFile                 masterIniFile = std::string( GAME_FOLDER MASTER_INIFILE_FILENAME );
+    int                     frameNr = 0;
     Font                    font;
     Font                    neuropolXBMP;
+    //IniFile                 masterIniFile = std::string( GAME_FOLDER MASTER_INIFILE_FILENAME );
     CreateDefaultSprites    createDefaultSprites;
+    GameScreens             gameScreens;
 
-    int                     frameNr = 0;
 };

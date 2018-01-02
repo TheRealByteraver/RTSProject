@@ -28,18 +28,17 @@ Game::Game( MainWindow& wnd )
 	wnd( wnd ),
     gfx( wnd )
 {
-    if ( !masterIniFile.isLoaded() ) PostQuitMessage( -1 );
+    //if ( !masterIniFile.isLoaded() ) PostQuitMessage( -1 );
+    // masterIniFile.setDebugLog( defaults.debugLogFile );
     font.loadFont( "C:\\RTSMedia\\Courier.TFT" );
     neuropolXBMP.loadFont( "C:\\RTSMedia\\neuropolX.tft" );
     gfx.setFont( &font );
-    // draw sprites on screen and save the screen capture to a .bmp file.
-    // we need to do at least one frame to clear the screen / video memory ;)
-    gfx.BeginFrame();
-    UpdateModel();
-    createDefaultSprites.init( &gfx );
-    gfx.EndFrame();
-    // finished creating sprite library
+    gameScreens.init( gfx );
+    
+    //int i; masterIniFile.getKeyValue( "unknownSection","unknownkey",i );  // debug test
 }
+
+
 
 void Game::Go()
 {
@@ -56,9 +55,12 @@ void Game::UpdateModel()
 void Game::ComposeFrame()
 {
     frameNr++;
-    //gfx.ScreenWidth = 1600;
-    createDefaultSprites.drawTerrainSprites();
-    gfx.paintSprite( 100,100,Sprite() );
+    gameScreens.drawScenarioEditor();
+
+    
+    gfx.paintSprite(0,0,createDefaultSprites.getSpriteLibrary() );
+    //gfx.paintSprite( 100,100,Sprite() );
     //PostMessage( HWND( wnd ),WM_CLOSE,0,0 ); // proper way to exit program?
+    
 
 }
