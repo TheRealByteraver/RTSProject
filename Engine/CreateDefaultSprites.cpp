@@ -500,7 +500,10 @@ void CreateDefaultSprites::drawTerrainSprites()
         for ( int j = yLast + 1; j >= y; j-- )
             terrainSpriteLib.drawHorLine( x1,y1 + y2 + 1 - j,x2 - x,T_HIGH_COLOR );
     }   
+}
 
+void CreateDefaultSprites::saveTerrainSprites()
+{
     // now save the sprites to a .bmp file:
     std::string path( GAME_FOLDER );
     path.append( defaults.worldsFolder() );
@@ -508,7 +511,6 @@ void CreateDefaultSprites::drawTerrainSprites()
     path.append( defaults.defaultWorld() );
     path.append( ".bmp" );
     terrainSpriteLib.saveToBMP( path.c_str() );
-    writeWorldIni();
 }
 
 

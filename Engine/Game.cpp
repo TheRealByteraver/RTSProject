@@ -33,7 +33,16 @@ Game::Game( MainWindow& wnd )
     fontPath.append( defaults.mediaFolder() );
     fontPath.append( "\\" );
     fontPath.append( defaults.smallFontFile() );
-    font.loadFont( fontPath.c_str() );
+    int error = font.loadFont( fontPath.c_str() );
+    if ( error != 0 )
+    {
+        std::wstring errMsg( L"Unable to open the default small font file " );
+        for ( char c : fontPath ) errMsg += c;
+        errMsg += L", exiting Program.";
+        wnd.ShowMessageBox( L"Fatal Error",errMsg,MB_OK );
+        PostQuitMessage( 0 ); 
+        return;        
+    }
     gfx.setFont( &font );
     // show a loading screen:
     gfx.BeginFrame();

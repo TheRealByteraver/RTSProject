@@ -47,6 +47,7 @@ class CreateDefaultSprites
 public:
     CreateDefaultSprites() { }
     void    drawTerrainSprites();
+    void    saveTerrainSprites();
     void    writeWorldIni();
     const Sprite& getSpriteLibrary() { return terrainSpriteLib; }
 private:

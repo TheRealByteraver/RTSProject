@@ -40,6 +40,7 @@ public:
 public:
     std::ofstream   debugLogFile;
 private:
+    void            checkFolder( const std::string& folderType,std::string& folderName );
     bool            dirExists( const std::string& dirName );
     bool            fileExists( const std::string& fileName );
 private:
@@ -57,6 +58,8 @@ private:
     std::string     scenariosFolder_;
     std::string     spritesFolder_;
     std::string     mediaFolder_;
+    std::string     soundsFolder_;
+    std::string     soundTrackFolder_;
     std::string     defaultWorld_;
     std::string     smallfontFile_;
 };
