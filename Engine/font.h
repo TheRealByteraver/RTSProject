@@ -135,7 +135,7 @@ public:
     int         width  () { return width_;  } 
     int         height () { return height_; }
     bool        isBitmap () { return isBitmap_; }
-    int         loadFont( char *fileName );
+    int         loadFont( const char *fileName );
     char       *getCharData( unsigned char c ) { return charData_[c]; }
     Sprite     *getBmpData( unsigned char c );
 private:

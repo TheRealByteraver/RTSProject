@@ -47,12 +47,13 @@ public:
     static const Color brokenImageSpriteData
         [BROKEN_IMAGE_SPRITE_WIDTH * BROKEN_IMAGE_SPRITE_HEIGHT];
 public:
-    Sprite() : Sprite( 
+    Sprite( Sprite& sprite ) { *this = sprite; }
+    Sprite( int width,int height,const Color *pixelData );
+    Sprite() : Sprite(
         BROKEN_IMAGE_SPRITE_WIDTH,
         BROKEN_IMAGE_SPRITE_HEIGHT,
         brokenImageSpriteData
         ) {}
-    Sprite( int width,int height,const Color *pixelData );
     Sprite( const char *bmpFileName );
     ~Sprite();
     Sprite& operator=( const Sprite& sourceSprite );
@@ -64,12 +65,12 @@ public:
     int     loadBitmap( const char *fileName );
     //void    loadFromMemory( int width,int height,Color *pixelData );
     void    captureFromMemory( Rect area,Color *source,const int sourceWidth );
-    void    createEmptySprite( int width,int height );
-    void    createEmptySprite( int width,int height,Color fillColor );
+    //void    createEmptySprite( int width,int height );
+    void    createEmptySprite( int width,int height,Color fillColor = Colors::Black );
     //int     loadPNG( const char *filename );
     int     loadFromBMP( const char *fileName, Rect area );
     int     saveToBMP( const char *fileName );
-    bool    isEmpty( Rect area,Color color );
+    bool    isFilledWith( Rect area,Color color );
     void    fill( Color color );
     void    putPixel( int i,Color color );
     void    putPixel( int x,int y,Color color );

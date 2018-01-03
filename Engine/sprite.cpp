@@ -218,6 +218,7 @@ void Sprite::captureFromMemory( Rect area,Color *source,const int sourceWidth )
     }
 }
 
+/*
 void Sprite::createEmptySprite( int width,int height )
 {
     assert( width > 0 );
@@ -227,10 +228,17 @@ void Sprite::createEmptySprite( int width,int height )
     height_ = height;
     pixelData_ = new Color[width * height];
 }
+*/
 
 void Sprite::createEmptySprite( int width,int height,Color fillColor )
 {
-    createEmptySprite( width,height );
+    //createEmptySprite( width,height );
+    assert( width > 0 );
+    assert( height > 0 );
+    unloadSprite();
+    width_ = width;
+    height_ = height;
+    pixelData_ = new Color[width * height];
     fill( fillColor );
 }
 /*
@@ -408,7 +416,7 @@ int Sprite::saveToBMP( const char *fileName )
     return 0;
 }
 
-bool Sprite::isEmpty( Rect area,Color color )
+bool Sprite::isFilledWith( Rect area,Color color )
 {
     if ( pixelData_ == nullptr ) return true;
     if (area.x1 >= width_)  return true;

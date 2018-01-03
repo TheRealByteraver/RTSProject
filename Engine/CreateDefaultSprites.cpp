@@ -35,7 +35,8 @@ void  CreateDefaultSprites::writeWorldIni()
     std::string path( GAME_FOLDER );
     path.append( defaults.worldsFolder() );
     path.append( "\\" );
-    path.append( TERRAIN_WORLD_FILENAME );
+    path.append( defaults.defaultWorld() );
+    path.append( ".ini" );
     std::ofstream earthWorld( path );
     earthWorld << "; This describes the default world spritesheet." << std::endl;
     earthWorld << "; If this file is corrupt then delete it, the game will recreate it." << std::endl;
@@ -46,7 +47,7 @@ void  CreateDefaultSprites::writeWorldIni()
     earthWorld << "Separator=" << TILE_SEPARATOR << std::endl;
     earthWorld << "Offset=" << TILE_X_OFFSET << std::endl;
     earthWorld << "NrOfTiles=" << NR_OF_TILES << std::endl;
-    earthWorld << "SpriteLib=" << TERRAIN_SPRITE_LIB_FILENAME << std::endl;
+    //earthWorld << "SpriteLib=" << TERRAIN_SPRITE_LIB_FILENAME << std::endl;
     /*
     for ( int tileNr = 0; tileNr < NR_OF_TILES; tileNr++ )
     {
@@ -502,8 +503,10 @@ void CreateDefaultSprites::drawTerrainSprites()
 
     // now save the sprites to a .bmp file:
     std::string path( GAME_FOLDER );
-    path.append( defaults.spritesFolder() );
-    path.append( "\\" TERRAIN_SPRITE_LIB_FILENAME );
+    path.append( defaults.worldsFolder() );
+    path.append( "\\" );
+    path.append( defaults.defaultWorld() );
+    path.append( ".bmp" );
     terrainSpriteLib.saveToBMP( path.c_str() );
     writeWorldIni();
 }

@@ -28,10 +28,12 @@
 #include "CreateDefaultSprites.h"
 #include "IniFile.h"
 #include "GameScreens.h"
+#include "Terrain.h"
+
 
 extern class Defaults defaults;
 
-
+enum gamestate { introstate,menustate,terraineditorstate,pausestate,playingstate };
 
 class Game
 {
@@ -56,7 +58,8 @@ private:
     Font                    font;
     Font                    neuropolXBMP;
     //IniFile                 masterIniFile = std::string( GAME_FOLDER MASTER_INIFILE_FILENAME );
-    CreateDefaultSprites    createDefaultSprites;
+    
     GameScreens             gameScreens;
+    Terrain                 terrain;
 
 };

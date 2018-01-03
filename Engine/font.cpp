@@ -16,6 +16,7 @@ Font::Font()
     height_      = 0;
     isBitmap_    = false;
 }
+
 Font::~Font()
 {
     for (int i = 0; i < NR_OF_CHARS; i++)
@@ -24,6 +25,7 @@ Font::~Font()
         if ( ((Sprite *)bmpData_[i]) != nullptr ) delete ((Sprite *)bmpData_[i]); 
     }    
 }
+
 Sprite *Font::getBmpData( unsigned char c )  
 { 
     /*
@@ -33,7 +35,8 @@ Sprite *Font::getBmpData( unsigned char c )
     if ( t != nullptr ) return t;  
     else return bmpData_[0];
 }
-int Font::loadFont(char *fileName)
+
+int Font::loadFont( const char *fileName )
 {
     TftHeader       header;
     std::ifstream   fontFile;

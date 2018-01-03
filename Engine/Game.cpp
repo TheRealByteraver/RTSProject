@@ -28,11 +28,25 @@ Game::Game( MainWindow& wnd )
 	wnd( wnd ),
     gfx( wnd )
 {
-    //if ( !masterIniFile.isLoaded() ) PostQuitMessage( -1 );
-    // masterIniFile.setDebugLog( defaults.debugLogFile );
-    font.loadFont( "C:\\RTSMedia\\Courier.TFT" );
-    neuropolXBMP.loadFont( "C:\\RTSMedia\\neuropolX.tft" );
+    // load the bare minimum:
+    std::string fontPath( GAME_FOLDER );
+    fontPath.append( defaults.mediaFolder() );
+    fontPath.append( "\\" );
+    fontPath.append( defaults.smallFontFile() );
+    font.loadFont( fontPath.c_str() );
     gfx.setFont( &font );
+    // show a loading screen:
+    gfx.BeginFrame();
+    UpdateModel();
+    gfx.printXY(0,0,"Loading...");
+    gfx.EndFrame();
+    // load other necessities:
+    fontPath.assign( GAME_FOLDER );
+    fontPath.append( defaults.mediaFolder() );
+    fontPath.append( "\\" );
+    fontPath.append( "neuropolX.tft" );
+    neuropolXBMP.loadFont( fontPath.c_str() );
+
     gameScreens.init( gfx );
     
     //int i; masterIniFile.getKeyValue( "unknownSection","unknownkey",i );  // debug test
@@ -58,9 +72,9 @@ void Game::ComposeFrame()
     gameScreens.drawScenarioEditor();
 
     
-    gfx.paintSprite(0,0,createDefaultSprites.getSpriteLibrary() );
+    // gfx.paintSprite(0,0,createDefaultSprites.getSpriteLibrary() );
+
+
     //gfx.paintSprite( 100,100,Sprite() );
     //PostMessage( HWND( wnd ),WM_CLOSE,0,0 ); // proper way to exit program?
-    
-
 }

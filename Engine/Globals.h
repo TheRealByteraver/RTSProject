@@ -6,6 +6,7 @@
 #include "string.h"
 #include "assert.h"
 #include "windows.h"
+#include "createDefaultSprites.h"
 #include <iostream>
 #include <fstream>
 
@@ -33,11 +34,14 @@ public:
     const std::string&  terrainsFolder() { return terrainsFolder_; }
     const std::string&  scenariosFolder() { return scenariosFolder_; }
     const std::string&  spritesFolder() { return spritesFolder_; }
-    const std::string&  defaultTerrainFile() { return defaultTerrainFile_; }
+    const std::string&  mediaFolder() { return mediaFolder_; }
+    const std::string&  defaultWorld() { return defaultWorld_; }
+    const std::string&  smallFontFile() { return smallfontFile_;  }
 public:
     std::ofstream   debugLogFile;
 private:
-    bool            dirExists( const std::string& dirName_in );
+    bool            dirExists( const std::string& dirName );
+    bool            fileExists( const std::string& fileName );
 private:
     IniFile         masterIniFile_ = GAME_FOLDER MASTER_INIFILE_FILENAME;
     std::string     debugLogFilename_;
@@ -51,8 +55,10 @@ private:
     std::string     worldsFolder_;
     std::string     terrainsFolder_;
     std::string     scenariosFolder_;
-    std::string     defaultTerrainFile_;
     std::string     spritesFolder_;
+    std::string     mediaFolder_;
+    std::string     defaultWorld_;
+    std::string     smallfontFile_;
 };
 
 
