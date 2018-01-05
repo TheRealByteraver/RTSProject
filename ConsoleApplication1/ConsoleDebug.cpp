@@ -20,7 +20,7 @@
 #include <time.h>
 #include <conio.h>    // for getch();
 #include <windows.h>
-#include "TerrainEditor.h"
+#include "Terrain.h"
 #include "IniFile.h"
 
 #define FOLDER_RACES            "c:\\RTSMedia\\Races\\"

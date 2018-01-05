@@ -5,7 +5,7 @@
 #include "Globals.h"
 
 // the default width of one tile used to create the terrain
-#define WORLD_TILE_DEFAULT_WIDTH    32
+#define WORLD_TILE_DEFAULT_WIDTH    14
 
 // there are 64 tiles, most of whom are not used (black)
 #define NR_OF_TILES                 64
@@ -18,7 +18,7 @@
 #define TILE_Y_OFFSET               1
 
 // this defines how wide the sprite .bmp file will be
-#define TILES_PER_ROW               32
+#define TILES_PER_ROW               8
 
 // the size of the bitmap file containing the sprite library
 #define TERRAIN_SPRITE_LIB_WIDTH    (TILE_X_OFFSET + TILES_PER_ROW * \

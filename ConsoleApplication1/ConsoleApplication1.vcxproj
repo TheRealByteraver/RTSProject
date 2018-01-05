@@ -148,13 +148,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Engine\IniFile.h" />
-    <ClInclude Include="..\Engine\TerrainEditor.h" />
+    <ClInclude Include="..\Engine\Terrain.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Engine\IniFile.cpp" />
-    <ClCompile Include="..\Engine\TerrainEditor.cpp" />
+    <ClCompile Include="..\Engine\Terrain.cpp" />
     <ClCompile Include="ConsoleDebug.cpp" />
     <ClCompile Include="stdafx.cpp" />
   </ItemGroup>

@@ -31,15 +31,15 @@ Game::Game( MainWindow& wnd )
     gfx( wnd )
 {
     // load the bare minimum:
-    std::string fontPath( GAME_FOLDER );
-    fontPath.append( defaults.mediaFolder() );
-    fontPath.append( "\\" );
-    fontPath.append( defaults.smallFontFile() );
-    int error = font.loadFont( fontPath.c_str() );
+    std::string path( GAME_FOLDER );
+    path.append( defaults.mediaFolder() );
+    path.append( "\\" );
+    path.append( defaults.smallFontFile() );
+    int error = font.loadFont( path.c_str() );
     if ( error != 0 )
     {
         std::wstring errMsg( L"Unable to open the default small font file " );
-        for ( char c : fontPath ) errMsg += c;
+        for ( char c : path ) errMsg += c;
         errMsg += L", exiting Program.";
         wnd.ShowMessageBox( L"Fatal Error",errMsg,MB_OK );
         PostQuitMessage( 0 ); 
@@ -52,21 +52,34 @@ Game::Game( MainWindow& wnd )
     gfx.printXY(0,0,"Loading...");
     gfx.EndFrame();
     // load other (bigger) font:
-    fontPath.assign( GAME_FOLDER );
-    fontPath.append( defaults.mediaFolder() );
-    fontPath.append( "\\" );
-    fontPath.append( "neuropolX.tft" );
-    neuropolXBMP.loadFont( fontPath.c_str() );
-    // load default world:
-    /*
-    std::string worldPath( GAME_FOLDER );
-    worldPath.append( defaults.worldsFolder() );
-    worldPath.append( "\\" );
-    worldPath.append( defaults.defaultWorld() );
-    worldPath.append( ".ini" );
-    */
-    world.loadTiles( defaults.defaultWorld() );
+    path.assign( GAME_FOLDER );
+    path.append( defaults.mediaFolder() );
+    path.append( "\\" );
+    path.append( "neuropolX.tft" );
+    neuropolXBMP.loadFont( path.c_str() );
 
+    // load terrain (debug):
+    path.assign( GAME_FOLDER );
+    path.append( defaults.terrainsFolder() );
+    path.append( "\\" );    
+    path.append( "default.ini" ); // debug 
+    terrain.loadTerrain( path );
+
+    // load world:
+    error = world.loadTiles( terrain.getWorld() );
+    if ( error != 0 )
+    {
+        error = world.loadTiles( defaults.defaultWorld() );
+        if ( error != 0 )
+        {
+            std::wstring errMsg( L"Unable to open world gfx data file " );
+            for ( char c : defaults.defaultWorld() ) errMsg += c;
+            errMsg += L".bmp, exiting Program.";
+            wnd.ShowMessageBox( L"Fatal Error",errMsg,MB_OK );
+            PostQuitMessage( 0 );
+            return;
+        }
+    }
 
     gameScreens.init( gfx );
     
@@ -90,7 +103,27 @@ void Game::UpdateModel()
 void Game::ComposeFrame()
 {
     frameNr++;
-    gameScreens.drawScenarioEditor();
+    //gameScreens.drawScenarioEditor();
+    int grid = 0;
+    int tileWidth = world.getTile( 0 ).getWidth() + grid;
+    int tileHeight = world.getTile( 0 ).getHeight() + grid;
+    int i = 0;
+    for ( int y = 0; y < terrain.getRows(); y++ )
+        for ( int x = 0; x < terrain.getColumns(); x++ )
+        {
+            
+            gfx.paintSprite(
+                x * tileWidth,
+                y * tileHeight ,
+                world.getTile( terrain.getElement( i ) ) );
+            /*
+            std::string s;
+            s.clear();
+            s += terrain.getElement( i );
+            gfx.printXY( x * 16,y * 16,s.c_str() );
+            */
+            i++;
+        }
 
 
 
@@ -98,11 +131,11 @@ void Game::ComposeFrame()
 
 
 
-    
+    /*
     gfx.drawBlock(0,0,33 * 16,33 * 4,Colors::Red);
     for ( int i = 0; i < 64; i++ )
         gfx.paintSprite( 1 + (i % 16) * 33, 1 + (i / 16) * 33,world.getTile( i ) );    
-    
+    */
 
     //gfx.paintSprite(0,50,createDefaultSprites.getSpriteLibrary() );
 

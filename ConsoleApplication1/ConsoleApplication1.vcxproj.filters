@@ -24,10 +24,10 @@
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Engine\TerrainEditor.h">
+    <ClInclude Include="..\Engine\IniFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Engine\IniFile.h">
+    <ClInclude Include="..\Engine\Terrain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -35,13 +35,13 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Engine\TerrainEditor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\Engine\IniFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ConsoleDebug.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Engine\Terrain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
