@@ -55,6 +55,7 @@ public:
         brokenImageSpriteData
         ) {}
     Sprite( const char *bmpFileName );
+    Sprite( const std::string& bmpFileName ) : Sprite( bmpFileName.c_str() ) {}
     ~Sprite();
     Sprite& operator=( const Sprite& sourceSprite );
     int     getWidth() const { return width_; }

@@ -23,6 +23,8 @@
 #include "Math.h"
 #include "Graphics.h"
 
+
+
 Game::Game( MainWindow& wnd )
 	:
 	wnd( wnd ),
@@ -49,12 +51,22 @@ Game::Game( MainWindow& wnd )
     UpdateModel();
     gfx.printXY(0,0,"Loading...");
     gfx.EndFrame();
-    // load other necessities:
+    // load other (bigger) font:
     fontPath.assign( GAME_FOLDER );
     fontPath.append( defaults.mediaFolder() );
     fontPath.append( "\\" );
     fontPath.append( "neuropolX.tft" );
     neuropolXBMP.loadFont( fontPath.c_str() );
+    // load default world:
+    /*
+    std::string worldPath( GAME_FOLDER );
+    worldPath.append( defaults.worldsFolder() );
+    worldPath.append( "\\" );
+    worldPath.append( defaults.defaultWorld() );
+    worldPath.append( ".ini" );
+    */
+    world.loadTiles( defaults.defaultWorld() );
+
 
     gameScreens.init( gfx );
     
@@ -80,9 +92,19 @@ void Game::ComposeFrame()
     frameNr++;
     gameScreens.drawScenarioEditor();
 
-    
-    // gfx.paintSprite(0,0,createDefaultSprites.getSpriteLibrary() );
 
+
+
+
+
+
+    
+    gfx.drawBlock(0,0,33 * 16,33 * 4,Colors::Red);
+    for ( int i = 0; i < 64; i++ )
+        gfx.paintSprite( 1 + (i % 16) * 33, 1 + (i / 16) * 33,world.getTile( i ) );    
+    
+
+    //gfx.paintSprite(0,50,createDefaultSprites.getSpriteLibrary() );
 
     //gfx.paintSprite( 100,100,Sprite() );
     //PostMessage( HWND( wnd ),WM_CLOSE,0,0 ); // proper way to exit program?

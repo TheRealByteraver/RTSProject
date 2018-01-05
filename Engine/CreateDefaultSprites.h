@@ -18,7 +18,7 @@
 #define TILE_Y_OFFSET               1
 
 // this defines how wide the sprite .bmp file will be
-#define TILES_PER_ROW               16
+#define TILES_PER_ROW               32
 
 // the size of the bitmap file containing the sprite library
 #define TERRAIN_SPRITE_LIB_WIDTH    (TILE_X_OFFSET + TILES_PER_ROW * \

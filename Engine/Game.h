@@ -29,6 +29,7 @@
 #include "IniFile.h"
 #include "GameScreens.h"
 #include "Terrain.h"
+#include "World.h"
 
 
 extern class Defaults defaults;
@@ -61,5 +62,6 @@ private:
     
     GameScreens             gameScreens;
     Terrain                 terrain;
+    World                   world;
 
 };

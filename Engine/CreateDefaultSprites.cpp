@@ -47,14 +47,6 @@ void  CreateDefaultSprites::writeWorldIni()
     earthWorld << "Separator=" << TILE_SEPARATOR << std::endl;
     earthWorld << "Offset=" << TILE_X_OFFSET << std::endl;
     earthWorld << "NrOfTiles=" << NR_OF_TILES << std::endl;
-    //earthWorld << "SpriteLib=" << TERRAIN_SPRITE_LIB_FILENAME << std::endl;
-    /*
-    for ( int tileNr = 0; tileNr < NR_OF_TILES; tileNr++ )
-    {
-        earthWorld << "[" << "Tile" << tileNr << "]" << std::endl;
-
-    }
-    */
 }
 
 void CreateDefaultSprites::drawTerrainSprites()
