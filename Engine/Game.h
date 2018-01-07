@@ -49,6 +49,7 @@ private:
 	/********************************/
 	/*  User Functions              */
 	/********************************/
+    void showErrorAndQuit( const std::string& missingFile );
 private:
 	MainWindow& wnd;
     Graphics gfx;
@@ -63,5 +64,14 @@ private:
     GameScreens             gameScreens;
     Terrain                 terrain;
     World                   world;
-
+    Sprite                  gfxTerrain;
+    Sprite                  miniMap;
+    // these coordinates keep track of our location on the map in-game:
+    int                     TerrainDrawXOrig = 0;
+    int                     TerrainDrawYOrig = 0;
+    // these coordinates are used to draw the minimap (the radar screen):
+    int                     miniMapX = 0;
+    int                     miniMapY = 0;
+    int                     terrainNrVisibleColumns;
+    int                     terrainNrVisibleRows;
 };

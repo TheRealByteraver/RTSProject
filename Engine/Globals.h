@@ -15,7 +15,16 @@
 
 // files:
 #define MASTER_INIFILE_FILENAME     "RTSProject.ini"
-#define RESOURCES_FILENAME          "Resources.ini"         // should be loaded from MASTER_INIFILE_FILENAME
+//#define RESOURCES_FILENAME          "Resources.ini"         // should be loaded from MASTER_INIFILE_FILENAME
+
+// map dimension constants
+#define MIN_TERRAIN_WIDTH           64
+#define MIN_TERRAIN_HEIGHT          64
+#define MAX_TERRAIN_WIDTH           256
+#define MAX_TERRAIN_HEIGHT          256
+#define DEFAULT_TERRAIN_WIDTH       128
+#define DEFAULT_TERRAIN_HEIGHT      128
+
 
 /*
 This little piece of code makes it possible to define the resolution in
@@ -29,14 +38,17 @@ public:
     {
         debugLogFile.close();
     }
-    const std::string&  racesFolder() { return racesFolder_; }
-    const std::string&  worldsFolder() { return worldsFolder_; }
-    const std::string&  terrainsFolder() { return terrainsFolder_; }
-    const std::string&  scenariosFolder() { return scenariosFolder_; }
-    const std::string&  spritesFolder() { return spritesFolder_; }
-    const std::string&  mediaFolder() { return mediaFolder_; }
-    const std::string&  defaultWorld() { return defaultWorld_; }
-    const std::string&  smallFontFile() { return smallfontFile_;  }
+    const std::string&  racesFolder() const { return racesFolder_; }
+    const std::string&  worldsFolder() const { return worldsFolder_; }
+    const std::string&  terrainsFolder() const { return terrainsFolder_; }
+    const std::string&  scenariosFolder() const { return scenariosFolder_; }
+    const std::string&  spritesFolder() const { return spritesFolder_; }
+    const std::string&  mediaFolder() const { return mediaFolder_; }
+    const std::string&  defaultRace() const { return defaultRace_; }
+    const std::string&  defaultWorld() const { return defaultWorld_; }
+    const std::string&  smallFontFile() const { return smallfontFile_; }
+    int                 defaultTerrainWidth() const { return defaultTerrainWidth_; }
+    int                 defaultTerrainHeight() const { return defaultTerrainHeight_; }
 public:
     std::ofstream   debugLogFile;
 private:
@@ -52,6 +64,8 @@ private:
     int             minScreenHeight_;
     int             maxScreenWidth_;
     int             maxScreenHeight_;
+    int             defaultTerrainWidth_;
+    int             defaultTerrainHeight_;
     std::string     racesFolder_;
     std::string     worldsFolder_;
     std::string     terrainsFolder_;
@@ -60,6 +74,7 @@ private:
     std::string     mediaFolder_;
     std::string     soundsFolder_;
     std::string     soundTrackFolder_;
+    std::string     defaultRace_;
     std::string     defaultWorld_;
     std::string     smallfontFile_;
 };

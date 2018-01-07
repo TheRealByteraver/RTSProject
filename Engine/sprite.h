@@ -66,8 +66,8 @@ public:
     int     loadBitmap( const char *fileName );
     //void    loadFromMemory( int width,int height,Color *pixelData );
     void    captureFromMemory( Rect area,Color *source,const int sourceWidth );
-    //void    createEmptySprite( int width,int height );
-    void    createEmptySprite( int width,int height,Color fillColor = Colors::Black );
+    void    createEmptySprite( int width,int height );
+    void    createEmptySprite( int width,int height,Color fillColor /*= Colors::Black*/ );
     //int     loadPNG( const char *filename );
     int     loadFromBMP( const char *fileName, Rect area );
     int     saveToBMP( const char *fileName );
@@ -81,12 +81,26 @@ public:
     void    drawBox( int x1,int y1,int x2,int y2,Color color );
     void    drawBlock( Rect coords,Color color );
     void    drawBlock( int x1,int y1,int x2,int y2,Color color );
+    void    setFrameWidth( int frameWidth )
+    {
+        assert( frameWidth >= 0 ); frameWidth_ = frameWidth;
+    }
+    void    setFrameColor( Color color )
+    {
+        frameColor_ = color;
+    }
+    void    drawNiceBlock( Rect r );
+    void    drawNiceBlockInv( Rect r );
+    void    drawButton( Rect r );
+    void    drawButtonPlusMinus( Rect r,int width );
+
     Color   getPixel( int x,int y ) const;
     void    createFromSprite( const Sprite& source, Rect area );
     void    insertFromSprite( int x,int y,const Sprite& source );
-    void    printXY( int x,int y,const char *s,Font *font );
-    //void    printXY( void *gfx,int x,int y,const char *s,Font *font );
-    //void    printXY( int x,int y,const char *s,Font *font );
+    void    setTextColor( Color color ) { textColor = color; }
+    void    setFont( Font *f ) { font_ = f; }
+    Font    *getFont() { return font_; }    
+    void    printXY( int x,int y,const char *s );
     Rect    getSpriteCoordsAt( int x,int y );
     void    makeButtonEdges();
     /*
@@ -97,6 +111,12 @@ private:
     int     width_;
     int     height_;
     Color   *pixelData_;
+
+    Color   textColor = Colors::White;
+    int     frameWidth_ = 3;
+    Color   frameColor_ = Colors::LightGray;
+    Font    *font_;
+
 private:
     void    loadBrokenImageSpriteData();
 };

@@ -218,7 +218,6 @@ void Sprite::captureFromMemory( Rect area,Color *source,const int sourceWidth )
     }
 }
 
-/*
 void Sprite::createEmptySprite( int width,int height )
 {
     assert( width > 0 );
@@ -228,7 +227,6 @@ void Sprite::createEmptySprite( int width,int height )
     height_ = height;
     pixelData_ = new Color[width * height];
 }
-*/
 
 void Sprite::createEmptySprite( int width,int height,Color fillColor )
 {
@@ -498,6 +496,88 @@ void Sprite::drawBlock( int x1,int y1,int x2,int y2,Color color )
             putPixel( x,y,color );
 }
 
+void Sprite::drawNiceBlock( Rect r )
+{
+    int rd = frameColor_.GetR() / frameWidth_;
+    int gd = frameColor_.GetG() / frameWidth_;
+    int bd = frameColor_.GetB() / frameWidth_;
+    int red = rd;
+    int grn = gd;
+    int blu = bd;
+    int i;
+    for ( i = 0; i < frameWidth_; i++ )
+    {
+        drawBox( r.x1 + i,r.y1 + i,r.x2 - i,r.y2 - i,Color( red,grn,blu ) );
+        red += rd;
+        grn += gd;
+        blu += bd;
+    }
+    drawBlock( r.x1 + i,r.y1 + i,r.x2 - i,r.y2 - i,frameColor_ );
+}
+
+void Sprite::drawNiceBlockInv( Rect r )
+{
+    int red = frameColor_.GetR();
+    int grn = frameColor_.GetG();
+    int blu = frameColor_.GetB();
+    int rd = red / frameWidth_;
+    int gd = grn / frameWidth_;
+    int bd = blu / frameWidth_;
+    int i;
+    Color c;
+    for ( i = 0; i < frameWidth_; i++ )
+    {
+        c = Color( red,grn,blu );
+        drawBox( r.x1 + i,r.y1 + i,r.x2 - i,r.y2 - i,c );
+        red -= rd;
+        grn -= gd;
+        blu -= bd;
+    }
+    drawBlock( r.x1 + i,r.y1 + i,r.x2 - i,r.y2 - i,c );
+}
+
+void Sprite::drawButton( Rect r )
+{
+    drawBox( r.x1,r.y1,r.x2,r.y2,0 );
+    int colorDelta = 60;
+    int red = frameColor_.GetR();
+    int grn = frameColor_.GetG();
+    int blu = frameColor_.GetB();
+    int rd = red - colorDelta; if ( rd < 0 ) rd = 0;
+    int gd = grn - colorDelta; if ( gd < 0 ) gd = 0;
+    int bd = blu - colorDelta; if ( bd < 0 ) bd = 0;
+    int darkColor = (rd << 16) + (gd << 8) + bd;
+    int rl = red + colorDelta; if ( rl > 0xFF ) rl = 0xFF;
+    int gl = grn + colorDelta; if ( gl > 0xFF ) gl = 0xFF;
+    int bl = blu + colorDelta; if ( bl > 0xFF ) bl = 0xFF;
+    int lightColor = (rl << 16) + (gl << 8) + bl;
+    for ( int i = 1; i < frameWidth_ - 1; i++ )
+    {
+        drawHorLine( r.x1 + i,r.y1 + i,r.x2 - i,lightColor );
+        drawVerLine( r.x2 - i,r.y1 + i,r.y2 - i,lightColor );
+        drawHorLine( r.x1 + i,r.y2 - i,r.x2 - i,darkColor );
+        drawVerLine( r.x1 + i,r.y1 + i,r.y2 - i,darkColor );
+    }
+}
+
+void Sprite::drawButtonPlusMinus( Rect r,int width )
+{
+    int ySplit = r.y1 + (r.y2 - r.y1) / 2 + 1;
+    Rect rUp = r;
+    rUp.y2 = ySplit;
+    Rect rDown = r;
+    rDown.y1 = ySplit;
+    drawButton( rUp );
+    drawButton( rDown );
+    for ( int i = 0; i < width; i++ )
+    {
+        int x = r.x1 + 5 + i * font_->width();
+        printXY( x,r.y1 + 1,"+" );
+        printXY( x,ySplit,"-" );
+    }
+}
+
+
 /*
     This function creates a sprite by copying a section from a bigger sprite.
     The original contents of the sprite that calls the function is discarded.
@@ -571,14 +651,14 @@ void Sprite::insertFromSprite( int x,int y,const Sprite& source )
 
 
 //void Sprite::printXY( void *gfx,int x,int y,const char *s, void *font )
-void Sprite::printXY( int x,int y,const char *s,Font *font )
+void Sprite::printXY( int x,int y,const char *s )
 {
     if ( s == nullptr ) return;
     int slen = (int)strlen ( s );
-    int fontHeight = font->height();
-    if ( ! font->isBitmap () )
+    int fontHeight = font_->height();
+    if ( ! font_->isBitmap () )
     {
-        int fontWidth = font->width();
+        int fontWidth = font_->width();
         int stringWidth = fontWidth * slen;
         /*
         assert ( (x + stringWidth) < ScreenWidth );
@@ -589,7 +669,7 @@ void Sprite::printXY( int x,int y,const char *s,Font *font )
         for ( int iChar = 0; iChar < slen; iChar++ )
         {
             Color *s2 = s1;
-            char *iData = font->getCharData ( s[iChar] );
+            char *iData = font_->getCharData ( s[iChar] );
             for ( int j = 0; j < fontHeight; j++ )
             {
                 int iByte;

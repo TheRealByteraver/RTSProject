@@ -138,9 +138,9 @@ public:
     Color   *getpSysBuffer() { return pSysBuffer; }
     Color   darken( Color src,int darken )
     {
-        int r = (src.dword & 0x00FF0000) >> 16;
-        int g = (src.dword & 0x0000FF00) >> 8;
-        int b = (src.dword & 0x000000FF);
+        int r = (src.dword >> 16) & 0xFF;
+        int g = (src.dword >> 8) & 0xFF;
+        int b = (src.dword) & 0xFF;
         return Color(
             (unsigned char)((r > darken) ? r - darken : 0),
             (unsigned char)((g > darken) ? g - darken : 0),
