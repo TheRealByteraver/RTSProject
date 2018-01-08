@@ -30,20 +30,20 @@ Game::Game( MainWindow& wnd )
 	wnd( wnd ),
     gfx( wnd )
 {
+    // set the current status of the game:
+    gameState = terraineditorstate; // debug, should be "introstate", set in game.h
     // load the bare minimum:
     std::string path( GAME_FOLDER );
     path += defaults.mediaFolder() + "\\" + defaults.smallFontFile();
     int error = font.loadFont( path.c_str() );
     if ( error != 0 )
     {
-        showErrorAndQuit( path );
-        /*
+        //showErrorAndQuit( path );
         std::wstring errMsg( L"Unable to open the default small font file " );
         for ( char c : path ) errMsg += c;
         errMsg += L", exiting Program.";
         wnd.ShowMessageBox( L"Fatal Error",errMsg,MB_OK );
         PostQuitMessage( 0 ); 
-        */
         return;        
     }
     gfx.setFont( &font );
@@ -75,14 +75,12 @@ Game::Game( MainWindow& wnd )
         error = world.loadTiles( defaults.defaultWorld() );
         if ( error != 0 )
         {
-            showErrorAndQuit( defaults.defaultWorld() );
-            /*
+            //showErrorAndQuit( defaults.defaultWorld() );
             std::wstring errMsg( L"Unable to open default world gfx data file " );
             for ( char c : defaults.defaultWorld() ) errMsg += c;
             errMsg += L".bmp, exiting Program.";
             wnd.ShowMessageBox( L"Fatal Error",errMsg,MB_OK );
             PostQuitMessage( 0 );
-            */
             return;
         }
     }
@@ -103,18 +101,19 @@ Game::Game( MainWindow& wnd )
             miniMap.putPixel( x,y,world.getAvgColor( terrain.getElement( x,y ) ) );
         }
     // initialize minimap drawing top left coordinates:
-    miniMapX = gameScreens.sidebar_coords.x1 +
-        (gameScreens.minimapclient_coords.width() - miniMap.getWidth()) / 2;
-    miniMapY = gameScreens.sidebar_coords.y1 + 
-        (gameScreens.minimapclient_coords.height() - miniMap.getHeight()) / 2;
+    initMiniMapCoords();
+    // Initialize nr of Grid lines in both directions
+    terrainNrVisibleColumns = gameScreens.map_coords.width() / world.tileWidth();
+    terrainNrVisibleRows = gameScreens.map_coords.height() / world.tileHeight();
 
-    // give the screen drawing class a font to write with and draw the screens:
+    // give the screen drawing class a font to write with and draw the screens
     gameScreens.setFont( &font );
-    gameScreens.drawScenarioEditor();
+    gameScreens.drawScenarioEditor(); // this is done only once :)
     
     //int i; masterIniFile.getKeyValue( "unknownSection","unknownkey",i );  // debug test
 }
 
+/*
 void Game::showErrorAndQuit( const std::string& missingFile )
 {
     std::wstring errMsg( L"Unable to open file " );
@@ -123,8 +122,7 @@ void Game::showErrorAndQuit( const std::string& missingFile )
     wnd.ShowMessageBox( L"Fatal Error",errMsg,MB_OK );
     PostQuitMessage( 0 );
 }
-
-
+*/
 
 void Game::Go()
 {
@@ -138,10 +136,34 @@ void Game::UpdateModel()
 {
 }
 
-void Game::ComposeFrame()
+void Game::initMiniMapCoords()
 {
-    frameNr++;
-    
+    GameScreens& gS = gameScreens; // save some screen real estate here ;)
+    miniMapXOrig = gS.sidebar_coords.x1 + gS.minimapclient_coords.x1 +
+        (gS.minimapclient_coords.width() - miniMap.getWidth()) / 2;
+    miniMapYOrig = gS.sidebar_coords.y1 + gS.minimapclient_coords.y1 +
+        (gS.minimapclient_coords.height() - miniMap.getHeight()) / 2;
+    visibleTilesX = (gS.map_coords.width()   * miniMap.getWidth())
+        / (terrain.getColumns() * world.tileWidth());
+    visibleTilesY = (gS.map_coords.height() * miniMap.getHeight())
+        / (terrain.getRows()    * world.tileHeight());
+}
+
+/*
+// redraw the section of the modified terrain onto the gfxTerrain sprite:
+// (don't forget to redraw the minimap)
+void Game::redrawSection( Rect area )
+{
+}
+
+
+// the terrain.drawTerrain (actually the adapt() function) should return a 
+// rect of the area it modified for limited redrawing
+
+*/
+
+void Game::drawTerrainEditor()
+{
     // Draw the terrain editor menu's:
     gfx.paintSprite(
         gameScreens.menubar_coords.x1,
@@ -152,45 +174,115 @@ void Game::ComposeFrame()
         gameScreens.sidebar_coords.y1,
         gameScreens.sideBar() );
     // Draw the minimap:
-    gfx.paintSprite( miniMapX,miniMapY,miniMap );
+    gfx.paintSprite( 
+        miniMapXOrig,
+        miniMapYOrig,
+        miniMap 
+    );
+    // draw the minimap highlighted area delimiter:
+    miniMapCursor.x1 = miniMapXOrig + TerrainDrawXOrig;
+    miniMapCursor.y1 = miniMapYOrig + TerrainDrawYOrig;
+    miniMapCursor.x2 = miniMapCursor.x1 + visibleTilesX;
+    miniMapCursor.y2 = miniMapCursor.y1 + visibleTilesY;
+    gfx.drawBox( miniMapCursor,Colors::White );
     // Draw the terrain:
     int x1 = TerrainDrawXOrig * world.tileWidth();
     int y1 = TerrainDrawYOrig * world.tileHeight();
-    gfx.paintSpriteSection( 
+    /*
+    // this messes with the grid ;)
+    int xMax = gfxTerrain.getWidth() - gameScreens.map_coords.width();
+    int yMax = gfxTerrain.getHeight() - gameScreens.map_coords.height();
+    if ( x1 > xMax && xMax > 0 ) x1 = xMax;
+    if ( y1 > yMax && yMax > 0 ) y1 = yMax;
+    */
+    gfx.paintSpriteSection(
         MAP_AREA_X1,MAP_AREA_Y1,
         Rect( x1,y1,
             x1 + gameScreens.map_coords.width() - 1,
-            y1 + gameScreens.map_coords.height() - 1),
+            y1 + gameScreens.map_coords.height() - 1 ),
         gfxTerrain );
     // Draw a Grid:
-    /*
-    for ( int x = gameScreens.map_coords.x1 + world.tileWidth() - 1; 
+    for ( int x = gameScreens.map_coords.x1 + world.tileWidth() - 1;
         x < gameScreens.map_coords.x2; x += world.tileWidth() )
-        gfx.drawVerLine( 
+        gfx.drawVerLine(
             x,
             gameScreens.map_coords.y1,
-            gameScreens.map_coords.y2,Colors::Gray );
-    for ( int y = gameScreens.map_coords.y1 + world.tileHeight() - 1; 
+            gameScreens.map_coords.y2,GRID_COLOR );
+    for ( int y = gameScreens.map_coords.y1 + world.tileHeight() - 1;
         y < gameScreens.map_coords.y2; y += world.tileHeight() )
         gfx.drawHorLine(
             gameScreens.map_coords.x1,
             y,
-            gameScreens.map_coords.x2,Colors::Gray );
-    */
+            gameScreens.map_coords.x2,GRID_COLOR );
+}
 
 
 
 
+void Game::ComposeFrame()
+{
+    frameNr++;
+    switch ( gameState )
+    {
+        case    introstate:
+        {
+            break;
+        }
+        case    menustate:
+        {
+            break;
+        }
+        case    terraineditorstate:
+        {
+            drawTerrainEditor();
+            int mX = mouse.GetPosX();
+            int mY = mouse.GetPosY();
 
+            std::stringstream s;
+            s << "Mouse is at pos " << mX << "," << mY;
+            gfx.printXY( 100,3,s.str().c_str() );
+
+
+            if ( mouse.isInArea( gameScreens.scrollMapLeft ) && (TerrainDrawXOrig > 0) ) 
+                TerrainDrawXOrig--;
+            if ( mouse.isInArea( gameScreens.scrollMapRight ) && 
+                (TerrainDrawXOrig < terrain.getColumns() - terrainNrVisibleColumns) )
+                TerrainDrawXOrig++;
+            if ( mouse.isInArea( gameScreens.scrollMapUp ) && (TerrainDrawYOrig > 0) )
+                TerrainDrawYOrig--;
+            if ( mouse.isInArea( gameScreens.scrollMapDown ) &&
+                (TerrainDrawYOrig < terrain.getRows() - terrainNrVisibleRows) )
+                TerrainDrawYOrig++;
+
+
+            /*
+            for ( ;;)
+            {
+                Mouse::Event event = mouse.Read();
+                if ( !event.IsValid() ) break;
+                int mX = event.GetPosX();
+                int mY = event.GetPosY();
+            }
+            */
+            break;
+        }
+        case    pausestate:
+        {
+            break;
+        }
+        case    playingstate:
+        {
+            break;
+        }
+    }
+    
 
     /*
     gfx.drawBlock(0,0,33 * 16,33 * 4,Colors::Red);
     for ( int i = 0; i < 64; i++ )
         gfx.paintSprite( 1 + (i % 16) * 33, 1 + (i / 16) * 33,world.getTile( i ) );    
     */
-
     //gfx.paintSprite(0,50,createDefaultSprites.getSpriteLibrary() );
-
     //gfx.paintSprite( 100,100,Sprite() );
     //PostMessage( HWND( wnd ),WM_CLOSE,0,0 ); // proper way to exit program?
 }

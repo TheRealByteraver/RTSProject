@@ -15,7 +15,6 @@
 
 // files:
 #define MASTER_INIFILE_FILENAME     "RTSProject.ini"
-//#define RESOURCES_FILENAME          "Resources.ini"         // should be loaded from MASTER_INIFILE_FILENAME
 
 // map dimension constants
 #define MIN_TERRAIN_WIDTH           64

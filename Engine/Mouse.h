@@ -20,6 +20,8 @@
  ******************************************************************************************/
 #pragma once
 #include <queue>
+#include "Graphics.h" // for Rect
+#include "assert.h"
 
 class Mouse
 {
@@ -107,6 +109,18 @@ public:
 		return buffer.empty();
 	}
 	void Flush();
+    /**********************
+    * user functions      *
+    **********************/
+    bool isInArea( Rect area )
+    {
+        assert( area.isValid() );
+        int mX = GetPosX();
+        int mY = GetPosY();
+        return 
+            (mX >= area.x1) && (mX <= area.x2) && 
+            (mY >= area.y1) && (mY <= area.y2);
+    }
 private:
 	void OnMouseMove( int x,int y );
 	void OnMouseLeave();
