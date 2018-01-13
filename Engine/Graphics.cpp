@@ -768,7 +768,7 @@ void Graphics::paintSprite( int x,int y,const Sprite &sprite )
     }
 }
 
-void Graphics::paintSpriteSection( int x,int y,Rect area,Sprite &sprite )
+void Graphics::paintSpriteSection( int x,int y,Rect area,const Sprite &sprite )
 {
     assert( area.x1 >= 0 );
     assert( area.y1 >= 0 );
@@ -801,7 +801,7 @@ void Graphics::paintSpriteSection( int x,int y,Rect area,Sprite &sprite )
     }
 }
 
-void Graphics::paintSpriteKeyed( int x,int y,Sprite &sprite,Color keyColor )  // not tested
+void Graphics::paintSpriteKeyed( int x,int y,const Sprite &sprite,Color keyColor )  // not tested
 {
     //if( sprite.pixelData == nullptr ) return;
     if ( !sprite.isImagePresent() ) return;
@@ -833,7 +833,7 @@ void Graphics::paintSpriteKeyed( int x,int y,Sprite &sprite,Color keyColor )  //
     }
 }
 
-void Graphics::paintBMPClearType( int x,int y,Sprite &sprite,Color keyColor )
+void Graphics::paintBMPClearType( int x,int y,const Sprite &sprite,Color keyColor )
 {
     //if( sprite.pixelData == nullptr ) return;
     if ( !sprite.isImagePresent() ) return;
@@ -883,7 +883,7 @@ void Graphics::paintBMPClearType( int x,int y,Sprite &sprite,Color keyColor )
     }
 }
 
-void Graphics::paintBMPClearType( int x,int y,Sprite &sprite,Color keyColor,int opacity )
+void Graphics::paintBMPClearType( int x,int y,const Sprite &sprite,Color keyColor,int opacity )
 {
     if ( !sprite.isImagePresent() ) return;
     if ( (x >= ScreenWidth) || (y >= ScreenHeight) ) return;

@@ -5,7 +5,8 @@
 #include "Globals.h"
 
 // the default width of one tile used to create the terrain
-#define WORLD_TILE_DEFAULT_WIDTH    40
+// a value of 64 will allocate 1 GB of memory on a 256x256 tile sized terrain lol
+#define WORLD_TILE_DEFAULT_WIDTH    16  
 
 // there are 64 tiles, most of whom are not used (black)
 #define NR_OF_TILES                 64

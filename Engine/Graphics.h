@@ -174,10 +174,10 @@ public:
     void    printXYSolid( int x,int y,int xSpacer,char *s,Color color /*, HRESULT *hres*/ );
     void    paintConsole( int x,int y,EvoConsole *console );
     void    paintSprite( int x,int y,const Sprite &sprite );
-    void    paintSpriteSection( int x,int y,Rect area,Sprite &sprite );
-    void    paintSpriteKeyed( int x,int y,Sprite &sprite,Color keyColor );
-    void    paintBMPClearType( int x,int y,Sprite &sprite,Color keyColor );
-    void    paintBMPClearType( int x,int y,Sprite &sprite,Color keyColor,int opacity );
+    void    paintSpriteSection( int x,int y,Rect area,const Sprite &sprite );
+    void    paintSpriteKeyed( int x,int y,const Sprite &sprite,Color keyColor );
+    void    paintBMPClearType( int x,int y,const Sprite &sprite,Color keyColor );
+    void    paintBMPClearType( int x,int y,const Sprite &sprite,Color keyColor,int opacity );
     void    drawNiceBlock( Rect r );
     void    drawNiceBlockInv( Rect r );
     void    drawButton( Rect r );

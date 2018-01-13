@@ -61,7 +61,7 @@ Game::Game( MainWindow& wnd )
     path.assign( GAME_FOLDER );
     path.append( defaults.terrainsFolder() );
     path.append( "\\" );    
-    path.append( "default.ini" ); // debug 
+    path.append( "default2.ini" ); // debug 
     error = terrain.loadTerrain( path );
     if ( error != 0 )
         terrain.init( 
@@ -87,24 +87,26 @@ Game::Game( MainWindow& wnd )
     // draw the full terrain and the minimap to buffers:
     int tileWidth = world.tileWidth();
     int tileHeight = world.tileHeight();
+    /*
     gfxTerrain.createEmptySprite(
         terrain.getColumns() * tileWidth,
         terrain.getRows()    * tileHeight );
+    */
     miniMap.createEmptySprite( terrain.getColumns(),terrain.getRows() );
     for ( int y = 0; y < terrain.getRows(); y++ )
         for ( int x = 0; x < terrain.getColumns(); x++ )
         {
+            /*
             gfxTerrain.insertFromSprite(
                 x * tileWidth,
                 y * tileHeight,
                 world.getTile( terrain.getElement( x,y ) ) );
+            */
             miniMap.putPixel( x,y,world.getAvgColor( terrain.getElement( x,y ) ) );
         }
     // initialize minimap drawing top left coordinates:
     initMiniMapCoords();
-    // Initialize nr of Grid lines in both directions
-    terrainNrVisibleColumns = gameScreens.map_coords.width() / world.tileWidth();
-    terrainNrVisibleRows = gameScreens.map_coords.height() / world.tileHeight();
+    
 
     // give the screen drawing class a font to write with and draw the screens
     gameScreens.setFont( &font );
@@ -135,7 +137,9 @@ void Game::Go()
 void Game::UpdateModel()
 {
 }
-
+/*
+    This function needs to be called each time a new world or terrain is loaded
+*/
 void Game::initMiniMapCoords()
 {
     GameScreens& gS = gameScreens; // save some screen real estate here ;)
@@ -143,27 +147,99 @@ void Game::initMiniMapCoords()
         (gS.minimapclient_coords.width() - miniMap.getWidth()) / 2;
     miniMapYOrig = gS.sidebar_coords.y1 + gS.minimapclient_coords.y1 +
         (gS.minimapclient_coords.height() - miniMap.getHeight()) / 2;
+    // Initialize nr of Grid lines in both directions:
+    visibleTilesX = gameScreens.map_coords.width() / world.tileWidth();
+    visibleTilesY = gameScreens.map_coords.height() / world.tileHeight();
+    /*
     visibleTilesX = (gS.map_coords.width()   * miniMap.getWidth())
         / (terrain.getColumns() * world.tileWidth());
     visibleTilesY = (gS.map_coords.height() * miniMap.getHeight())
         / (terrain.getRows()    * world.tileHeight());
+    */
 }
-
-/*
-// redraw the section of the modified terrain onto the gfxTerrain sprite:
-// (don't forget to redraw the minimap)
-void Game::redrawSection( Rect area )
-{
-}
-
-
-// the terrain.drawTerrain (actually the adapt() function) should return a 
-// rect of the area it modified for limited redrawing
-
-*/
 
 void Game::drawTerrainEditor()
 {
+    // Draw the terrain:
+    // this code uses no big sprite as memory buffer:
+    Rect tR = gameScreens.map_coords;
+    int j = TerrainDrawYOrig;    
+    tR.x2 = tR.x1 + (tR.width() / world.tileWidth()) * world.tileWidth() - 1;
+    tR.y2 = tR.y1 + (tR.height() / world.tileHeight()) * world.tileHeight() - 1;
+    int xLeftOver = gameScreens.map_coords.width() - tR.width();
+    int yLeftOver = gameScreens.map_coords.height() - tR.height();
+    int y;
+    for ( y = tR.y1; y < tR.y2; y += world.tileHeight() )
+    {   
+        if ( j >= terrain.getRows() ) break;
+        int i = TerrainDrawXOrig;
+        int x;
+        for ( x = tR.x1; x < tR.x2; x += world.tileWidth() )
+        {
+            if ( i >= terrain.getColumns() ) break;
+            gfx.paintSprite( x,y,world.getTile( terrain.getElement( i,j ) ) );
+            i++;
+        }
+        if( (xLeftOver > 0) && (i < terrain.getColumns()) )
+            gfx.paintSpriteSection( x,y,
+                Rect( 0,0,xLeftOver - 1,world.tileHeight() - 1 ),
+                world.getTile( terrain.getElement( i,j ) ) 
+            );
+        j++;
+    }
+    if ( (yLeftOver > 0) && (j < terrain.getRows()) )
+    {
+        int i = TerrainDrawXOrig;
+        int x;
+        for ( x = tR.x1; x < tR.x2; x += world.tileWidth() )
+        {
+            if ( i >= terrain.getColumns() ) break;
+            gfx.paintSpriteSection( x,y,
+                Rect( 0,0,world.tileWidth() - 1,yLeftOver - 1 ),
+                world.getTile( terrain.getElement( i,j ) ) );
+            i++;
+        }
+        if ( (xLeftOver > 0) && (i < terrain.getColumns()) )
+            gfx.paintSpriteSection( x,y,
+                Rect( 0,0,xLeftOver - 1,yLeftOver - 1 ),
+                world.getTile( terrain.getElement( i,j ) )
+            );
+    }
+    /*
+    // Draw the terrain:
+    // this code DOES use a big terrain sprite as memory buffer:
+    int x1 = TerrainDrawXOrig * world.tileWidth();
+    int y1 = TerrainDrawYOrig * world.tileHeight();
+
+    // this messes with the grid ;)
+    //int xMax = gfxTerrain.getWidth() - gameScreens.map_coords.width();
+    //int yMax = gfxTerrain.getHeight() - gameScreens.map_coords.height();
+    //if ( x1 > xMax && xMax > 0 ) x1 = xMax;
+    //if ( y1 > yMax && yMax > 0 ) y1 = yMax;
+
+    // Draw the visible portion of the terrain:
+    gfx.paintSpriteSection(
+    MAP_AREA_X1,MAP_AREA_Y1,
+    Rect( x1,y1,
+    x1 + gameScreens.map_coords.width() - 1,
+    y1 + gameScreens.map_coords.height() - 1 ),
+    gfxTerrain );
+    */
+    // Draw a Grid:
+    
+    for ( int x = gameScreens.map_coords.x1 + world.tileWidth() - 1;
+        x < gameScreens.map_coords.x2; x += world.tileWidth() )
+        gfx.drawVerLine(
+            x,
+            gameScreens.map_coords.y1,
+            gameScreens.map_coords.y2,GRID_COLOR );
+    for ( int y = gameScreens.map_coords.y1 + world.tileHeight() - 1;
+        y < gameScreens.map_coords.y2; y += world.tileHeight() )
+        gfx.drawHorLine(
+            gameScreens.map_coords.x1,
+            y,
+            gameScreens.map_coords.x2,GRID_COLOR );
+    
     // Draw the terrain editor menu's:
     gfx.paintSprite(
         gameScreens.menubar_coords.x1,
@@ -185,39 +261,13 @@ void Game::drawTerrainEditor()
     miniMapCursor.x2 = miniMapCursor.x1 + visibleTilesX;
     miniMapCursor.y2 = miniMapCursor.y1 + visibleTilesY;
     gfx.drawBox( miniMapCursor,Colors::White );
-    // Draw the terrain:
-    int x1 = TerrainDrawXOrig * world.tileWidth();
-    int y1 = TerrainDrawYOrig * world.tileHeight();
-    /*
-    // this messes with the grid ;)
-    int xMax = gfxTerrain.getWidth() - gameScreens.map_coords.width();
-    int yMax = gfxTerrain.getHeight() - gameScreens.map_coords.height();
-    if ( x1 > xMax && xMax > 0 ) x1 = xMax;
-    if ( y1 > yMax && yMax > 0 ) y1 = yMax;
+    /* debug:
+    gfx.drawBox( gameScreens.terrainTypeIcon1AbsCoords,Colors::Blue );
+    gfx.drawBox( gameScreens.terrainTypeIcon2AbsCoords,Colors::Green );
+    gfx.drawBox( gameScreens.terrainTypeIcon3AbsCoords,Colors::LightGreen );
+    gfx.drawBox( gameScreens.terrainTypeIcon4AbsCoords,Colors::LightBlue );
     */
-    gfx.paintSpriteSection(
-        MAP_AREA_X1,MAP_AREA_Y1,
-        Rect( x1,y1,
-            x1 + gameScreens.map_coords.width() - 1,
-            y1 + gameScreens.map_coords.height() - 1 ),
-        gfxTerrain );
-    // Draw a Grid:
-    for ( int x = gameScreens.map_coords.x1 + world.tileWidth() - 1;
-        x < gameScreens.map_coords.x2; x += world.tileWidth() )
-        gfx.drawVerLine(
-            x,
-            gameScreens.map_coords.y1,
-            gameScreens.map_coords.y2,GRID_COLOR );
-    for ( int y = gameScreens.map_coords.y1 + world.tileHeight() - 1;
-        y < gameScreens.map_coords.y2; y += world.tileHeight() )
-        gfx.drawHorLine(
-            gameScreens.map_coords.x1,
-            y,
-            gameScreens.map_coords.x2,GRID_COLOR );
 }
-
-
-
 
 void Game::ComposeFrame()
 {
@@ -238,23 +288,124 @@ void Game::ComposeFrame()
             int mX = mouse.GetPosX();
             int mY = mouse.GetPosY();
 
+            // draw mouse cursor (clipped):
+            if ( mouse.isInArea( gameScreens.map_coords ) )
+            {
+                int curX = (mX - gameScreens.map_coords.x1) / world.tileWidth();
+                int curY = (mY - gameScreens.map_coords.y1) / world.tileHeight();
+                if ( (TerrainDrawXOrig + curX) & 0x1 ) curX--;
+                if ( (TerrainDrawYOrig + curY) & 0x1 ) curY--;
+                bool drawTop = true;
+                bool drawBottom = true;
+                bool drawLeft = true;
+                bool drawRight = true;
+                int x1 = gameScreens.map_coords.x1 + curX * world.tileWidth();
+                int x2 = x1 + world.tileWidth() * 2 - 1;
+                int y1 = gameScreens.map_coords.y1 + curY * world.tileHeight();
+                int y2 = y1 + world.tileHeight() * 2 - 1;
+
+                if ( x1 < gameScreens.map_coords.x1 )
+                {
+                    drawLeft = false;
+                    x1 = gameScreens.map_coords.x1;
+                }
+                if ( y1 < gameScreens.map_coords.y1 )
+                {
+                    drawTop = false;
+                    y1 = gameScreens.map_coords.y1;
+                }
+                int maxX = gameScreens.map_coords.x1 + (terrain.getColumns() - TerrainDrawXOrig) * world.tileWidth() - 1;
+                if ( maxX > gameScreens.map_coords.x2 ) maxX = gameScreens.map_coords.x2;
+                
+                if ( x2 > maxX ) {
+                    x2 = maxX;
+                    drawRight = false;
+                }
+                int maxY = gameScreens.map_coords.y1 + (terrain.getRows() - TerrainDrawYOrig) * world.tileHeight() - 1;
+                if ( maxY > gameScreens.map_coords.y2 ) maxY = gameScreens.map_coords.y2;
+
+                if ( y2 > maxY ) {
+                    y2 = maxY;
+                    drawBottom = false;
+                }
+                if ( (x1 < maxX) && (y1 < maxY) )
+                {
+                    if ( drawTop ) gfx.drawHorLine( x1,y1,x2,CURSOR_COLOR );
+                    if ( drawBottom ) gfx.drawHorLine( x1,y2,x2,CURSOR_COLOR );
+                    if ( drawLeft ) gfx.drawVerLine( x1,y1,y2,CURSOR_COLOR );
+                    if ( drawRight ) gfx.drawVerLine( x2,y1,y2,CURSOR_COLOR );
+                    if ( drawTop ) y1++;
+                    if ( drawBottom ) y2--;
+                    if ( drawLeft ) x1++;
+                    if ( drawRight ) x2--;
+                    if ( drawTop ) gfx.drawHorLine( x1,y1,x2,CURSOR_COLOR );
+                    if ( drawBottom ) gfx.drawHorLine( x1,y2,x2,CURSOR_COLOR );
+                    if ( drawLeft ) gfx.drawVerLine( x1,y1,y2,CURSOR_COLOR );
+                    if ( drawRight ) gfx.drawVerLine( x2,y1,y2,CURSOR_COLOR );
+                }
+            }
+
+            // debug:
             std::stringstream s;
             s << "Mouse is at pos " << mX << "," << mY;
             gfx.printXY( 100,3,s.str().c_str() );
-
-
+            // end debug
+            // Scrolling function:
             if ( mouse.isInArea( gameScreens.scrollMapLeft ) && (TerrainDrawXOrig > 0) ) 
                 TerrainDrawXOrig--;
             if ( mouse.isInArea( gameScreens.scrollMapRight ) && 
-                (TerrainDrawXOrig < terrain.getColumns() - terrainNrVisibleColumns) )
+                (TerrainDrawXOrig < terrain.getColumns() - visibleTilesX) )
                 TerrainDrawXOrig++;
             if ( mouse.isInArea( gameScreens.scrollMapUp ) && (TerrainDrawYOrig > 0) )
                 TerrainDrawYOrig--;
             if ( mouse.isInArea( gameScreens.scrollMapDown ) &&
-                (TerrainDrawYOrig < terrain.getRows() - terrainNrVisibleRows) )
+                (TerrainDrawYOrig < terrain.getRows() - visibleTilesY) )
                 TerrainDrawYOrig++;
-
-
+            // drawing function:
+            if ( mouse.LeftIsPressed() )
+            {
+                if ( mouse.isInArea( gameScreens.map_coords ) )
+                {
+                    int tileX = (mX - gameScreens.map_coords.x1) / world.tileWidth()  + TerrainDrawXOrig;
+                    int tileY = (mY - gameScreens.map_coords.y1) / world.tileHeight() + TerrainDrawYOrig;
+                    if ( tileX >= terrain.getColumns() ) tileX--; // safety 
+                    if ( tileY >= terrain.getRows() ) tileY--;    // safety 
+                    if ( tileX & 0x1 ) tileX--;
+                    if ( tileY & 0x1 ) tileY--;
+                    Rect redraw = terrain.drawTerrain( tileX,tileY,terrainType );
+                    
+                    // redraw modified terrain:
+                    for ( int y = redraw.y1; y < redraw.y2; y++ )
+                    {
+                        for ( int x = redraw.x1; x < redraw.x2; x++ )
+                        {
+                            /*
+                            gfxTerrain.insertFromSprite(
+                                x * world.tileWidth(),
+                                y * world.tileHeight(),
+                                world.getTile( terrain.getElement( x,y ) ) );
+                            */
+                            miniMap.putPixel( x,y,world.getAvgColor( terrain.getElement( x,y ) ) );
+                        }
+                    }
+                } 
+                else if ( mouse.isInArea( gameScreens.terrainTypeIcon1AbsCoords ) )
+                {
+                    terrainType = T_LOW_WATER;
+                } 
+                else if ( mouse.isInArea( gameScreens.terrainTypeIcon2AbsCoords ) )
+                {
+                    terrainType = T_LOW;
+                } 
+                else if ( mouse.isInArea( gameScreens.terrainTypeIcon3AbsCoords ) )
+                {
+                    terrainType = T_HIGH;
+                } 
+                else if ( mouse.isInArea( gameScreens.terrainTypeIcon4AbsCoords ) )
+                {
+                    terrainType = T_HIGH_WATER;
+                }
+            }
             /*
             for ( ;;)
             {

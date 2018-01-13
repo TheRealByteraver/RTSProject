@@ -67,27 +67,22 @@ private:
     GameScreens             gameScreens;
     Terrain                 terrain;
     World                   world;
-    Sprite                  gfxTerrain;
+    //Sprite                  gfxTerrain;
     Sprite                  miniMap;
-    // these coordinates keep track of our location on the map in-game:
+    // these coordinates keep track of our location on the map:
     int                     TerrainDrawXOrig = 0;
     int                     TerrainDrawYOrig = 0;
-    // these coordinates are used to draw the minimap (the radar screen):
-    /*
-    int                     miniMapX = 0;
-    int                     miniMapY = 0;
-    int                     miniMapCursorW
-    
-    Rect                    terrainVisibleArea;
-    */
-    int                     miniMapXOrig;
-    int                     miniMapYOrig;
+    // nr of visible tiles in Horizontal and vertical direction:
     int                     visibleTilesX;
     int                     visibleTilesY;
+    // these coordinates are used to draw the minimap (the radar screen):
+    int                     miniMapXOrig;
+    int                     miniMapYOrig;
     Rect                    miniMapCursor;
-
-    int                     terrainNrVisibleColumns;
-    int                     terrainNrVisibleRows;
+    // specific variables for the terrain editor:
+    // the type of terrain we are drawing with now:
+    char                    terrainType = T_DEFAULT;
 private:
+    // must be called each time a new terrain is loaded:
     void                    initMiniMapCoords();
 };
