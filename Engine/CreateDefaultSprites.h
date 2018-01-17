@@ -6,7 +6,7 @@
 
 // the default width of one tile used to create the terrain
 // a value of 64 will allocate 1 GB of memory on a 256x256 tile sized terrain lol
-#define WORLD_TILE_DEFAULT_WIDTH    16  
+#define WORLD_TILE_DEFAULT_WIDTH    32
 
 // there are 64 tiles, most of whom are not used (black)
 #define NR_OF_TILES                 64
@@ -33,7 +33,7 @@
 #define TERRAIN_SPRITE_LIB_HEIGHT   (TILE_Y_OFFSET + NR_OF_TILE_ROWS * \
                                     (WORLD_TILE_DEFAULT_WIDTH + TILE_SEPARATOR))
 
-// some color constants for the drawing functions
+// some color constants for the greenprairie world drawing function:
 #define T_LOW_WATER_COLOR           0x202080
 #define T_LOW_COLOR                 0x208020
 #define T_HIGH_COLOR                0x20F020
@@ -43,14 +43,30 @@
 #define T_TRANS_SUN_COLOR           0x40F040
 #define T_TRANS_LIGHTSUN_COLOR      0x60FF60
 
+// some color constants for the desert world drawing function:
+#define T_LOW_TARPIT_COLOR              0x101010
+#define T_DESERT_LOW_COLOR              0xB49999
+#define T_DESERT_HIGH_COLOR             0xE7C987
+//#define T_HIGH_WATER_COLOR              0x2020F0
+#define T_DESERT_TRANS_SHADE_COLOR      0xD7B977
+#define T_DESERT_TRANS_DARKSHADE_COLOR  0xC7A967
+#define T_DESERT_TRANS_SUN_COLOR        0xFEE09E
+#define T_DESERT_TRANS_LIGHTSUN_COLOR   0xFFE29F
+
+
 class CreateDefaultSprites
 {
 public:
     CreateDefaultSprites() { }
+    // greenprairie world:
     void    drawTerrainSprites();
     void    saveTerrainSprites();
     void    writeWorldIni();
-    const Sprite& getSpriteLibrary() { return terrainSpriteLib; }
+    // desert world:
+    void    drawDesertWorldTiles();
+    void    saveDesertWorldTiles();
+    void    writeDesertWorldIni();
+    //const Sprite& getSpriteLibrary() { return terrainSpriteLib; } // for debugging
 private:
     Sprite  terrainSpriteLib;
 private:

@@ -58,20 +58,24 @@ Game::Game( MainWindow& wnd )
     error = neuropolXBMP.loadFont( path.c_str() );
 
     // load terrain (debug):
+    // does not care about minimum size & width! should it?
     path.assign( GAME_FOLDER );
     path.append( defaults.terrainsFolder() );
     path.append( "\\" );    
-    path.append( "default2.ini" ); // debug 
+    path.append( "testterrain.ini" ); // debug 
     error = terrain.loadTerrain( path );
     if ( error != 0 )
-        terrain.init( 
+    {
+        terrain.init(
             defaults.defaultTerrainWidth(),
             defaults.defaultTerrainHeight() );
-
+    }
     // load world:
     error = world.loadTiles( terrain.getWorld() );
     if ( error != 0 )
     {
+        defaults.debugLogFile << "Unable to load world " << terrain.getWorld() << ", "
+            << " loading default world instead." << std::endl;
         error = world.loadTiles( defaults.defaultWorld() );
         if ( error != 0 )
         {
@@ -83,10 +87,10 @@ Game::Game( MainWindow& wnd )
             PostQuitMessage( 0 );
             return;
         }
-    }
-    // draw the full terrain and the minimap to buffers:
-    int tileWidth = world.tileWidth();
-    int tileHeight = world.tileHeight();
+    } 
+    // draw /*the full terrain and*/ the minimap to buffers:
+    //int tileWidth = world.tileWidth();
+    //int tileHeight = world.tileHeight();
     /*
     gfxTerrain.createEmptySprite(
         terrain.getColumns() * tileWidth,
@@ -106,8 +110,7 @@ Game::Game( MainWindow& wnd )
         }
     // initialize minimap drawing top left coordinates:
     initMiniMapCoords();
-    
-
+ 
     // give the screen drawing class a font to write with and draw the screens
     gameScreens.setFont( &font );
     gameScreens.drawScenarioEditor(); // this is done only once :)
@@ -180,6 +183,7 @@ void Game::drawTerrainEditor()
             gfx.paintSprite( x,y,world.getTile( terrain.getElement( i,j ) ) );
             i++;
         }
+        // draw the cut-off tiles on the right edge of the map editor:
         if( (xLeftOver > 0) && (i < terrain.getColumns()) )
             gfx.paintSpriteSection( x,y,
                 Rect( 0,0,xLeftOver - 1,world.tileHeight() - 1 ),
@@ -187,6 +191,7 @@ void Game::drawTerrainEditor()
             );
         j++;
     }
+    // draw the cut-off tiles on the bottom edge of the map editor:
     if ( (yLeftOver > 0) && (j < terrain.getRows()) )
     {
         int i = TerrainDrawXOrig;
@@ -199,6 +204,7 @@ void Game::drawTerrainEditor()
                 world.getTile( terrain.getElement( i,j ) ) );
             i++;
         }
+        // draw the cut-off tile on the bottom right edge of the map editor:
         if ( (xLeftOver > 0) && (i < terrain.getColumns()) )
             gfx.paintSpriteSection( x,y,
                 Rect( 0,0,xLeftOver - 1,yLeftOver - 1 ),
@@ -258,8 +264,8 @@ void Game::drawTerrainEditor()
     // draw the minimap highlighted area delimiter:
     miniMapCursor.x1 = miniMapXOrig + TerrainDrawXOrig;
     miniMapCursor.y1 = miniMapYOrig + TerrainDrawYOrig;
-    miniMapCursor.x2 = miniMapCursor.x1 + visibleTilesX;
-    miniMapCursor.y2 = miniMapCursor.y1 + visibleTilesY;
+    miniMapCursor.x2 = miniMapCursor.x1 + visibleTilesX - 1;
+    miniMapCursor.y2 = miniMapCursor.y1 + visibleTilesY - 1;
     gfx.drawBox( miniMapCursor,Colors::White );
     /* debug:
     gfx.drawBox( gameScreens.terrainTypeIcon1AbsCoords,Colors::Blue );
@@ -374,7 +380,7 @@ void Game::ComposeFrame()
                     if ( tileY & 0x1 ) tileY--;
                     Rect redraw = terrain.drawTerrain( tileX,tileY,terrainType );
                     
-                    // redraw modified terrain:
+                    // redraw modified terrain (on minimap):
                     for ( int y = redraw.y1; y < redraw.y2; y++ )
                     {
                         for ( int x = redraw.x1; x < redraw.x2; x++ )

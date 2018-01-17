@@ -743,7 +743,6 @@ void Graphics::printXYSolid( int x,int y,int xSpacer,char *s,Color color /*, HRE
 
 void Graphics::paintSprite( int x,int y,const Sprite &sprite )
 {
-    //if( sprite.pixelData == nullptr ) return;
     if ( !sprite.isImagePresent() ) return;
     if ( (x >= ScreenWidth) || (y >= ScreenHeight) ) return;
     int xStart,yStart;
@@ -785,7 +784,7 @@ void Graphics::paintSpriteSection( int x,int y,Rect area,const Sprite &sprite )
     if ( x + drawWidth  > ScreenWidth ) drawWidth = ScreenWidth - x;
     if ( y + drawHeight > ScreenHeight ) drawHeight = ScreenHeight - y;
     if ( area.x1 + xOffset + drawWidth  > sprite.getWidth() )
-        drawWidth = sprite.getWidth() - xOffset - area.x1;
+        drawWidth  = sprite.getWidth()  - xOffset - area.x1;
     if ( area.y1 + yOffset + drawHeight > sprite.getHeight() )
         drawHeight = sprite.getHeight() - yOffset - area.y1;
     Color *src = sprite.getPixelData() + area.x1 + xOffset
@@ -803,7 +802,6 @@ void Graphics::paintSpriteSection( int x,int y,Rect area,const Sprite &sprite )
 
 void Graphics::paintSpriteKeyed( int x,int y,const Sprite &sprite,Color keyColor )  // not tested
 {
-    //if( sprite.pixelData == nullptr ) return;
     if ( !sprite.isImagePresent() ) return;
     if ( (x >= ScreenWidth) || (y >= ScreenHeight) ) return;
     int xStart,yStart;
@@ -835,7 +833,6 @@ void Graphics::paintSpriteKeyed( int x,int y,const Sprite &sprite,Color keyColor
 
 void Graphics::paintBMPClearType( int x,int y,const Sprite &sprite,Color keyColor )
 {
-    //if( sprite.pixelData == nullptr ) return;
     if ( !sprite.isImagePresent() ) return;
     if ( (x >= ScreenWidth) || (y >= ScreenHeight) ) return;
     int xStart,yStart;

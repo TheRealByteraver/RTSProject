@@ -15,6 +15,7 @@
 
 // files:
 #define MASTER_INIFILE_FILENAME     "RTSProject.ini"
+#define DESERT_WORLD_NAME           "desertworld"
 
 // map dimension constants
 #define MIN_TERRAIN_WIDTH           64

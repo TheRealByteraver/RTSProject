@@ -83,6 +83,6 @@ private:
     // the type of terrain we are drawing with now:
     char                    terrainType = T_DEFAULT;
 private:
-    // must be called each time a new terrain is loaded:
+    // must be called each time a new terrain or world is loaded:
     void                    initMiniMapCoords();
 };
