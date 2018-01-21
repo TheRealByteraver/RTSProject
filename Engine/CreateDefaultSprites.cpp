@@ -8,49 +8,49 @@ extern class Defaults defaults;
 // aide function for the drawing function 
 void CreateDefaultSprites::setDrawCoords(
     int& x1,int& y1,int& x2,int& y2,
-    const int spriteNr,const int width,const int height )
+    const int tileNr,const int width,const int height )
 {
-    const int currentRow = spriteNr / TILES_PER_ROW;
-    const int currentColumn = spriteNr % TILES_PER_ROW;
+    const int currentRow = tileNr / TILES_PER_ROW;
+    const int currentColumn = tileNr % TILES_PER_ROW;
     x1 = TILE_X_OFFSET + currentColumn * (width + TILE_SEPARATOR);
     y1 = TILE_Y_OFFSET + currentRow * (height + TILE_SEPARATOR);
     x2 = x1 + width - 1;
     y2 = y1 + height - 1;
 };
 
-/*
-[Tiles]
-Width=32
-Height=32
-Separator=1
-Offset=1
-NrOfTiles=64
-SpriteLib=GreenPrairie.bmp
+void CreateDefaultSprites::createGreenPrairieWorldTiles()
+{    
+    /*
+    // Create the .ini file first:
+    [Tiles]
+    Width=32
+    Height=32
+    Separator=1
+    Offset=1
+    NrOfTiles=64
+    SpriteLib=desert.bmp
 
-[Doodadds] ; ??
 
-*/
-void  CreateDefaultSprites::writeWorldIni()
-{
-    std::string path( GAME_FOLDER );
+    */    std::string path( GAME_FOLDER );
     path.append( defaults.worldsFolder() );
     path.append( "\\" );
     path.append( defaults.defaultWorld() );
     path.append( ".ini" );
-    std::ofstream earthWorld( path );
-    earthWorld << "; This describes the default world spritesheet." << std::endl;
-    earthWorld << "; If this file is corrupt then delete it, the game will recreate it." << std::endl;
-    earthWorld << ";" << std::endl;
-    earthWorld << "[Tiles]" << std::endl;
-    earthWorld << "Width=" << WORLD_TILE_DEFAULT_WIDTH << std::endl;
-    earthWorld << "Height=" << WORLD_TILE_DEFAULT_WIDTH << std::endl;
-    earthWorld << "Separator=" << TILE_SEPARATOR << std::endl;
-    earthWorld << "Offset=" << TILE_X_OFFSET << std::endl;
-    earthWorld << "NrOfTiles=" << NR_OF_TILES << std::endl;
-}
+    std::ofstream greenPrairieWorldIni( path );
+    greenPrairieWorldIni << "; This describes the default world spritesheet."
+        << std::endl;
+    greenPrairieWorldIni
+        << "; If this file is corrupt then delete it, the game will"
+        << " recreate it." << std::endl;
+    greenPrairieWorldIni << ";" << std::endl;
+    greenPrairieWorldIni << "[Tiles]" << std::endl;
+    greenPrairieWorldIni << "Width=" << WORLD_TILE_DEFAULT_WIDTH << std::endl;
+    greenPrairieWorldIni << "Height=" << WORLD_TILE_DEFAULT_WIDTH << std::endl;
+    greenPrairieWorldIni << "Separator=" << TILE_SEPARATOR << std::endl;
+    greenPrairieWorldIni << "Offset=" << TILE_X_OFFSET << std::endl;
+    greenPrairieWorldIni << "NrOfTiles=" << NR_OF_TILES << std::endl;
+    greenPrairieWorldIni.close();
 
-void CreateDefaultSprites::drawTerrainSprites()
-{
     // initialize our sprite library in memory: create an empty canvas
     terrainSpriteLib.createEmptySprite(
         TERRAIN_SPRITE_LIB_WIDTH,
@@ -492,12 +492,9 @@ void CreateDefaultSprites::drawTerrainSprites()
         for ( int j = yLast + 1; j >= y; j-- )
             terrainSpriteLib.drawHorLine( x1,y1 + y2 + 1 - j,x2 - x,T_HIGH_COLOR );
     }   
-}
-
-void CreateDefaultSprites::saveTerrainSprites()
-{
     // now save the sprites to a .bmp file:
-    std::string path( GAME_FOLDER );
+    
+    path.assign( GAME_FOLDER );
     path.append( defaults.worldsFolder() );
     path.append( "\\" );
     path.append( defaults.defaultWorld() );
@@ -512,27 +509,29 @@ void CreateDefaultSprites::saveTerrainSprites()
 // ****************************************************************************
 // ****************************************************************************
 
-void  CreateDefaultSprites::writeDesertWorldIni()
+void CreateDefaultSprites::createDesertWorldTiles()
 {
+    // Create the .ini file first:
     std::string path( GAME_FOLDER );
     path.append( defaults.worldsFolder() );
     path.append( "\\" );
     path.append( DESERT_WORLD_NAME );
     path.append( ".ini" );
-    std::ofstream desertWorld( path );
-    desertWorld << "; This describes the Desert world spritesheet." << std::endl;
-    desertWorld << "; If this file is corrupt then delete it, the game will recreate it." << std::endl;
-    desertWorld << ";" << std::endl;
-    desertWorld << "[Tiles]" << std::endl;
-    desertWorld << "Width=" << WORLD_TILE_DEFAULT_WIDTH << std::endl;
-    desertWorld << "Height=" << WORLD_TILE_DEFAULT_WIDTH << std::endl;
-    desertWorld << "Separator=" << TILE_SEPARATOR << std::endl;
-    desertWorld << "Offset=" << TILE_X_OFFSET << std::endl;
-    desertWorld << "NrOfTiles=" << NR_OF_TILES << std::endl;
-}
+    std::ofstream desertWorldIni( path );
+    desertWorldIni << "; This describes the Desert world spritesheet." 
+        << std::endl;
+    desertWorldIni 
+        << "; If this file is corrupt then delete it, the game will"
+        << " recreate it." << std::endl;
+    desertWorldIni << ";" << std::endl;
+    desertWorldIni << "[Tiles]" << std::endl;
+    desertWorldIni << "Width=" << WORLD_TILE_DEFAULT_WIDTH << std::endl;
+    desertWorldIni << "Height=" << WORLD_TILE_DEFAULT_WIDTH << std::endl;
+    desertWorldIni << "Separator=" << TILE_SEPARATOR << std::endl;
+    desertWorldIni << "Offset=" << TILE_X_OFFSET << std::endl;
+    desertWorldIni << "NrOfTiles=" << NR_OF_TILES << std::endl;
+    desertWorldIni.close();
 
-void CreateDefaultSprites::drawDesertWorldTiles()
-{
     // initialize our sprite library in memory: create an empty canvas
     terrainSpriteLib.createEmptySprite(
         TERRAIN_SPRITE_LIB_WIDTH,
@@ -546,7 +545,7 @@ void CreateDefaultSprites::drawDesertWorldTiles()
     int height = width /* * 2 */;
     int spriteNr = 0;
     int x1,y1,x2,y2;
-    int x,y,xStart,yStart,yEnd,yLast;
+    int x,y,xStart,yEnd,yLast;
     double bigPeriod = 3.0 * pi; // Total distance of wave = 1,5 period = 3PI
     double bigAmp = width / 20.0;
     double smallPeriod = (width / 40.0) * pi;
@@ -555,7 +554,7 @@ void CreateDefaultSprites::drawDesertWorldTiles()
     Start drawing terrain sprites.
     */
     setDrawCoords( x1,y1,x2,y2,T_LOW_WATER,width,height );
-    terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_LOW_TARPIT_COLOR );
+    terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_LOW_TARPIT_COLOR );
     setDrawCoords( x1,y1,x2,y2,T_RIGHTWARDS_TO_LOW_WATER,width,height );
     for ( int y = y1; y <= y2; y++ )
     {
@@ -563,7 +562,7 @@ void CreateDefaultSprites::drawDesertWorldTiles()
             + sin( (double)(y - y1) * smallPeriod / (double)(width / 2) ) * smallAmp;
         int xs = x1 + width / 2 + (int)w;
         terrainSpriteLib.drawHorLine( x1,y,xs - 1,T_DESERT_LOW_COLOR );
-        terrainSpriteLib.drawHorLine( xs,y,x2,T_LOW_TARPIT_COLOR );
+        terrainSpriteLib.drawHorLine( xs,y,x2,T_DESERT_LOW_TARPIT_COLOR );
     }
     setDrawCoords( x1,y1,x2,y2,T_RIGHTWARDS_FROM_LOW_WATER,width,height );
     for ( int y = y1; y <= y2; y++ )
@@ -571,7 +570,7 @@ void CreateDefaultSprites::drawDesertWorldTiles()
         double w = sin( (double)(y - y1) * bigPeriod / (double)(width / 2) ) * bigAmp
             + sin( (double)(y - y1) * smallPeriod / (double)(width / 2) ) * smallAmp;
         int xs = x1 + width / 2 - (int)w;
-        terrainSpriteLib.drawHorLine( x1,y,xs - 1,T_LOW_TARPIT_COLOR );
+        terrainSpriteLib.drawHorLine( x1,y,xs - 1,T_DESERT_LOW_TARPIT_COLOR );
         terrainSpriteLib.drawHorLine( xs,y,x2,T_DESERT_LOW_COLOR );
     }
     setDrawCoords( x1,y1,x2,y2,T_DOWNWARDS_TO_LOW_WATER,width,height );
@@ -581,7 +580,7 @@ void CreateDefaultSprites::drawDesertWorldTiles()
             + sin( (double)(x - x1) * smallPeriod / (double)(width / 2) ) * smallAmp;
         int ys = y1 + height / 2 + (int)w;
         terrainSpriteLib.drawVerLine( x,y1,ys - 1,T_DESERT_LOW_COLOR );
-        terrainSpriteLib.drawVerLine( x,ys,y2,T_LOW_TARPIT_COLOR );
+        terrainSpriteLib.drawVerLine( x,ys,y2,T_DESERT_LOW_TARPIT_COLOR );
     }
     setDrawCoords( x1,y1,x2,y2,T_DOWNWARDS_FROM_LOW_WATER,width,height );
     for ( int x = x1; x <= x2; x++ )
@@ -589,7 +588,7 @@ void CreateDefaultSprites::drawDesertWorldTiles()
         double w = sin( (double)(x - x1) * bigPeriod / (double)(width / 2) ) * bigAmp
             + sin( (double)(x - x1) * smallPeriod / (double)(width / 2) ) * smallAmp;
         int ys = y1 + height / 2 - (int)w;
-        terrainSpriteLib.drawVerLine( x,y1,ys - 1,T_LOW_TARPIT_COLOR );
+        terrainSpriteLib.drawVerLine( x,y1,ys - 1,T_DESERT_LOW_TARPIT_COLOR );
         terrainSpriteLib.drawVerLine( x,ys,y2,T_DESERT_LOW_COLOR );
     }
     setDrawCoords( x1,y1,x2,y2,T_LOW_WATER_TOP_LEFT,width,height );
@@ -607,7 +606,7 @@ void CreateDefaultSprites::drawDesertWorldTiles()
         if ( x < xStart ) x = xStart;
         if ( y < yEnd ) y = yEnd;
         for ( int j = yLast + 1; j >= y; j-- )
-            terrainSpriteLib.drawHorLine( x,j - 1,x2,T_LOW_TARPIT_COLOR );
+            terrainSpriteLib.drawHorLine( x,j - 1,x2,T_DESERT_LOW_TARPIT_COLOR );
     }
     setDrawCoords( x1,y1,x2,y2,T_LOW_WATER_TOP_RIGHT,width,height );
     terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_LOW_COLOR );
@@ -623,7 +622,7 @@ void CreateDefaultSprites::drawDesertWorldTiles()
         if ( x < 0 ) x = 0;
         if ( y < yEnd ) y = yEnd;
         for ( int j = yLast + 1; j >= y; j-- )
-            terrainSpriteLib.drawHorLine( x1,j - 1,x2 - x,T_LOW_TARPIT_COLOR );
+            terrainSpriteLib.drawHorLine( x1,j - 1,x2 - x,T_DESERT_LOW_TARPIT_COLOR );
     }
     setDrawCoords( x1,y1,x2,y2,T_LOW_WATER_BOTTOM_LEFT,width,height );
     terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_LOW_COLOR );
@@ -640,7 +639,7 @@ void CreateDefaultSprites::drawDesertWorldTiles()
         if ( x < xStart ) x = xStart;
         if ( y < yEnd ) y = yEnd;
         for ( int j = yLast + 1; j >= y; j-- )
-            terrainSpriteLib.drawHorLine( x,y1 + y2 + 1 - j,x2,T_LOW_TARPIT_COLOR );
+            terrainSpriteLib.drawHorLine( x,y1 + y2 + 1 - j,x2,T_DESERT_LOW_TARPIT_COLOR );
     }
     setDrawCoords( x1,y1,x2,y2,T_LOW_WATER_BOTTOM_RIGHT,width,height );
     terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_LOW_COLOR );
@@ -656,14 +655,14 @@ void CreateDefaultSprites::drawDesertWorldTiles()
         if ( x < 0 ) x = 0;
         if ( y < yEnd ) y = yEnd;
         for ( int j = yLast + 1; j >= y; j-- )
-            terrainSpriteLib.drawHorLine( x1,y1 + y2 + 1 - j,x2 - x,T_LOW_TARPIT_COLOR );
+            terrainSpriteLib.drawHorLine( x1,y1 + y2 + 1 - j,x2 - x,T_DESERT_LOW_TARPIT_COLOR );
     }
     setDrawCoords( x1,y1,x2,y2,T_H_LOW_WATER_TOP_LEFT,width,height );
-    terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_LOW_TARPIT_COLOR );
+    terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_LOW_TARPIT_COLOR );
     xStart = x1 + width / 2 - 1;
     yEnd = y1 + height / 2 - 1;
     y = y2;
-    terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_LOW_TARPIT_COLOR );
+    terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_LOW_TARPIT_COLOR );
     for ( int i = 0; i <= width / 2; i++ )
     {
         yLast = y;
@@ -677,7 +676,7 @@ void CreateDefaultSprites::drawDesertWorldTiles()
             terrainSpriteLib.drawHorLine( x,j - 1,x2,T_DESERT_LOW_COLOR );
     }
     setDrawCoords( x1,y1,x2,y2,T_H_LOW_WATER_TOP_RIGHT,width,height );
-    terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_LOW_TARPIT_COLOR );
+    terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_LOW_TARPIT_COLOR );
     yEnd = y1 + height / 2 - 1;
     y = y2;
     for ( int i = 0; i <= width / 2; i++ )
@@ -693,7 +692,7 @@ void CreateDefaultSprites::drawDesertWorldTiles()
             terrainSpriteLib.drawHorLine( x1,j - 1,x2 - x,T_DESERT_LOW_COLOR );
     }
     setDrawCoords( x1,y1,x2,y2,T_H_LOW_WATER_BOTTOM_LEFT,width,height );
-    terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_LOW_TARPIT_COLOR );
+    terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_LOW_TARPIT_COLOR );
     xStart = x1 + width / 2 - 1;
     yEnd = y1 + height / 2 - 1;
     y = y2;
@@ -710,7 +709,7 @@ void CreateDefaultSprites::drawDesertWorldTiles()
             terrainSpriteLib.drawHorLine( x,y1 + y2 + 1 - j,x2,T_DESERT_LOW_COLOR );
     }
     setDrawCoords( x1,y1,x2,y2,T_H_LOW_WATER_BOTTOM_RIGHT,width,height );
-    terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_LOW_TARPIT_COLOR );
+    terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_LOW_TARPIT_COLOR );
     yEnd = y1 + height / 2 - 1;
     y = y2;
     for ( int i = 0; i <= width / 2; i++ )
@@ -735,28 +734,28 @@ void CreateDefaultSprites::drawDesertWorldTiles()
     terrainSpriteLib.drawBlock( x1,y1,x,y2,T_DESERT_LOW_COLOR );
     terrainSpriteLib.drawBlock( x,y1,x2,y2,T_DESERT_TRANS_SHADE_COLOR );
     */
-    terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_TRANS_SHADE_COLOR );
+    terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_LEFT_COLOR );
     setDrawCoords( x1,y1,x2,y2,T_RIGHTWARDS_FROM_HIGH,width,height );
     /*
     x = x1 + width / 2;
     terrainSpriteLib.drawBlock( x1,y1,x,y2,T_DESERT_TRANS_SUN_COLOR );
     terrainSpriteLib.drawBlock( x,y1,x2,y2,T_DESERT_LOW_COLOR );
     */
-    terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_TRANS_SUN_COLOR );
+    terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_RIGHT_COLOR );
     setDrawCoords( x1,y1,x2,y2,T_DOWNWARDS_TO_HIGH,width,height );
     /*
     y = y1 + height / 2;
     terrainSpriteLib.drawBlock( x1,y1,x2,y,T_DESERT_LOW_COLOR );
     terrainSpriteLib.drawBlock( x1,y,x2,y2,T_DESERT_TRANS_SUN_COLOR );
     */
-    terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_TRANS_SUN_COLOR );
+    terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_TOP_COLOR );
     setDrawCoords( x1,y1,x2,y2,T_DOWNWARDS_FROM_HIGH,width,height );
     /*
     y = y1 + height / 2;
     terrainSpriteLib.drawBlock( x1,y1,x2,y,T_DESERT_TRANS_SHADE_COLOR );
     terrainSpriteLib.drawBlock( x1,y,x2,y2,T_DESERT_LOW_COLOR );
     */
-    terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_TRANS_SHADE_COLOR );
+    terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_BOTTOM_COLOR );
     setDrawCoords( x1,y1,x2,y2,T_HIGH_TOP_LEFT,width,height );
     /*
     terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_LOW_COLOR );
@@ -766,7 +765,7 @@ void CreateDefaultSprites::drawDesertWorldTiles()
     */
     terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_LOW_COLOR );
     for ( int i = 0; i < width; i++ )
-        terrainSpriteLib.drawHorLine( x1 + i,y2 - i,x2,T_DESERT_TRANS_SUN_COLOR );
+        terrainSpriteLib.drawHorLine( x1 + i,y2 - i,x2,T_DESERT_TOP_LEFT_COLOR );
     setDrawCoords( x1,y1,x2,y2,T_HIGH_TOP_RIGHT,width,height );
     /*
     terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_LOW_COLOR );
@@ -776,7 +775,7 @@ void CreateDefaultSprites::drawDesertWorldTiles()
     */
     terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_LOW_COLOR );
     for ( int i = 0; i < width; i++ )
-        terrainSpriteLib.drawHorLine( x1,y1 + i,x1 + i,T_DESERT_TRANS_LIGHTSUN_COLOR );
+        terrainSpriteLib.drawHorLine( x1,y1 + i,x1 + i,T_DESERT_TOP_RIGHT_COLOR );
     setDrawCoords( x1,y1,x2,y2,T_HIGH_BOTTOM_LEFT,width,height );
     /*
     terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_LOW_COLOR );
@@ -786,7 +785,7 @@ void CreateDefaultSprites::drawDesertWorldTiles()
     */
     terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_LOW_COLOR );
     for ( int i = 0; i < width; i++ )
-        terrainSpriteLib.drawHorLine( x1 + i,y1 + i,x2,T_DESERT_TRANS_DARKSHADE_COLOR );
+        terrainSpriteLib.drawHorLine( x1 + i,y1 + i,x2,T_DESERT_BOTTOM_LEFT_COLOR );
     setDrawCoords( x1,y1,x2,y2,T_HIGH_BOTTOM_RIGHT,width,height );
     /*
     terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_LOW_COLOR );
@@ -796,7 +795,7 @@ void CreateDefaultSprites::drawDesertWorldTiles()
     */
     terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_LOW_COLOR );
     for ( int i = 0; i < width; i++ )
-        terrainSpriteLib.drawHorLine( x1,y1 + i,x2 - 1 - i,T_DESERT_TRANS_SUN_COLOR );
+        terrainSpriteLib.drawHorLine( x1,y1 + i,x2 - i,T_DESERT_BOTTOM_RIGHT_COLOR );
     setDrawCoords( x1,y1,x2,y2,T_H_HIGH_TOP_LEFT,width,height );
     /*
     terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_TRANS_DARKSHADE_COLOR );
@@ -806,7 +805,7 @@ void CreateDefaultSprites::drawDesertWorldTiles()
     */
     terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_HIGH_COLOR );
     for ( int i = 0; i < width; i++ )
-        terrainSpriteLib.drawHorLine( x1 + i,y2 - i,x2,T_DESERT_TRANS_DARKSHADE_COLOR );
+        terrainSpriteLib.drawHorLine( x1 + i,y2 - i,x2,T_DESERT_BOTTOM_RIGHT_COLOR );
     setDrawCoords( x1,y1,x2,y2,T_H_HIGH_TOP_RIGHT,width,height );
     /*
     terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_TRANS_DARKSHADE_COLOR );
@@ -816,7 +815,7 @@ void CreateDefaultSprites::drawDesertWorldTiles()
     */
     terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_HIGH_COLOR );
     for ( int i = 0; i < width; i++ )
-        terrainSpriteLib.drawHorLine( x1,y1 + i,x1 + i,T_DESERT_TRANS_DARKSHADE_COLOR );
+        terrainSpriteLib.drawHorLine( x1,y1 + i,x1 + i,T_DESERT_BOTTOM_LEFT_COLOR );
     setDrawCoords( x1,y1,x2,y2,T_H_HIGH_BOTTOM_LEFT,width,height );
     /*
     terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_TRANS_LIGHTSUN_COLOR );
@@ -826,7 +825,7 @@ void CreateDefaultSprites::drawDesertWorldTiles()
     */
     terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_HIGH_COLOR );
     for ( int i = 0; i < width; i++ )
-        terrainSpriteLib.drawHorLine( x1 + i,y1 + i,x2,T_DESERT_TRANS_LIGHTSUN_COLOR );
+        terrainSpriteLib.drawHorLine( x1 + i,y1 + i,x2,T_DESERT_TOP_RIGHT_COLOR );
     setDrawCoords( x1,y1,x2,y2,T_H_HIGH_BOTTOM_RIGHT,width,height );
     /*
     terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_TRANS_SUN_COLOR );
@@ -836,7 +835,7 @@ void CreateDefaultSprites::drawDesertWorldTiles()
     */
     terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_DESERT_HIGH_COLOR );
     for ( int i = 0; i < width; i++ )
-        terrainSpriteLib.drawHorLine( x1,y1 + i,x2 - 1 - i,T_DESERT_TRANS_SUN_COLOR );
+        terrainSpriteLib.drawHorLine( x1,y1 + i,x2 - i,T_DESERT_TOP_LEFT_COLOR );
     setDrawCoords( x1,y1,x2,y2,T_HIGH_WATER,width,height );
     terrainSpriteLib.drawBlock( x1,y1,x2,y2,T_HIGH_WATER_COLOR );
     setDrawCoords( x1,y1,x2,y2,T_RIGHTWARDS_TO_HIGH_WATER,width,height );
@@ -1026,15 +1025,427 @@ void CreateDefaultSprites::drawDesertWorldTiles()
         for ( int j = yLast + 1; j >= y; j-- )
             terrainSpriteLib.drawHorLine( x1,y1 + y2 + 1 - j,x2 - x,T_DESERT_HIGH_COLOR );
     }
-}
-
-void CreateDefaultSprites::saveDesertWorldTiles()
-{
     // now save the sprites to a .bmp file:
-    std::string path( GAME_FOLDER );
+    path.assign( GAME_FOLDER );
     path.append( defaults.worldsFolder() );
     path.append( "\\" );
     path.append( DESERT_WORLD_NAME );
     path.append( ".bmp" );
     terrainSpriteLib.saveToBMP( path.c_str() );
 }
+
+void CreateDefaultSprites::createDesertWorldDoodAdds()
+{
+
+    int width = WORLD_TILE_DEFAULT_WIDTH;
+    int height = width;
+    // 4 tiles wide, four ramps
+    int minWidth  = TILE_X_OFFSET + (width * 6 + TILE_SEPARATOR) * 4;
+    int minHeight = TILE_Y_OFFSET + height * 6 + TILE_SEPARATOR;
+    terrainSpriteLib.createEmptySprite( minWidth,minHeight );
+    int x = TILE_X_OFFSET;
+    int y = TILE_Y_OFFSET;
+    // draw ramp downwards to the right:
+    terrainSpriteLib.drawBlock(
+        x,
+        y,
+        x + width - 1,
+        y + height * 6 - 1,
+        T_DESERT_HIGH_COLOR
+    );
+    x += width;
+    terrainSpriteLib.drawBlock(
+        x,
+        y,
+        x + width * 5 - 1,
+        y + height * 6 - 1,
+        T_DESERT_LOW_COLOR
+    );
+    terrainSpriteLib.drawBlock(
+        x,
+        y + height,
+        x + width * 4 - 1,
+        y + height * 5 - 1,
+        T_DESERT_RIGHT_COLOR
+    );
+    x += width;
+    for ( int i = 0; i < height; i++ )
+    {
+        terrainSpriteLib.drawHorLine(
+            x - width,
+            y + i,
+            x - i - 1,
+            T_DESERT_RIGHT_COLOR
+        );
+        terrainSpriteLib.drawHorLine(
+            x - i,
+            y + i,
+            x + i * 3,
+            T_DESERT_TOP_COLOR
+        );
+        terrainSpriteLib.drawHorLine(
+            x - width,
+            y + height * 6 - 1 - i,
+            x - i - 1,
+            T_DESERT_RIGHT_COLOR
+        );
+        terrainSpriteLib.drawHorLine(
+            x - i,
+            y + height * 6 - 1 - i,
+            x + i * 3,
+            T_DESERT_BOTTOM_COLOR
+        );
+    }
+    x += width * 4 + TILE_SEPARATOR;
+    // draw ramp downwards to the left:
+    terrainSpriteLib.drawBlock(
+        x + width * 5,
+        y,
+        x + width * 6 - 1,
+        y + height * 6 - 1,
+        T_DESERT_HIGH_COLOR
+    );
+    terrainSpriteLib.drawBlock(
+        x,
+        y,
+        x + width * 5 - 1,
+        y + height * 6 - 1,
+        T_DESERT_LOW_COLOR
+    );
+    x += width;
+    terrainSpriteLib.drawBlock(
+        x,
+        y + height,
+        x + width * 4 - 1,
+        y + height * 5 - 1,
+        T_DESERT_LEFT_COLOR
+    );
+    x += width * 3 - 1;
+    for ( int i = 0; i < height; i++ )
+    {
+        terrainSpriteLib.drawHorLine(
+            x + i + 1,
+            y + i,
+            x + width,
+            T_DESERT_LEFT_COLOR
+        );
+        terrainSpriteLib.drawHorLine(
+            x - i * 3,
+            y + i,
+            x + i,
+            T_DESERT_TOP_COLOR
+        );
+        terrainSpriteLib.drawHorLine(
+            x + i + 1,
+            y + height * 6 - 1 - i,
+            x + width,
+            T_DESERT_LEFT_COLOR
+        );
+        terrainSpriteLib.drawHorLine(
+            x - i * 3,
+            y + height * 6 - 1 - i,
+            x + i,
+            T_DESERT_BOTTOM_COLOR
+        );
+    }
+    x += width * 3 + 1 + TILE_SEPARATOR;
+    // draw ramp downwards to the bottom:
+    terrainSpriteLib.drawBlock(
+        x - width,
+        y,
+        x + width * 5 - 1,
+        y + height - 1,
+        T_DESERT_HIGH_COLOR
+    );
+    y += height;
+    terrainSpriteLib.drawBlock(
+        x - width,
+        y + height,
+        x + width * 5 - 1,
+        y + height * 5 - 1,
+        T_DESERT_LOW_COLOR
+    );
+    terrainSpriteLib.drawBlock(
+        x,
+        y,
+        x + width * 4 - 1,
+        y + height * 4 - 1,
+        T_DESERT_BOTTOM_COLOR
+    );
+    x -= width;
+    y += height;
+    for ( int i = 0; i < width; i++ )
+    {
+        terrainSpriteLib.drawVerLine(
+            x + i,
+            y - height,
+            y - i - 1,
+            T_DESERT_BOTTOM_COLOR
+        );
+        terrainSpriteLib.drawVerLine(
+            x + i,
+            y - i,
+            y + i * 3,
+            T_DESERT_LEFT_COLOR
+        );
+        terrainSpriteLib.drawVerLine(
+            x + width * 6 - 1 - i,
+            y - height,
+            y - i - 1,
+            T_DESERT_BOTTOM_COLOR
+        );
+        terrainSpriteLib.drawVerLine(
+            x + width * 6 - 1 - i,
+            y - i,
+            y + i * 3,
+            T_DESERT_RIGHT_COLOR
+        );
+    }   
+    x += width * 7 + TILE_SEPARATOR;
+    y -= height;
+    // draw ramp downwards to the top:
+    terrainSpriteLib.drawBlock(
+        x - width,
+        y + height * 4,
+        x + width * 5 - 1,
+        y + height * 5 - 1,
+        T_DESERT_HIGH_COLOR
+    );
+    terrainSpriteLib.drawBlock(
+        x - width,
+        y - height,
+        x + width * 5 - 1,
+        y + height * 3 - 1,
+        T_DESERT_LOW_COLOR
+    );
+    terrainSpriteLib.drawBlock(
+        x,
+        y,
+        x + width * 4 - 1,
+        y + height * 4 - 1,
+        T_DESERT_TOP_COLOR
+    );
+    x -= width;
+    y += height * 3 - 1;
+    for ( int i = 0; i < width; i++ )
+    {
+        terrainSpriteLib.drawVerLine(
+            x + i,
+            y + i + 1,
+            y + height,
+            T_DESERT_TOP_COLOR
+        );
+        terrainSpriteLib.drawVerLine(
+            x + i,
+            y - i * 3,
+            y + i,
+            T_DESERT_LEFT_COLOR
+        );
+        terrainSpriteLib.drawVerLine(
+            x + width * 6 - 1 - i,
+            y + i + 1,
+            y + height,
+            T_DESERT_TOP_COLOR
+        );
+        terrainSpriteLib.drawVerLine(
+            x + width * 6 - 1 - i,
+            y - i * 3,
+            y + i,
+            T_DESERT_RIGHT_COLOR
+        );
+    }
+    // now save the sprites to a .bmp file:
+    std::string bmpPath( GAME_FOLDER );
+    bmpPath.append( defaults.worldsFolder() );
+    bmpPath.append( "\\" );
+    std::string bmpFile( DESERT_WORLD_NAME );
+    bmpFile.append( DOODADD_SUFFIX );
+    bmpFile.append( ".bmp" );
+    terrainSpriteLib.saveToBMP( (bmpPath + bmpFile).c_str() );
+    // now write the doodadd .ini file:
+    std::string iniPath( GAME_FOLDER );
+    iniPath.append( defaults.worldsFolder() );
+    iniPath.append( "\\" );
+    iniPath.append( DESERT_WORLD_NAME );
+    iniPath.append( DOODADD_SUFFIX );
+    iniPath.append( ".ini" );
+    std::ofstream desertWorldDoodAddIni( iniPath );
+    desertWorldDoodAddIni
+        << "; This describes the Desert world DoodAdd sprites." << std::endl
+        << "; The 'Walkable' mask describes if the tile can be walked upon by units." << std::endl
+        << "; A '1' means yes, a '0' means no." << std::endl
+        << "; The Terrain mask is a bit more tricky. It describes what kind of terrain" << std::endl
+        << "; the doodadd can be placed upon. Each letter corresponds to a particular" << std::endl
+        << "; type of basic terrain: low water, high water, low ground, transition tiles, etc." << std::endl
+        << "; A space means the Doodadd does not cover that part of the terrain. " << std::endl
+        << ";" << std::endl
+        << "[Main]" << std::endl
+        << "world=desert" << std::endl
+        << ";" << std::endl
+        << "[DoodAdd000]" << std::endl
+        << "name=RampRightwards" << std::endl
+        << "SourceFile=" << bmpFile << std::endl
+        << "locationX=" << TILE_X_OFFSET << "     ; in pixels" << std::endl
+        << "locationY=" << TILE_Y_OFFSET << "     ; in pixels" << std::endl
+        << "horSize=6       ; in tiles" << std::endl
+        << "VerSize=6       ; in tiles" << std::endl
+        << "WalkableMask00=100001" << std::endl
+        << "WalkableMask01=111111" << std::endl
+        << "WalkableMask02=111111" << std::endl
+        << "WalkableMask03=111111" << std::endl
+        << "WalkableMask04=111111" << std::endl
+        << "WalkableMask05=100001" << std::endl
+        << "TerrainMask00=W@GGGG" << std::endl
+        << "TerrainMask01=W@GGGG" << std::endl
+        << "TerrainMask02=W@GGGG" << std::endl
+        << "TerrainMask03=W@GGGG" << std::endl
+        << "TerrainMask04=W@GGGG" << std::endl
+        << "TerrainMask05=W@GGGG" << std::endl
+        << ";" << std::endl
+        << "[DoodAdd001]" << std::endl
+        << "name=RampLeftwards" << std::endl
+        << "SourceFile=" << bmpFile << std::endl
+        << "locationX=" << TILE_X_OFFSET + width * 6 << "     ; in pixels" << std::endl
+        << "locationY=" << TILE_Y_OFFSET << "     ; in pixels" << std::endl
+        << "horSize=6       ; in tiles" << std::endl
+        << "VerSize=6       ; in tiles" << std::endl
+        << "WalkableMask00=100001" << std::endl
+        << "WalkableMask01=111111" << std::endl
+        << "WalkableMask02=111111" << std::endl
+        << "WalkableMask03=111111" << std::endl
+        << "WalkableMask04=111111" << std::endl
+        << "WalkableMask05=100001" << std::endl
+        << "TerrainMask00=GGGG&W" << std::endl
+        << "TerrainMask01=GGGG&W" << std::endl
+        << "TerrainMask02=GGGG&W" << std::endl
+        << "TerrainMask03=GGGG&W" << std::endl
+        << "TerrainMask04=GGGG&W" << std::endl
+        << "TerrainMask05=GGGG&W" << std::endl
+        << ";" << std::endl
+        << "[DoodAdd002]" << std::endl
+        << "name=RampDownwards" << std::endl
+        << "SourceFile=" << bmpFile << std::endl
+        << "locationX=" << TILE_X_OFFSET + width * 12 << "     ; in pixels" << std::endl
+        << "locationY=" << TILE_Y_OFFSET << "     ; in pixels" << std::endl
+        << "horSize=6       ; in tiles" << std::endl
+        << "VerSize=6       ; in tiles" << std::endl
+        << "WalkableMask00=111111" << std::endl
+        << "WalkableMask01=011110" << std::endl
+        << "WalkableMask02=011110" << std::endl
+        << "WalkableMask03=011110" << std::endl
+        << "WalkableMask04=011110" << std::endl
+        << "WalkableMask05=111111" << std::endl
+        << "TerrainMask00=WWWWWW" << std::endl
+        << "TerrainMask01=''''''" << std::endl
+        << "TerrainMask02=GGGGGG" << std::endl
+        << "TerrainMask03=GGGGGG" << std::endl
+        << "TerrainMask04=GGGGGG" << std::endl
+        << "TerrainMask05=GGGGGG" << std::endl
+        << ";" << std::endl
+        << "[DoodAdd003]" << std::endl
+        << "name=RampUpwards" << std::endl
+        << "SourceFile=" << bmpFile << std::endl
+        << "locationX=" << TILE_X_OFFSET + width * 18 << "     ; in pixels" << std::endl
+        << "locationY=" << TILE_Y_OFFSET << "     ; in pixels" << std::endl
+        << "horSize=6       ; in tiles" << std::endl
+        << "VerSize=6       ; in tiles" << std::endl
+        << "WalkableMask00=111111" << std::endl
+        << "WalkableMask01=011110" << std::endl
+        << "WalkableMask02=011110" << std::endl
+        << "WalkableMask03=011110" << std::endl
+        << "WalkableMask04=011110" << std::endl
+        << "WalkableMask05=111111" << std::endl
+        << "TerrainMask00=GGGGGG" << std::endl
+        << "TerrainMask01=GGGGGG" << std::endl
+        << "TerrainMask02=GGGGGG" << std::endl
+        << "TerrainMask03=GGGGGG" << std::endl
+        << "TerrainMask04=######" << std::endl
+        << "TerrainMask05=WWWWWW" << std::endl
+        ;
+    desertWorldDoodAddIni.close();
+/*
+[Main]
+world=desert
+;
+[DoodAdd000]
+name=RampRightwards
+SourceFile= <<< bmpPath
+locationX=offsetX   ; in pixels
+locationY=offsetY   ; in pixels
+horSize=6 ; in tiles 
+VerSize=6 ; in tiles
+WalkableMask00=100001
+WalkableMask01=111111
+WalkableMask02=111111
+WalkableMask03=111111
+WalkableMask04=111111
+WalkableMask05=100001
+TerrainMask00=W@GGGG
+TerrainMask01=W@GGGG
+TerrainMask02=W@GGGG
+TerrainMask03=W@GGGG
+TerrainMask04=W@GGGG
+TerrainMask05=W@GGGG
+;
+[DoodAdd001]
+name=RampLeftwards
+SourceFile= <<< bmpPath
+locationX=offsetX   ; in pixels
+locationY=offsetY   ; in pixels
+horSize=6 ; in tiles
+VerSize=6 ; in tiles
+WalkableMask00=100001
+WalkableMask01=111111
+WalkableMask02=111111
+WalkableMask03=111111
+WalkableMask04=111111
+WalkableMask05=100001
+TerrainMask00=GGGG&W
+TerrainMask01=GGGG&W
+TerrainMask02=GGGG&W
+TerrainMask03=GGGG&W
+TerrainMask04=GGGG&W
+TerrainMask05=GGGG&W
+;
+[DoodAdd002]
+name=RampDownwards
+SourceFile= <<< bmpPath
+locationX=offsetX   ; in pixels
+locationY=offsetY   ; in pixels
+horSize=6 ; in tiles
+VerSize=6 ; in tiles
+WalkableMask00=111111
+WalkableMask01=011110
+WalkableMask02=011110
+WalkableMask03=011110
+WalkableMask04=011110
+WalkableMask05=111111
+TerrainMask00=WWWWWW
+TerrainMask01=''''''
+TerrainMask02=GGGGGG
+TerrainMask03=GGGGGG
+TerrainMask04=GGGGGG
+TerrainMask05=GGGGGG
+;
+[DoodAdd003]
+name=RampUpwards
+SourceFile= <<< bmpPath
+locationX=offsetX   ; in pixels
+locationY=offsetY   ; in pixels
+horSize=6 ; in tiles
+VerSize=6 ; in tiles
+WalkableMask00=111111
+WalkableMask01=011110
+WalkableMask02=011110
+WalkableMask03=011110
+WalkableMask04=011110
+WalkableMask05=111111
+TerrainMask00=GGGGGG
+TerrainMask01=GGGGGG
+TerrainMask02=GGGGGG
+TerrainMask03=GGGGGG
+TerrainMask04=######
+TerrainMask05=WWWWWW
+*/
+}
+

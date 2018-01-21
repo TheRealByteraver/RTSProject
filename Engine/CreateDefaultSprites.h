@@ -6,7 +6,7 @@
 
 // the default width of one tile used to create the terrain
 // a value of 64 will allocate 1 GB of memory on a 256x256 tile sized terrain lol
-#define WORLD_TILE_DEFAULT_WIDTH    32
+#define WORLD_TILE_DEFAULT_WIDTH    48
 
 // there are 64 tiles, most of whom are not used (black)
 #define NR_OF_TILES                 64
@@ -44,35 +44,42 @@
 #define T_TRANS_LIGHTSUN_COLOR      0x60FF60
 
 // some color constants for the desert world drawing function:
-#define T_LOW_TARPIT_COLOR              0x101010
-#define T_DESERT_LOW_COLOR              0xB49999
-#define T_DESERT_HIGH_COLOR             0xE7C987
-//#define T_HIGH_WATER_COLOR              0x2020F0
+#define T_DESERT_LOW_TARPIT_COLOR       0x101010
+#define T_DESERT_LOW_COLOR              0xE7C987
+#define T_DESERT_HIGH_COLOR             0xCD8F6D
+#define T_DESERT_HIGH_WATER_COLOR       0x2020F0
+// hill colors from Brightest to darkest:
+#define T_DESERT_TOP_RIGHT_COLOR        0xFABC9A     // 1
+#define T_DESERT_TOP_COLOR              0xEAAC8A     // 2
+#define T_DESERT_RIGHT_COLOR            0xDA9C7A     // 3
+#define T_DESERT_TOP_LEFT_COLOR         0xCA8C6A     // 4
+#define T_DESERT_BOTTOM_RIGHT_COLOR     0xBA7C5A     // 5
+#define T_DESERT_BOTTOM_COLOR           0xAA6C4A     // 6
+#define T_DESERT_LEFT_COLOR             0x9A5C3A     // 7
+#define T_DESERT_BOTTOM_LEFT_COLOR      0x8A4C2A     // 8
+/*
 #define T_DESERT_TRANS_SHADE_COLOR      0xD7B977
 #define T_DESERT_TRANS_DARKSHADE_COLOR  0xC7A967
 #define T_DESERT_TRANS_SUN_COLOR        0xFEE09E
 #define T_DESERT_TRANS_LIGHTSUN_COLOR   0xFFE29F
+*/
 
 
 class CreateDefaultSprites
 {
 public:
     CreateDefaultSprites() { }
-    // greenprairie world:
-    void    drawTerrainSprites();
-    void    saveTerrainSprites();
-    void    writeWorldIni();
-    // desert world:
-    void    drawDesertWorldTiles();
-    void    saveDesertWorldTiles();
-    void    writeDesertWorldIni();
-    //const Sprite& getSpriteLibrary() { return terrainSpriteLib; } // for debugging
+    void    createGreenPrairieWorldTiles();
+    //void    createGreenPrairieWorldDoodAdds(); // TODO!
+    void    createDesertWorldTiles();
+    void    createDesertWorldDoodAdds();
+    const Sprite& getSpriteLibrary() { return terrainSpriteLib; } // for debugging
 private:
-    Sprite  terrainSpriteLib;
+    Sprite  terrainSpriteLib;                                     // for debugging declared here
 private:
     void    setDrawCoords(
                 int& x1,int& y1,int& x2,int& y2,
-                const int spriteNr,
+                const int tileNr,
                 const int width,const int height );
 };
 

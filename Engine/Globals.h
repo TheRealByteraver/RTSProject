@@ -11,19 +11,21 @@
 #include <fstream>
 
 // folders:
-#define GAME_FOLDER                 "c:\\RTSMedia\\" // should be ".\\"
+#define GAME_FOLDER                 "c:\\RTSMedia\\" // debug, should be ".\\"
+//#define GAME_FOLDER                 ".\\"
 
 // files:
 #define MASTER_INIFILE_FILENAME     "RTSProject.ini"
-#define DESERT_WORLD_NAME           "desertworld"
+#define DESERT_WORLD_NAME           "desert"
+#define DOODADD_SUFFIX              "ddd"
 
 // map dimension constants
 #define MIN_TERRAIN_WIDTH           64
 #define MIN_TERRAIN_HEIGHT          64
-#define MAX_TERRAIN_WIDTH           256
-#define MAX_TERRAIN_HEIGHT          256
-#define DEFAULT_TERRAIN_WIDTH       128
-#define DEFAULT_TERRAIN_HEIGHT      128
+#define MAX_TERRAIN_WIDTH           128
+#define MAX_TERRAIN_HEIGHT          128
+#define DEFAULT_TERRAIN_WIDTH       96
+#define DEFAULT_TERRAIN_HEIGHT      96
 
 
 /*
@@ -44,6 +46,8 @@ public:
     const std::string&  scenariosFolder() const { return scenariosFolder_; }
     const std::string&  spritesFolder() const { return spritesFolder_; }
     const std::string&  mediaFolder() const { return mediaFolder_; }
+    const std::string&  soundsFolder() const { return soundsFolder_; }
+    const std::string&  soundTrackFolder() const { return soundTrackFolder_; }
     const std::string&  defaultRace() const { return defaultRace_; }
     const std::string&  defaultWorld() const { return defaultWorld_; }
     const std::string&  smallFontFile() const { return smallfontFile_; }

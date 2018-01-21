@@ -88,24 +88,11 @@ Game::Game( MainWindow& wnd )
             return;
         }
     } 
-    // draw /*the full terrain and*/ the minimap to buffers:
-    //int tileWidth = world.tileWidth();
-    //int tileHeight = world.tileHeight();
-    /*
-    gfxTerrain.createEmptySprite(
-        terrain.getColumns() * tileWidth,
-        terrain.getRows()    * tileHeight );
-    */
+    // draw the minimap to buffers:
     miniMap.createEmptySprite( terrain.getColumns(),terrain.getRows() );
     for ( int y = 0; y < terrain.getRows(); y++ )
         for ( int x = 0; x < terrain.getColumns(); x++ )
         {
-            /*
-            gfxTerrain.insertFromSprite(
-                x * tileWidth,
-                y * tileHeight,
-                world.getTile( terrain.getElement( x,y ) ) );
-            */
             miniMap.putPixel( x,y,world.getAvgColor( terrain.getElement( x,y ) ) );
         }
     // initialize minimap drawing top left coordinates:
@@ -164,7 +151,6 @@ void Game::initMiniMapCoords()
 void Game::drawTerrainEditor()
 {
     // Draw the terrain:
-    // this code uses no big sprite as memory buffer:
     Rect tR = gameScreens.map_coords;
     int j = TerrainDrawYOrig;    
     tR.x2 = tR.x1 + (tR.width() / world.tileWidth()) * world.tileWidth() - 1;
@@ -210,42 +196,24 @@ void Game::drawTerrainEditor()
                 Rect( 0,0,xLeftOver - 1,yLeftOver - 1 ),
                 world.getTile( terrain.getElement( i,j ) )
             );
+    }    
+    // Draw the Grid:    
+    if ( isGridVisible )
+    {
+        //const Rect& map = gameScreens.map_coords;
+        for ( int x = gameScreens.map_coords.x1 + world.tileWidth() - 1;
+            x < gameScreens.map_coords.x2; x += world.tileWidth() )
+            gfx.drawVerLine(
+                x,
+                gameScreens.map_coords.y1,
+                gameScreens.map_coords.y2,GRID_COLOR );
+        for ( int y = gameScreens.map_coords.y1 + world.tileHeight() - 1;
+            y < gameScreens.map_coords.y2; y += world.tileHeight() )
+            gfx.drawHorLine(
+                gameScreens.map_coords.x1,
+                y,
+                gameScreens.map_coords.x2,GRID_COLOR );
     }
-    /*
-    // Draw the terrain:
-    // this code DOES use a big terrain sprite as memory buffer:
-    int x1 = TerrainDrawXOrig * world.tileWidth();
-    int y1 = TerrainDrawYOrig * world.tileHeight();
-
-    // this messes with the grid ;)
-    //int xMax = gfxTerrain.getWidth() - gameScreens.map_coords.width();
-    //int yMax = gfxTerrain.getHeight() - gameScreens.map_coords.height();
-    //if ( x1 > xMax && xMax > 0 ) x1 = xMax;
-    //if ( y1 > yMax && yMax > 0 ) y1 = yMax;
-
-    // Draw the visible portion of the terrain:
-    gfx.paintSpriteSection(
-    MAP_AREA_X1,MAP_AREA_Y1,
-    Rect( x1,y1,
-    x1 + gameScreens.map_coords.width() - 1,
-    y1 + gameScreens.map_coords.height() - 1 ),
-    gfxTerrain );
-    */
-    // Draw a Grid:
-    
-    for ( int x = gameScreens.map_coords.x1 + world.tileWidth() - 1;
-        x < gameScreens.map_coords.x2; x += world.tileWidth() )
-        gfx.drawVerLine(
-            x,
-            gameScreens.map_coords.y1,
-            gameScreens.map_coords.y2,GRID_COLOR );
-    for ( int y = gameScreens.map_coords.y1 + world.tileHeight() - 1;
-        y < gameScreens.map_coords.y2; y += world.tileHeight() )
-        gfx.drawHorLine(
-            gameScreens.map_coords.x1,
-            y,
-            gameScreens.map_coords.x2,GRID_COLOR );
-    
     // Draw the terrain editor menu's:
     gfx.paintSprite(
         gameScreens.menubar_coords.x1,
@@ -349,7 +317,7 @@ void Game::ComposeFrame()
                     if ( drawLeft ) gfx.drawVerLine( x1,y1,y2,CURSOR_COLOR );
                     if ( drawRight ) gfx.drawVerLine( x2,y1,y2,CURSOR_COLOR );
                 }
-            }
+            } // end draw cursor
 
             // debug:
             std::stringstream s;
@@ -412,6 +380,13 @@ void Game::ComposeFrame()
                     terrainType = T_HIGH_WATER;
                 }
             }
+            // debug:
+            /*
+            CreateDefaultSprites test;
+            test.createDesertWorldDoodAdds();
+            //gfx.paintSprite( -1,21,test.getSpriteLibrary() );
+            gfx.paintSprite( 10,31,test.getSpriteLibrary() );
+            */
             /*
             for ( ;;)
             {

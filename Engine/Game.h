@@ -62,12 +62,10 @@ private:
     gamestate               gameState = introstate;
     Font                    font;
     Font                    neuropolXBMP;
-    //IniFile                 masterIniFile = std::string( GAME_FOLDER MASTER_INIFILE_FILENAME );
     
     GameScreens             gameScreens;
     Terrain                 terrain;
     World                   world;
-    //Sprite                  gfxTerrain;
     Sprite                  miniMap;
     // these coordinates keep track of our location on the map:
     int                     TerrainDrawXOrig = 0;
@@ -82,6 +80,7 @@ private:
     // specific variables for the terrain editor:
     // the type of terrain we are drawing with now:
     char                    terrainType = T_DEFAULT;
+    bool                    isGridVisible = true;
 private:
     // must be called each time a new terrain or world is loaded:
     void                    initMiniMapCoords();
