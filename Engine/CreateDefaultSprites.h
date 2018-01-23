@@ -69,14 +69,16 @@ class CreateDefaultSprites
 {
 public:
     CreateDefaultSprites() { }
-    void    createGreenPrairieWorldTiles();
-    //void    createGreenPrairieWorldDoodAdds(); // TODO!
-    void    createDesertWorldTiles();
-    void    createDesertWorldDoodAdds();
+    void    createGreenPrairieWorld();
+    void    createDesertWorld();
     const Sprite& getSpriteLibrary() { return terrainSpriteLib; } // for debugging
 private:
     Sprite  terrainSpriteLib;                                     // for debugging declared here
 private:
+    void    createGreenPrairieWorldTiles();
+    //void    createGreenPrairieWorldDoodAdds(); // TODO!
+    void    createDesertWorldTiles();
+    void    createDesertWorldDoodAdds();
     void    setDrawCoords(
                 int& x1,int& y1,int& x2,int& y2,
                 const int tileNr,

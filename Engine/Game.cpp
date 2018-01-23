@@ -88,6 +88,8 @@ Game::Game( MainWindow& wnd )
             return;
         }
     } 
+    world.loadDoodads();// temp!!! DEBUG!!!
+
     // draw the minimap to buffers:
     miniMap.createEmptySprite( terrain.getColumns(),terrain.getRows() );
     for ( int y = 0; y < terrain.getRows(); y++ )
@@ -166,15 +168,21 @@ void Game::drawTerrainEditor()
         for ( x = tR.x1; x < tR.x2; x += world.tileWidth() )
         {
             if ( i >= terrain.getColumns() ) break;
-            gfx.paintSprite( x,y,world.getTile( terrain.getElement( i,j ) ) );
+            Tile tile = terrain.getElement( i,j );
+            if  (tile != DOODAD_NOT_USED ) 
+                gfx.paintSprite( x,y,world.getTile( tile ) );
             i++;
         }
         // draw the cut-off tiles on the right edge of the map editor:
-        if( (xLeftOver > 0) && (i < terrain.getColumns()) )
-            gfx.paintSpriteSection( x,y,
-                Rect( 0,0,xLeftOver - 1,world.tileHeight() - 1 ),
-                world.getTile( terrain.getElement( i,j ) ) 
-            );
+        if ( (xLeftOver > 0) && (i < terrain.getColumns()) )
+        {
+            Tile tile = terrain.getElement( i,j );
+            if ( tile != DOODAD_NOT_USED ) 
+                gfx.paintSpriteSection( 
+                    x,y,
+                    Rect( 0,0,xLeftOver - 1,world.tileHeight() - 1 ),
+                    world.getTile( tile ) );
+        }
         j++;
     }
     // draw the cut-off tiles on the bottom edge of the map editor:
@@ -185,18 +193,64 @@ void Game::drawTerrainEditor()
         for ( x = tR.x1; x < tR.x2; x += world.tileWidth() )
         {
             if ( i >= terrain.getColumns() ) break;
-            gfx.paintSpriteSection( x,y,
-                Rect( 0,0,world.tileWidth() - 1,yLeftOver - 1 ),
-                world.getTile( terrain.getElement( i,j ) ) );
+            Tile tile = terrain.getElement( i,j );
+            if ( tile != DOODAD_NOT_USED ) 
+                gfx.paintSpriteSection(
+                    x,y,
+                    Rect( 0,0,world.tileWidth() - 1,yLeftOver - 1 ),
+                    world.getTile( tile ) );
             i++;
         }
         // draw the cut-off tile on the bottom right edge of the map editor:
         if ( (xLeftOver > 0) && (i < terrain.getColumns()) )
-            gfx.paintSpriteSection( x,y,
-                Rect( 0,0,xLeftOver - 1,yLeftOver - 1 ),
-                world.getTile( terrain.getElement( i,j ) )
-            );
-    }    
+        {            
+            Tile tile = terrain.getElement( i,j );
+            if ( tile != DOODAD_NOT_USED ) 
+                gfx.paintSpriteSection(
+                    x,y,
+                    Rect( 0,0,xLeftOver - 1,yLeftOver - 1 ),
+                    world.getTile( tile ) );
+        }
+    }   
+    // Now Draw the doodadd's:
+    int minX = TerrainDrawXOrig;
+    int minY = TerrainDrawYOrig;
+    int maxX = TerrainDrawXOrig + visibleTilesX - 1; // warning: doesn't care about the half visible
+    int maxY = TerrainDrawYOrig + visibleTilesY - 1; // tiles at the right & bottom edges
+    const std::vector<DoodadLocation>& doodadList = terrain.getDoodadList();
+    for ( int doodadNr = 0; doodadNr < doodadList.size(); doodadNr++ )
+    {
+        const DoodadLocation& doodadLocation = doodadList[doodadNr];
+        if ( doodadLocation.isUsed )
+        {
+            const Sprite& doodad = world.getDoodad( doodadLocation.doodadNr );
+            // temp: 
+            int doodadWidth = doodad.getWidth() / world.tileWidth(); // width in tiles
+            int doodadHeight = doodad.getHeight() / world.tileHeight(); // Height in tiles
+            if ( 
+                (doodadLocation.x + doodadWidth < minX) ||
+                (doodadLocation.x > maxX) ||
+                (doodadLocation.y + doodadHeight < minY) ||
+                (doodadLocation.y > maxY)
+                )
+                continue;
+            // temp:
+            /*
+            if (
+                (doodadLocation.x >= minX) &&
+                (doodadLocation.x + doodadWidth <= maxX) &&
+                (doodadLocation.y >= minY) &&
+                (doodadLocation.y + doodadHeight <= maxY)
+                )
+                gfx.paintSprite(
+                    gameScreens.map_coords.x1 + (doodadLocation.x - TerrainDrawXOrig) * world.tileWidth(),
+                    gameScreens.map_coords.y1 + (doodadLocation.y - TerrainDrawYOrig) * world.tileHeight(),
+                    doodad
+                );
+            */
+        }
+    }
+
     // Draw the Grid:    
     if ( isGridVisible )
     {

@@ -5,6 +5,171 @@
 
 extern class Defaults defaults;
 
+
+void CreateDefaultSprites::createGreenPrairieWorld()
+{
+    // Create the common part of the filenames:
+    std::string path( GAME_FOLDER );
+    path.append( defaults.worldsFolder() );
+    path.append( "\\" );
+    path.append( defaults.defaultWorld() );
+    // Create and save the greenprairie (default) world tiles:
+    createGreenPrairieWorldTiles();
+    terrainSpriteLib.saveToBMP( (path + ".bmp").c_str() );
+
+    /*  // To add later    
+    // Create and save the greenprairie (default) world doodadds:
+    createGreenPrairieWorldDoodAdds(); 
+    std::string doodAddBmp = path + DOODADD_SUFFIX ".bmp";
+    terrainSpriteLib.saveToBMP( doodAddBmp.c_str() );
+    */
+
+    // Now create & save the .ini file:
+    int width = WORLD_TILE_DEFAULT_WIDTH;
+    std::ofstream defaultWorldIni( path + ".ini" );
+    defaultWorldIni << "; This describes the " << defaults.defaultWorld()
+        << " world spritesheet." << std::endl;
+    defaultWorldIni
+        << "; If this file is corrupt then delete it, the game will"
+        << " recreate it." << std::endl;
+    defaultWorldIni << ";" << std::endl;
+    defaultWorldIni << "[Tiles]" << std::endl;
+    defaultWorldIni << "Width=" << WORLD_TILE_DEFAULT_WIDTH << std::endl;
+    defaultWorldIni << "Height=" << WORLD_TILE_DEFAULT_WIDTH << std::endl;
+    defaultWorldIni << "Separator=" << TILE_SEPARATOR << std::endl;
+    defaultWorldIni << "Offset=" << TILE_X_OFFSET << std::endl;
+    defaultWorldIni << "NrOfTiles=" << NR_OF_TILES << std::endl;
+    defaultWorldIni << ";" << std::endl;
+    // to add: doodadd definitions
+    defaultWorldIni.close();
+}
+
+void CreateDefaultSprites::createDesertWorld()
+{
+    // Create the common part of the filenames:
+    std::string path( GAME_FOLDER );
+    path.append( defaults.worldsFolder() );
+    path.append( "\\" );
+    path.append( DESERT_WORLD_NAME );
+    // Create and save the desert world tiles:
+    createDesertWorldTiles();
+    terrainSpriteLib.saveToBMP( (path + ".bmp").c_str() );
+    // Create and save the desert world doodadds:
+    createDesertWorldDoodAdds();
+    std::string doodAddBmp = path + DOODADD_SUFFIX ".bmp";
+    terrainSpriteLib.saveToBMP( doodAddBmp.c_str() );
+    // Now create & save the .ini file:
+    int width = WORLD_TILE_DEFAULT_WIDTH;
+    std::ofstream desertWorldIni( path + ".ini" );
+    desertWorldIni << "; This describes the " << DESERT_WORLD_NAME 
+        << " world spritesheet." << std::endl;
+    desertWorldIni
+        << "; If this file is corrupt then delete it, the game will"
+        << " recreate it." << std::endl;
+    desertWorldIni << ";" << std::endl;
+    desertWorldIni << "[Tiles]" << std::endl;
+    desertWorldIni << "Width=" << WORLD_TILE_DEFAULT_WIDTH << std::endl;
+    desertWorldIni << "Height=" << WORLD_TILE_DEFAULT_WIDTH << std::endl;
+    desertWorldIni << "Separator=" << TILE_SEPARATOR << std::endl;
+    desertWorldIni << "Offset=" << TILE_X_OFFSET << std::endl;
+    desertWorldIni << "NrOfTiles=" << NR_OF_TILES << std::endl;
+    desertWorldIni << ";" << std::endl
+        << "; This section the " DESERT_WORLD_NAME " world doodadd sprites." << std::endl
+        << "; The 'Walkable' mask describes if the tile can be walked upon by units." << std::endl
+        << "; A '1' means yes, a '0' means no." << std::endl
+        << "; The Terrain mask is a bit more tricky. It describes what kind of terrain" << std::endl
+        << "; the doodadd can be placed upon. Each letter corresponds to a particular" << std::endl
+        << "; type of basic terrain: low water, high water, low ground, transition tiles, etc." << std::endl
+        << "; A space means the doodadd does not cover that part of the terrain. " << std::endl
+        << ";" << std::endl
+        << "[Main]" << std::endl
+        << "world=desert" << std::endl
+        << ";" << std::endl
+        << "[DoodAdd000]" << std::endl
+        << "name=RampRightwards" << std::endl
+        << "SourceFile=" << doodAddBmp << std::endl
+        << "locationX=" << TILE_X_OFFSET << "     ; in pixels" << std::endl
+        << "locationY=" << TILE_Y_OFFSET << "     ; in pixels" << std::endl
+        << "horSize=6       ; in tiles" << std::endl
+        << "VerSize=6       ; in tiles" << std::endl
+        << "WalkableMask00=100001" << std::endl
+        << "WalkableMask01=111111" << std::endl
+        << "WalkableMask02=111111" << std::endl
+        << "WalkableMask03=111111" << std::endl
+        << "WalkableMask04=111111" << std::endl
+        << "WalkableMask05=100001" << std::endl
+        << "TerrainMask00=W@GGGG" << std::endl
+        << "TerrainMask01=W@GGGG" << std::endl
+        << "TerrainMask02=W@GGGG" << std::endl
+        << "TerrainMask03=W@GGGG" << std::endl
+        << "TerrainMask04=W@GGGG" << std::endl
+        << "TerrainMask05=W@GGGG" << std::endl
+        << ";" << std::endl
+        << "[DoodAdd001]" << std::endl
+        << "name=RampLeftwards" << std::endl
+        << "SourceFile=" << doodAddBmp << std::endl
+        << "locationX=" << TILE_X_OFFSET + width * 6 << "     ; in pixels" << std::endl
+        << "locationY=" << TILE_Y_OFFSET << "     ; in pixels" << std::endl
+        << "horSize=6       ; in tiles" << std::endl
+        << "VerSize=6       ; in tiles" << std::endl
+        << "WalkableMask00=100001" << std::endl
+        << "WalkableMask01=111111" << std::endl
+        << "WalkableMask02=111111" << std::endl
+        << "WalkableMask03=111111" << std::endl
+        << "WalkableMask04=111111" << std::endl
+        << "WalkableMask05=100001" << std::endl
+        << "TerrainMask00=GGGG&W" << std::endl
+        << "TerrainMask01=GGGG&W" << std::endl
+        << "TerrainMask02=GGGG&W" << std::endl
+        << "TerrainMask03=GGGG&W" << std::endl
+        << "TerrainMask04=GGGG&W" << std::endl
+        << "TerrainMask05=GGGG&W" << std::endl
+        << ";" << std::endl
+        << "[DoodAdd002]" << std::endl
+        << "name=RampDownwards" << std::endl
+        << "SourceFile=" << doodAddBmp << std::endl
+        << "locationX=" << TILE_X_OFFSET + width * 12 << "     ; in pixels" << std::endl
+        << "locationY=" << TILE_Y_OFFSET << "     ; in pixels" << std::endl
+        << "horSize=6       ; in tiles" << std::endl
+        << "VerSize=6       ; in tiles" << std::endl
+        << "WalkableMask00=111111" << std::endl
+        << "WalkableMask01=011110" << std::endl
+        << "WalkableMask02=011110" << std::endl
+        << "WalkableMask03=011110" << std::endl
+        << "WalkableMask04=011110" << std::endl
+        << "WalkableMask05=111111" << std::endl
+        << "TerrainMask00=WWWWWW" << std::endl
+        << "TerrainMask01=''''''" << std::endl
+        << "TerrainMask02=GGGGGG" << std::endl
+        << "TerrainMask03=GGGGGG" << std::endl
+        << "TerrainMask04=GGGGGG" << std::endl
+        << "TerrainMask05=GGGGGG" << std::endl
+        << ";" << std::endl
+        << "[DoodAdd003]" << std::endl
+        << "name=RampUpwards" << std::endl
+        << "SourceFile=" << doodAddBmp << std::endl
+        << "locationX=" << TILE_X_OFFSET + width * 18 << "     ; in pixels" << std::endl
+        << "locationY=" << TILE_Y_OFFSET << "     ; in pixels" << std::endl
+        << "horSize=6       ; in tiles" << std::endl
+        << "VerSize=6       ; in tiles" << std::endl
+        << "WalkableMask00=111111" << std::endl
+        << "WalkableMask01=011110" << std::endl
+        << "WalkableMask02=011110" << std::endl
+        << "WalkableMask03=011110" << std::endl
+        << "WalkableMask04=011110" << std::endl
+        << "WalkableMask05=111111" << std::endl
+        << "TerrainMask00=GGGGGG" << std::endl
+        << "TerrainMask01=GGGGGG" << std::endl
+        << "TerrainMask02=GGGGGG" << std::endl
+        << "TerrainMask03=GGGGGG" << std::endl
+        << "TerrainMask04=######" << std::endl
+        << "TerrainMask05=WWWWWW" << std::endl;
+
+    // close the ini file:
+    desertWorldIni.close();
+}
+
+
 // aide function for the drawing function 
 void CreateDefaultSprites::setDrawCoords(
     int& x1,int& y1,int& x2,int& y2,
@@ -511,27 +676,6 @@ void CreateDefaultSprites::createGreenPrairieWorldTiles()
 
 void CreateDefaultSprites::createDesertWorldTiles()
 {
-    // Create the .ini file first:
-    std::string path( GAME_FOLDER );
-    path.append( defaults.worldsFolder() );
-    path.append( "\\" );
-    path.append( DESERT_WORLD_NAME );
-    path.append( ".ini" );
-    std::ofstream desertWorldIni( path );
-    desertWorldIni << "; This describes the Desert world spritesheet." 
-        << std::endl;
-    desertWorldIni 
-        << "; If this file is corrupt then delete it, the game will"
-        << " recreate it." << std::endl;
-    desertWorldIni << ";" << std::endl;
-    desertWorldIni << "[Tiles]" << std::endl;
-    desertWorldIni << "Width=" << WORLD_TILE_DEFAULT_WIDTH << std::endl;
-    desertWorldIni << "Height=" << WORLD_TILE_DEFAULT_WIDTH << std::endl;
-    desertWorldIni << "Separator=" << TILE_SEPARATOR << std::endl;
-    desertWorldIni << "Offset=" << TILE_X_OFFSET << std::endl;
-    desertWorldIni << "NrOfTiles=" << NR_OF_TILES << std::endl;
-    desertWorldIni.close();
-
     // initialize our sprite library in memory: create an empty canvas
     terrainSpriteLib.createEmptySprite(
         TERRAIN_SPRITE_LIB_WIDTH,
@@ -1025,13 +1169,15 @@ void CreateDefaultSprites::createDesertWorldTiles()
         for ( int j = yLast + 1; j >= y; j-- )
             terrainSpriteLib.drawHorLine( x1,y1 + y2 + 1 - j,x2 - x,T_DESERT_HIGH_COLOR );
     }
+    /*
     // now save the sprites to a .bmp file:
-    path.assign( GAME_FOLDER );
+    std::string path( GAME_FOLDER );
     path.append( defaults.worldsFolder() );
     path.append( "\\" );
     path.append( DESERT_WORLD_NAME );
     path.append( ".bmp" );
     terrainSpriteLib.saveToBMP( path.c_str() );
+    */
 }
 
 void CreateDefaultSprites::createDesertWorldDoodAdds()
@@ -1254,6 +1400,7 @@ void CreateDefaultSprites::createDesertWorldDoodAdds()
             T_DESERT_RIGHT_COLOR
         );
     }
+    /*
     // now save the sprites to a .bmp file:
     std::string bmpPath( GAME_FOLDER );
     bmpPath.append( defaults.worldsFolder() );
@@ -1262,7 +1409,8 @@ void CreateDefaultSprites::createDesertWorldDoodAdds()
     bmpFile.append( DOODADD_SUFFIX );
     bmpFile.append( ".bmp" );
     terrainSpriteLib.saveToBMP( (bmpPath + bmpFile).c_str() );
-    // now write the doodadd .ini file:
+    */
+    /* now write the doodadd .ini file:
     std::string iniPath( GAME_FOLDER );
     iniPath.append( defaults.worldsFolder() );
     iniPath.append( "\\" );
@@ -1362,7 +1510,7 @@ void CreateDefaultSprites::createDesertWorldDoodAdds()
         << "TerrainMask04=######" << std::endl
         << "TerrainMask05=WWWWWW" << std::endl
         ;
-    desertWorldDoodAddIni.close();
+    desertWorldDoodAddIni.close();*/
 /*
 [Main]
 world=desert

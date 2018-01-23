@@ -312,7 +312,8 @@ int Sprite::loadFromBMP( const char *fileName, Rect area )
     height_ = destH;
     int destSize = destW * destH;
     pixelData_ = new Color[destSize];
-    memset( pixelData_,0,destSize );
+    fill( Colors::Black );
+    //memset( pixelData_,0,destSize );
     if ( area.x1 >= header2.width) return 0;
     if ( area.y1 >= header2.height ) return 0;
     int maxX;
