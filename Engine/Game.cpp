@@ -211,7 +211,8 @@ void Game::drawTerrainEditor()
                     Rect( 0,0,xLeftOver - 1,yLeftOver - 1 ),
                     world.getTile( tile ) );
         }
-    }   
+    } 
+    
     // Now Draw the doodadd's:
     int minX = TerrainDrawXOrig;
     int minY = TerrainDrawYOrig;
@@ -234,8 +235,9 @@ void Game::drawTerrainEditor()
                 (doodadLocation.y > maxY)
                 )
                 continue;
-            // temp:
-            /*
+            
+            
+
             if (
                 (doodadLocation.x >= minX) &&
                 (doodadLocation.x + doodadWidth <= maxX) &&
@@ -247,10 +249,12 @@ void Game::drawTerrainEditor()
                     gameScreens.map_coords.y1 + (doodadLocation.y - TerrainDrawYOrig) * world.tileHeight(),
                     doodad
                 );
-            */
+            
+
+
+
         }
     }
-
     // Draw the Grid:    
     if ( isGridVisible )
     {
@@ -294,6 +298,11 @@ void Game::drawTerrainEditor()
     gfx.drawBox( gameScreens.terrainTypeIcon2AbsCoords,Colors::Green );
     gfx.drawBox( gameScreens.terrainTypeIcon3AbsCoords,Colors::LightGreen );
     gfx.drawBox( gameScreens.terrainTypeIcon4AbsCoords,Colors::LightBlue );
+    */
+    /* debug:
+    std::string s( "# of doodadd's: " );
+    s += std::to_string( world.nrOfDoodads() );
+    gfx.printXY( 300,3,s.c_str() );
     */
 }
 

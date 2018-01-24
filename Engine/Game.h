@@ -80,7 +80,7 @@ private:
     // specific variables for the terrain editor:
     // the type of terrain we are drawing with now:
     char                    terrainType = T_DEFAULT;
-    bool                    isGridVisible = true;
+    bool                    isGridVisible = false;
 private:
     // must be called each time a new terrain or world is loaded:
     void                    initMiniMapCoords();

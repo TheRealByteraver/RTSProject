@@ -50,17 +50,17 @@ void CreateDefaultSprites::createDesertWorld()
     std::string path( GAME_FOLDER );
     path.append( defaults.worldsFolder() );
     path.append( "\\" );
-    path.append( DESERT_WORLD_NAME );
+    //path.append( DESERT_WORLD_NAME );
     // Create and save the desert world tiles:
     createDesertWorldTiles();
-    terrainSpriteLib.saveToBMP( (path + ".bmp").c_str() );
+    terrainSpriteLib.saveToBMP( (path + DESERT_WORLD_NAME ".bmp").c_str() );
     // Create and save the desert world doodadds:
     createDesertWorldDoodAdds();
-    std::string doodAddBmp = path + DOODADD_SUFFIX ".bmp";
-    terrainSpriteLib.saveToBMP( doodAddBmp.c_str() );
+    std::string doodAddBmp = DESERT_WORLD_NAME DOODAD_SUFFIX ".bmp";
+    terrainSpriteLib.saveToBMP( (path + doodAddBmp).c_str() );
     // Now create & save the .ini file:
     int width = WORLD_TILE_DEFAULT_WIDTH;
-    std::ofstream desertWorldIni( path + ".ini" );
+    std::ofstream desertWorldIni( path + DESERT_WORLD_NAME ".ini" );
     desertWorldIni << "; This describes the " << DESERT_WORLD_NAME 
         << " world spritesheet." << std::endl;
     desertWorldIni
@@ -74,18 +74,18 @@ void CreateDefaultSprites::createDesertWorld()
     desertWorldIni << "Offset=" << TILE_X_OFFSET << std::endl;
     desertWorldIni << "NrOfTiles=" << NR_OF_TILES << std::endl;
     desertWorldIni << ";" << std::endl
-        << "; This section the " DESERT_WORLD_NAME " world doodadd sprites." << std::endl
+        << "; This section defines and describes the " DESERT_WORLD_NAME " world doodadd sprites." << std::endl
         << "; The 'Walkable' mask describes if the tile can be walked upon by units." << std::endl
         << "; A '1' means yes, a '0' means no." << std::endl
         << "; The Terrain mask is a bit more tricky. It describes what kind of terrain" << std::endl
         << "; the doodadd can be placed upon. Each letter corresponds to a particular" << std::endl
         << "; type of basic terrain: low water, high water, low ground, transition tiles, etc." << std::endl
-        << "; A space means the doodadd does not cover that part of the terrain. " << std::endl
+        << "; A " << '1' << " means the doodadd does not cover that part of the terrain. " << std::endl
         << ";" << std::endl
         << "[Main]" << std::endl
         << "world=desert" << std::endl
         << ";" << std::endl
-        << "[DoodAdd000]" << std::endl
+        << "[Doodad000]" << std::endl
         << "name=RampRightwards" << std::endl
         << "SourceFile=" << doodAddBmp << std::endl
         << "locationX=" << TILE_X_OFFSET << "     ; in pixels" << std::endl
@@ -105,10 +105,10 @@ void CreateDefaultSprites::createDesertWorld()
         << "TerrainMask04=W@GGGG" << std::endl
         << "TerrainMask05=W@GGGG" << std::endl
         << ";" << std::endl
-        << "[DoodAdd001]" << std::endl
+        << "[Doodad001]" << std::endl
         << "name=RampLeftwards" << std::endl
         << "SourceFile=" << doodAddBmp << std::endl
-        << "locationX=" << TILE_X_OFFSET + width * 6 << "     ; in pixels" << std::endl
+        << "locationX=" << TILE_X_OFFSET + width * 6 + TILE_SEPARATOR << "     ; in pixels" << std::endl
         << "locationY=" << TILE_Y_OFFSET << "     ; in pixels" << std::endl
         << "horSize=6       ; in tiles" << std::endl
         << "VerSize=6       ; in tiles" << std::endl
@@ -125,10 +125,10 @@ void CreateDefaultSprites::createDesertWorld()
         << "TerrainMask04=GGGG&W" << std::endl
         << "TerrainMask05=GGGG&W" << std::endl
         << ";" << std::endl
-        << "[DoodAdd002]" << std::endl
+        << "[Doodad002]" << std::endl
         << "name=RampDownwards" << std::endl
         << "SourceFile=" << doodAddBmp << std::endl
-        << "locationX=" << TILE_X_OFFSET + width * 12 << "     ; in pixels" << std::endl
+        << "locationX=" << TILE_X_OFFSET + (width * 6 + TILE_SEPARATOR) * 2 << "     ; in pixels" << std::endl
         << "locationY=" << TILE_Y_OFFSET << "     ; in pixels" << std::endl
         << "horSize=6       ; in tiles" << std::endl
         << "VerSize=6       ; in tiles" << std::endl
@@ -145,10 +145,10 @@ void CreateDefaultSprites::createDesertWorld()
         << "TerrainMask04=GGGGGG" << std::endl
         << "TerrainMask05=GGGGGG" << std::endl
         << ";" << std::endl
-        << "[DoodAdd003]" << std::endl
+        << "[Doodad003]" << std::endl
         << "name=RampUpwards" << std::endl
         << "SourceFile=" << doodAddBmp << std::endl
-        << "locationX=" << TILE_X_OFFSET + width * 18 << "     ; in pixels" << std::endl
+        << "locationX=" << TILE_X_OFFSET + (width * 6 + TILE_SEPARATOR ) * 3 << "     ; in pixels" << std::endl
         << "locationY=" << TILE_Y_OFFSET << "     ; in pixels" << std::endl
         << "horSize=6       ; in tiles" << std::endl
         << "VerSize=6       ; in tiles" << std::endl

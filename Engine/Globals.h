@@ -17,7 +17,7 @@
 // files:
 #define MASTER_INIFILE_FILENAME     "RTSProject.ini"
 #define DESERT_WORLD_NAME           "desert"
-#define DOODADD_SUFFIX              "ddd"
+#define DOODAD_SUFFIX               "ddd"
 
 // map dimension constants
 #define MIN_TERRAIN_WIDTH           64
