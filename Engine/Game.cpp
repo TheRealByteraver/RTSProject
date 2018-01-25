@@ -153,19 +153,21 @@ void Game::initMiniMapCoords()
 void Game::drawTerrainEditor()
 {
     // Draw the terrain:
+    int tileWidth = world.tileWidth();
+    int tileHeight = world.tileHeight();
     Rect tR = gameScreens.map_coords;
     int j = TerrainDrawYOrig;    
-    tR.x2 = tR.x1 + (tR.width() / world.tileWidth()) * world.tileWidth() - 1;
-    tR.y2 = tR.y1 + (tR.height() / world.tileHeight()) * world.tileHeight() - 1;
+    tR.x2 = tR.x1 + (tR.width() / tileWidth) * tileWidth - 1;
+    tR.y2 = tR.y1 + (tR.height() / tileHeight) * tileHeight - 1;
     int xLeftOver = gameScreens.map_coords.width() - tR.width();
     int yLeftOver = gameScreens.map_coords.height() - tR.height();
     int y;
-    for ( y = tR.y1; y < tR.y2; y += world.tileHeight() )
+    for ( y = tR.y1; y < tR.y2; y += tileHeight )
     {   
         if ( j >= terrain.getRows() ) break;
         int i = TerrainDrawXOrig;
         int x;
-        for ( x = tR.x1; x < tR.x2; x += world.tileWidth() )
+        for ( x = tR.x1; x < tR.x2; x += tileWidth )
         {
             if ( i >= terrain.getColumns() ) break;
             Tile tile = terrain.getElement( i,j );
@@ -180,7 +182,7 @@ void Game::drawTerrainEditor()
             if ( tile != DOODAD_NOT_USED ) 
                 gfx.paintSpriteSection( 
                     x,y,
-                    Rect( 0,0,xLeftOver - 1,world.tileHeight() - 1 ),
+                    Rect( 0,0,xLeftOver - 1,tileHeight - 1 ),
                     world.getTile( tile ) );
         }
         j++;
@@ -190,14 +192,14 @@ void Game::drawTerrainEditor()
     {
         int i = TerrainDrawXOrig;
         int x;
-        for ( x = tR.x1; x < tR.x2; x += world.tileWidth() )
+        for ( x = tR.x1; x < tR.x2; x += tileWidth )
         {
             if ( i >= terrain.getColumns() ) break;
             Tile tile = terrain.getElement( i,j );
             if ( tile != DOODAD_NOT_USED ) 
                 gfx.paintSpriteSection(
                     x,y,
-                    Rect( 0,0,world.tileWidth() - 1,yLeftOver - 1 ),
+                    Rect( 0,0,tileWidth - 1,yLeftOver - 1 ),
                     world.getTile( tile ) );
             i++;
         }
@@ -211,62 +213,62 @@ void Game::drawTerrainEditor()
                     Rect( 0,0,xLeftOver - 1,yLeftOver - 1 ),
                     world.getTile( tile ) );
         }
-    } 
-    
-    // Now Draw the doodadd's:
+    }     
+    // Now Draw the doodadd's.
+    // These are the visible tiles on the screen, including the ones 
+    // that are only part visible on the right & bottom edges:
     int minX = TerrainDrawXOrig;
     int minY = TerrainDrawYOrig;
-    int maxX = TerrainDrawXOrig + visibleTilesX - 1; // warning: doesn't care about the half visible
-    int maxY = TerrainDrawYOrig + visibleTilesY - 1; // tiles at the right & bottom edges
+    int maxX = minX + visibleTilesX; 
+    int maxY = minY + visibleTilesY; 
     const std::vector<DoodadLocation>& doodadList = terrain.getDoodadList();
     for ( int doodadNr = 0; doodadNr < doodadList.size(); doodadNr++ )
     {
-        const DoodadLocation& doodadLocation = doodadList[doodadNr];
+        const DoodadLocation doodadLocation = doodadList[doodadNr];
+        const Doodad& doodad = world.getDoodad( doodadLocation.doodadNr );
         if ( doodadLocation.isUsed )
         {
-            const Sprite& doodad = world.getDoodad( doodadLocation.doodadNr );
-            // temp: 
-            int doodadWidth = doodad.getWidth() / world.tileWidth(); // width in tiles
-            int doodadHeight = doodad.getHeight() / world.tileHeight(); // Height in tiles
-            if ( 
-                (doodadLocation.x + doodadWidth < minX) ||
-                (doodadLocation.x > maxX) ||
-                (doodadLocation.y + doodadHeight < minY) ||
-                (doodadLocation.y > maxY)
-                )
-                continue;
-            
-            
-
-            if (
-                (doodadLocation.x >= minX) &&
-                (doodadLocation.x + doodadWidth <= maxX) &&
-                (doodadLocation.y >= minY) &&
-                (doodadLocation.y + doodadHeight <= maxY)
-                )
-                gfx.paintSprite(
-                    gameScreens.map_coords.x1 + (doodadLocation.x - TerrainDrawXOrig) * world.tileWidth(),
-                    gameScreens.map_coords.y1 + (doodadLocation.y - TerrainDrawYOrig) * world.tileHeight(),
-                    doodad
-                );
-            
-
-
-
+            // The next coords / values are expressed in tiles, not pixels:
+            int doodadWidth = doodad.width();
+            int doodadHeight = doodad.height();
+            int x1 = doodadLocation.x;
+            int x2 = x1 + doodadWidth - 1;
+            int y1 = doodadLocation.y;
+            int y2 = y1 + doodadHeight - 1;
+            if ( (x2 < minX) || (x1 > maxX) || (y2 < minY) || (y1 > maxY) ) continue; // tile is not visible
+            int xOfs = (x1 < minX) ? minX - x1 : 0;
+            int yOfs = (y1 < minY) ? minY - y1 : 0;
+            // The next coords are expressed in pixels, not tiles:
+            int pixX1 = gameScreens.map_coords.x1 + (doodadLocation.x - TerrainDrawXOrig + xOfs) * tileWidth;
+            int pixY1 = gameScreens.map_coords.y1 + (doodadLocation.y - TerrainDrawYOrig + yOfs) * tileHeight;
+            int pixWidthMinus1 = (doodadWidth - xOfs) * tileWidth - 1;
+            int pixHeightMinus1 = (doodadHeight - yOfs) * tileHeight - 1;
+            // make sure we clip to the visible part of the map:
+            if ( pixX1 + pixWidthMinus1 > gameScreens.map_coords.x2 )
+                pixWidthMinus1 = gameScreens.map_coords.x2 - pixX1;
+            if ( pixY1 + pixHeightMinus1 > gameScreens.map_coords.y2 )
+                pixHeightMinus1 = gameScreens.map_coords.y2 - pixY1;
+            // convert tile offsets to pixel coords:
+            xOfs *= tileWidth;
+            yOfs *= tileHeight;
+            gfx.paintSpriteSection( 
+                pixX1,pixY1,
+                Rect (xOfs,yOfs,xOfs + pixWidthMinus1,yOfs + pixHeightMinus1 ),
+                doodad.image() );
         }
     }
     // Draw the Grid:    
     if ( isGridVisible )
     {
         //const Rect& map = gameScreens.map_coords;
-        for ( int x = gameScreens.map_coords.x1 + world.tileWidth() - 1;
-            x < gameScreens.map_coords.x2; x += world.tileWidth() )
+        for ( int x = gameScreens.map_coords.x1 + tileWidth - 1;
+            x < gameScreens.map_coords.x2; x += tileWidth )
             gfx.drawVerLine(
                 x,
                 gameScreens.map_coords.y1,
                 gameScreens.map_coords.y2,GRID_COLOR );
-        for ( int y = gameScreens.map_coords.y1 + world.tileHeight() - 1;
-            y < gameScreens.map_coords.y2; y += world.tileHeight() )
+        for ( int y = gameScreens.map_coords.y1 + tileHeight - 1;
+            y < gameScreens.map_coords.y2; y += tileHeight )
             gfx.drawHorLine(
                 gameScreens.map_coords.x1,
                 y,
