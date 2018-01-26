@@ -295,7 +295,28 @@ void Game::drawTerrainEditor()
     miniMapCursor.x2 = miniMapCursor.x1 + visibleTilesX - 1;
     miniMapCursor.y2 = miniMapCursor.y1 + visibleTilesY - 1;
     gfx.drawBox( miniMapCursor,Colors::White );
-    /* debug:
+    // debug:
+    gfx.paintSprite( 
+        gameScreens.terrainTypeIcon1AbsCoords.x1,
+        gameScreens.terrainTypeIcon1AbsCoords.y1,
+        world.getTile( T_LOW_WATER )
+    );
+    gfx.paintSprite(
+        gameScreens.terrainTypeIcon2AbsCoords.x1,
+        gameScreens.terrainTypeIcon2AbsCoords.y1,
+        world.getTile( T_LOW       )
+    );
+    gfx.paintSprite(
+        gameScreens.terrainTypeIcon3AbsCoords.x1,
+        gameScreens.terrainTypeIcon3AbsCoords.y1,
+        world.getTile( T_HIGH      )
+    );
+    gfx.paintSprite(
+        gameScreens.terrainTypeIcon4AbsCoords.x1,
+        gameScreens.terrainTypeIcon4AbsCoords.y1,
+        world.getTile( T_HIGH_WATER )
+    );
+    /*
     gfx.drawBox( gameScreens.terrainTypeIcon1AbsCoords,Colors::Blue );
     gfx.drawBox( gameScreens.terrainTypeIcon2AbsCoords,Colors::Green );
     gfx.drawBox( gameScreens.terrainTypeIcon3AbsCoords,Colors::LightGreen );
