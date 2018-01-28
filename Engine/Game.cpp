@@ -90,7 +90,8 @@ Game::Game( MainWindow& wnd )
         }
     }
     world.loadDoodads();// temp!!! DEBUG!!!
-    checkTerrainIntegrity();  // must be done after loading terrain + world!
+    checkTerrainIntegrity();  // must be done after loading terrain and / or world!
+    checkDoodads();           // must be done each time the terrain is modified 
 
     //terrain.saveTerrain("terrein.ini"); // DEBUG!
 
@@ -146,6 +147,8 @@ void Game::initMiniMapCoords()
     // Initialize nr of Grid lines in both directions:
     visibleTilesX = gameScreens.map_coords.width() / world.tileWidth();
     visibleTilesY = gameScreens.map_coords.height() / world.tileHeight();
+    if ( visibleTilesX > terrain.getColumns() ) visibleTilesX = terrain.getColumns();
+    if ( visibleTilesY > terrain.getRows() ) visibleTilesY = terrain.getRows();
     /*
     visibleTilesX = (gS.map_coords.width()   * miniMap.getWidth())
         / (terrain.getColumns() * world.tileWidth());
@@ -475,25 +478,27 @@ void Game::ComposeFrame()
                 {
                     int tileX = (mX - gameScreens.map_coords.x1) / world.tileWidth()  + TerrainDrawXOrig;
                     int tileY = (mY - gameScreens.map_coords.y1) / world.tileHeight() + TerrainDrawYOrig;
-                    if ( tileX >= terrain.getColumns() ) tileX--; // safety 
-                    if ( tileY >= terrain.getRows() ) tileY--;    // safety 
-                    if ( tileX & 0x1 ) tileX--;
-                    if ( tileY & 0x1 ) tileY--;
-                    Rect redraw = terrain.drawTerrain( tileX,tileY,terrainType );
-                    checkDoodads();
-                    
-                    // redraw modified terrain (on minimap):
-                    for ( int y = redraw.y1; y < redraw.y2; y++ )
+                    if ( (tileX < terrain.getColumns()) &&
+                         (tileY < terrain.getRows()) )
                     {
-                        for ( int x = redraw.x1; x < redraw.x2; x++ )
+                        if ( tileX & 0x1 ) tileX--;
+                        if ( tileY & 0x1 ) tileY--;
+                        Rect redraw = terrain.drawTerrain( tileX,tileY,terrainType );
+                        checkDoodads();
+
+                        // redraw modified terrain (on minimap):
+                        for ( int y = redraw.y1; y < redraw.y2; y++ )
                         {
-                            /*
-                            gfxTerrain.insertFromSprite(
-                                x * world.tileWidth(),
-                                y * world.tileHeight(),
-                                world.getTile( terrain.getElement( x,y ) ) );
-                            */
-                            miniMap.putPixel( x,y,world.getAvgColor( terrain.getElement( x,y ) ) );
+                            for ( int x = redraw.x1; x < redraw.x2; x++ )
+                            {
+                                /*
+                                gfxTerrain.insertFromSprite(
+                                    x * world.tileWidth(),
+                                    y * world.tileHeight(),
+                                    world.getTile( terrain.getElement( x,y ) ) );
+                                */
+                                miniMap.putPixel( x,y,world.getAvgColor( terrain.getElement( x,y ) ) );
+                            }
                         }
                     }
                 } 
@@ -517,10 +522,11 @@ void Game::ComposeFrame()
             // debug:
             /*
             CreateDefaultSprites test;
-            test.createDesertWorldDoodAdds();
+            test.createDesertWorld();
             //gfx.paintSprite( -1,21,test.getSpriteLibrary() );
-            gfx.paintSprite( 10,31,test.getSpriteLibrary() );
+            gfx.paintSprite( 10,31 + 400,test.getSpriteLibrary() );
             */
+
             /*
             for ( ;;)
             {

@@ -5,10 +5,11 @@
 #include "Globals.h"
 
 // the default width of one tile used to create the terrain
-// a value of 64 will allocate 1 GB of memory on a 256x256 tile sized terrain lol
-#define WORLD_TILE_DEFAULT_WIDTH    40
+// change this value to zoom in or out
+#define WORLD_TILE_DEFAULT_WIDTH    18
 
-// there are 64 tiles, most of whom are not used (black)
+// there are 64 tiles, some of whom are not used (black)
+// do not change this value, or program will crash
 #define NR_OF_TILES                 64
 
 // the number of pixels between two tiles in the sprite library
@@ -19,6 +20,7 @@
 #define TILE_Y_OFFSET               1
 
 // this defines how wide the sprite .bmp file will be
+// do not change this, the create doodad functions rely on it
 #define TILES_PER_ROW               8
 
 // the size of the bitmap file containing the sprite library
@@ -57,12 +59,6 @@
 #define T_DESERT_BOTTOM_COLOR           0xAA6C4A     // 6
 #define T_DESERT_LEFT_COLOR             0x9A5C3A     // 7
 #define T_DESERT_BOTTOM_LEFT_COLOR      0x8A4C2A     // 8
-/*
-#define T_DESERT_TRANS_SHADE_COLOR      0xD7B977
-#define T_DESERT_TRANS_DARKSHADE_COLOR  0xC7A967
-#define T_DESERT_TRANS_SUN_COLOR        0xFEE09E
-#define T_DESERT_TRANS_LIGHTSUN_COLOR   0xFFE29F
-*/
 
 
 class CreateDefaultSprites
@@ -71,14 +67,21 @@ public:
     CreateDefaultSprites() { }
     void    createGreenPrairieWorld();
     void    createDesertWorld();
-    const Sprite& getSpriteLibrary() { return terrainSpriteLib; } // for debugging
+    const Sprite& getSpriteLibrary() { return terrainSpriteLib_; } // for debugging
 private:
-    Sprite  terrainSpriteLib;                                     // for debugging declared here
+    Sprite  terrainSpriteLib_;  
+    int     width_ = WORLD_TILE_DEFAULT_WIDTH;
+    int     height_ = WORLD_TILE_DEFAULT_WIDTH;
 private:
     void    createGreenPrairieWorldTiles();
     //void    createGreenPrairieWorldDoodAdds(); // TODO!
     void    createDesertWorldTiles();
     void    createDesertWorldDoodAdds();
+    void    createSmoothEdgeDoodAds( 
+                int xDest,int yDest,
+                const Sprite& tiles,
+                int sourceTileRow,
+                Color color );
     void    setDrawCoords(
                 int& x1,int& y1,int& x2,int& y2,
                 const int tileNr,
