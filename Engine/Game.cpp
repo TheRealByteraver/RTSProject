@@ -61,7 +61,7 @@ Game::Game( MainWindow& wnd )
     // does not care about minimum size & width! should it?
     path.assign( GAME_FOLDER );
     path.append( defaults.terrainsFolder() );
-    path.append( "\\" );    
+    path.append( "\\" );
     path.append( "testterrain.ini" ); // debug 
     error = terrain.loadTerrain( path );
     if ( error != 0 )
@@ -70,6 +70,7 @@ Game::Game( MainWindow& wnd )
             defaults.defaultTerrainWidth(),
             defaults.defaultTerrainHeight() );
     }
+
     // load world:
     error = world.loadTiles( terrain.getWorld() );
     if ( error != 0 )
@@ -87,8 +88,11 @@ Game::Game( MainWindow& wnd )
             PostQuitMessage( 0 );
             return;
         }
-    } 
+    }
     world.loadDoodads();// temp!!! DEBUG!!!
+    checkTerrainIntegrity();  // must be done after loading terrain + world!
+
+    //terrain.saveTerrain("terrein.ini"); // DEBUG!
 
     // draw the minimap to buffers:
     miniMap.createEmptySprite( terrain.getColumns(),terrain.getRows() );
@@ -148,6 +152,51 @@ void Game::initMiniMapCoords()
     visibleTilesY = (gS.map_coords.height() * miniMap.getHeight())
         / (terrain.getRows()    * world.tileHeight());
     */
+}
+
+bool Game::canPlaceDoodadAtLocation( int x,int y,const Doodad& doodad ) const
+{
+    for (int j = 0; j < doodad.height(); j++ )
+        for ( int i = 0; i < doodad.width(); i++ )
+            if ( !doodad.isCompatible( i,j,terrain.getElement( x + i,y + j ) ) )
+                return false;
+    return true;
+}
+/*
+    This function checks for each doodad if the newly modified terrain is still
+    compatible with the current doodad and it's location, and disables the 
+    doodad if it can not be placed anymore there were it used to be.
+*/
+void Game::checkDoodads()
+{
+    const std::vector<DoodadLocation>& doodadList = terrain.getDoodadList();
+    for ( int iDoodad = 0; iDoodad < doodadList.size(); iDoodad++ )
+    {        
+        const DoodadLocation& doodadLocation = doodadList[iDoodad];
+        if ( !doodadLocation.isUsed ) continue;
+        if ( !canPlaceDoodadAtLocation(
+            doodadLocation.x,
+            doodadLocation.y,
+            world.getDoodad( doodadLocation.doodadNr ) ) )
+        {
+            terrain.removeDoodad( iDoodad );
+        }
+    }
+}
+
+/*
+    This function checks if the loaded terrain is all right and does not 
+    contain invalid data such as non-existant doodad's for example. It 
+    must be called right after a terrain was loaded.
+*/
+void Game::checkTerrainIntegrity()
+{
+    // remove illegal doodad's:
+    int nrOfDoodAdTypes = world.nrOfDoodads();
+    const std::vector<DoodadLocation>& doodadList = terrain.getDoodadList();
+    for ( int iDoodad = 0; iDoodad < doodadList.size();iDoodad++ )
+        if ( doodadList[iDoodad].doodadNr >= nrOfDoodAdTypes )
+            terrain.removeDoodad( iDoodad );
 }
 
 void Game::drawTerrainEditor()
@@ -225,37 +274,35 @@ void Game::drawTerrainEditor()
     for ( int doodadNr = 0; doodadNr < doodadList.size(); doodadNr++ )
     {
         const DoodadLocation doodadLocation = doodadList[doodadNr];
+        if ( !doodadLocation.isUsed ) continue; // skip invalid data
         const Doodad& doodad = world.getDoodad( doodadLocation.doodadNr );
-        if ( doodadLocation.isUsed )
-        {
-            // The next coords / values are expressed in tiles, not pixels:
-            int doodadWidth = doodad.width();
-            int doodadHeight = doodad.height();
-            int x1 = doodadLocation.x;
-            int x2 = x1 + doodadWidth - 1;
-            int y1 = doodadLocation.y;
-            int y2 = y1 + doodadHeight - 1;
-            if ( (x2 < minX) || (x1 > maxX) || (y2 < minY) || (y1 > maxY) ) continue; // tile is not visible
-            int xOfs = (x1 < minX) ? minX - x1 : 0;
-            int yOfs = (y1 < minY) ? minY - y1 : 0;
-            // The next coords are expressed in pixels, not tiles:
-            int pixX1 = gameScreens.map_coords.x1 + (doodadLocation.x - TerrainDrawXOrig + xOfs) * tileWidth;
-            int pixY1 = gameScreens.map_coords.y1 + (doodadLocation.y - TerrainDrawYOrig + yOfs) * tileHeight;
-            int pixWidthMinus1 = (doodadWidth - xOfs) * tileWidth - 1;
-            int pixHeightMinus1 = (doodadHeight - yOfs) * tileHeight - 1;
-            // make sure we clip to the visible part of the map:
-            if ( pixX1 + pixWidthMinus1 > gameScreens.map_coords.x2 )
-                pixWidthMinus1 = gameScreens.map_coords.x2 - pixX1;
-            if ( pixY1 + pixHeightMinus1 > gameScreens.map_coords.y2 )
-                pixHeightMinus1 = gameScreens.map_coords.y2 - pixY1;
-            // convert tile offsets to pixel coords:
-            xOfs *= tileWidth;
-            yOfs *= tileHeight;
-            gfx.paintSpriteSection( 
-                pixX1,pixY1,
-                Rect (xOfs,yOfs,xOfs + pixWidthMinus1,yOfs + pixHeightMinus1 ),
-                doodad.image() );
-        }
+        // The next coords / values are expressed in tiles, not pixels:
+        int doodadWidth = doodad.width();
+        int doodadHeight = doodad.height();
+        int x1 = doodadLocation.x;
+        int x2 = x1 + doodadWidth - 1;
+        int y1 = doodadLocation.y;
+        int y2 = y1 + doodadHeight - 1;
+        if ( (x2 < minX) || (x1 > maxX) || (y2 < minY) || (y1 > maxY) ) continue; // tile is not visible
+        int xOfs = (x1 < minX) ? minX - x1 : 0;
+        int yOfs = (y1 < minY) ? minY - y1 : 0;
+        // The next coords are expressed in pixels, not tiles:
+        int pixX1 = gameScreens.map_coords.x1 + (doodadLocation.x - TerrainDrawXOrig + xOfs) * tileWidth;
+        int pixY1 = gameScreens.map_coords.y1 + (doodadLocation.y - TerrainDrawYOrig + yOfs) * tileHeight;
+        int pixWidthMinus1 = (doodadWidth - xOfs) * tileWidth - 1;
+        int pixHeightMinus1 = (doodadHeight - yOfs) * tileHeight - 1;
+        // make sure we clip to the visible part of the map:
+        if ( pixX1 + pixWidthMinus1 > gameScreens.map_coords.x2 )
+            pixWidthMinus1 = gameScreens.map_coords.x2 - pixX1;
+        if ( pixY1 + pixHeightMinus1 > gameScreens.map_coords.y2 )
+            pixHeightMinus1 = gameScreens.map_coords.y2 - pixY1;
+        // convert tile offsets to pixel coords:
+        xOfs *= tileWidth;
+        yOfs *= tileHeight;
+        gfx.paintSpriteSection( 
+            pixX1,pixY1,
+            Rect (xOfs,yOfs,xOfs + pixWidthMinus1,yOfs + pixHeightMinus1 ),
+            doodad.image() );
     }
     // Draw the Grid:    
     if ( isGridVisible )
@@ -433,6 +480,7 @@ void Game::ComposeFrame()
                     if ( tileX & 0x1 ) tileX--;
                     if ( tileY & 0x1 ) tileY--;
                     Rect redraw = terrain.drawTerrain( tileX,tileY,terrainType );
+                    checkDoodads();
                     
                     // redraw modified terrain (on minimap):
                     for ( int y = redraw.y1; y < redraw.y2; y++ )
