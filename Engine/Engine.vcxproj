@@ -136,6 +136,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CampaignEditor.h" />
     <ClInclude Include="ChiliException.h" />
     <ClInclude Include="ChiliWin.h" />
     <ClInclude Include="Colors.h" />
@@ -160,6 +161,7 @@
     <ClInclude Include="World.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CampaingEditor.cpp" />
     <ClCompile Include="COMInitializer.cpp" />
     <ClCompile Include="CreateDefaultSprites.cpp" />
     <ClCompile Include="DXErr.cpp" />

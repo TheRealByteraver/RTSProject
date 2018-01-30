@@ -30,6 +30,7 @@
 #include "GameScreens.h"
 #include "Terrain.h"
 #include "World.h"
+#include "CampaignEditor.h"
 
 
 extern class Defaults defaults;
@@ -50,12 +51,12 @@ private:
 	/*  User Functions              */
 	/********************************/
     //void showErrorAndQuit( const std::string& missingFile );
-    void    drawTerrainEditor();
+    //void    drawTerrainEditor();
     // must be called each time a new terrain or world is loaded:
-    void    initMiniMapCoords();
-    bool    canPlaceDoodadAtLocation( int x,int y,const Doodad& doodad ) const;
-    void    checkDoodads();
-    void    checkTerrainIntegrity();
+    //void    initMiniMapCoords();
+    //bool    canPlaceDoodadAtLocation( int x,int y,const Doodad& doodad ) const;
+    //void    checkDoodads();
+    //void    checkTerrainIntegrity();
 private:
 	MainWindow& wnd;
     Graphics    gfx;
@@ -67,24 +68,8 @@ private:
     gamestate               gameState = introstate;
     Font                    font;
     Font                    neuropolXBMP;
-    
     GameScreens             gameScreens;
-    Terrain                 terrain;
-    World                   world;
-    Sprite                  miniMap;
-    // these coordinates keep track of our location on the map:
-    int                     TerrainDrawXOrig = 0;
-    int                     TerrainDrawYOrig = 0;
-    // nr of visible tiles in Horizontal and vertical direction:
-    int                     visibleTilesX;
-    int                     visibleTilesY;
-    // these coordinates are used to draw the minimap (the radar screen):
-    int                     miniMapXOrig;
-    int                     miniMapYOrig;
-    Rect                    miniMapCursor;
-    // specific variables for the terrain editor:
-    // the type of terrain we are drawing with now:
-    char                    terrainType = T_DEFAULT;
-    bool                    isGridVisible = false;
-
+    CampaignEditor          campaignEditor;
+    //Terrain                 terrain;
+    //World                   world;
 };
