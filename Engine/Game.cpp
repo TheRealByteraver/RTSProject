@@ -88,8 +88,10 @@ void Game::UpdateModel()
 void Game::ComposeFrame()
 {
     frameNr++;
+    /*
     int mX = mouse.GetPosX();
     int mY = mouse.GetPosY();
+    */
     switch ( gameState )
     {
         case    introstate:
@@ -102,8 +104,8 @@ void Game::ComposeFrame()
         }
         case    terraineditorstate:
         {
-            campaignEditor.draw( mX,mY );
-            campaignEditor.handleInput( mX,mY );
+            campaignEditor.draw();
+            campaignEditor.handleInput();
             break;
         }
         case    pausestate:

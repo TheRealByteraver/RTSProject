@@ -22,8 +22,8 @@
 // map dimension constants
 #define MIN_TERRAIN_WIDTH           64
 #define MIN_TERRAIN_HEIGHT          64
-#define MAX_TERRAIN_WIDTH           128
-#define MAX_TERRAIN_HEIGHT          128
+#define MAX_TERRAIN_WIDTH           256
+#define MAX_TERRAIN_HEIGHT          256
 #define DEFAULT_TERRAIN_WIDTH       96
 #define DEFAULT_TERRAIN_HEIGHT      96
 

@@ -64,10 +64,11 @@ public:
     int     getNextSection( std::string& section );
     int     getNextKey( std::string& key );
     int     rewind() { currentRow_ = 0; return (iniFileLoaded_ ? 0 : -1); }
+    const std::string& getFilename() const { return iniFilename_; }
 private:
     std::vector<std::string>    stringList_;
     std::ofstream*              debugLogFile_;
-    std::string                 iniFilename_;   // only used for debugging
+    std::string                 iniFilename_;   
     bool                        writeDebugLogFile_ = false;
     bool                        iniFileLoaded_ = false;
     int                         currentRow_ = 0;
