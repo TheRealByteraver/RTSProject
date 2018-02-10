@@ -273,7 +273,7 @@ void CreateDefaultSprites::createDesertWorld()
         << "[Doodad012]" << std::endl
         << "name=HighWaterSmoothDiagonalTopLeft" << std::endl
         << "SourceFile=" << doodAddBmp << std::endl
-        << "locationX=" << TILE_X_OFFSET + (width_ * 2 + TILE_SEPARATOR) * 4 << "     ; in pixels" << std::endl
+        << "locationX=" << TILE_X_OFFSET + (width_ * 2 + TILE_SEPARATOR) * 8 << "     ; in pixels" << std::endl
         << "locationY=" << TILE_Y_OFFSET + height_ * 6 + TILE_SEPARATOR << "     ; in pixels" << std::endl
         << "horSize=2       ; in tiles" << std::endl
         << "VerSize=2       ; in tiles" << std::endl
@@ -286,7 +286,7 @@ void CreateDefaultSprites::createDesertWorld()
         << "[Doodad013]" << std::endl
         << "name=HighWaterSmoothDiagonalTopRight" << std::endl
         << "SourceFile=" << doodAddBmp << std::endl
-        << "locationX=" << TILE_X_OFFSET + (width_ * 2 + TILE_SEPARATOR) * 5 << "     ; in pixels" << std::endl
+        << "locationX=" << TILE_X_OFFSET + (width_ * 2 + TILE_SEPARATOR) * 9 << "     ; in pixels" << std::endl
         << "locationY=" << TILE_Y_OFFSET + height_ * 6 + TILE_SEPARATOR << "     ; in pixels" << std::endl
         << "horSize=2       ; in tiles" << std::endl
         << "VerSize=2       ; in tiles" << std::endl
@@ -299,7 +299,7 @@ void CreateDefaultSprites::createDesertWorld()
         << "[Doodad014]" << std::endl
         << "name=HighWaterSmoothDiagonalBottomLeft" << std::endl
         << "SourceFile=" << doodAddBmp << std::endl
-        << "locationX=" << TILE_X_OFFSET + (width_ * 2 + TILE_SEPARATOR) * 6 << "     ; in pixels" << std::endl
+        << "locationX=" << TILE_X_OFFSET + (width_ * 2 + TILE_SEPARATOR) * 10 << "     ; in pixels" << std::endl
         << "locationY=" << TILE_Y_OFFSET + height_ * 6 + TILE_SEPARATOR << "     ; in pixels" << std::endl
         << "horSize=2       ; in tiles" << std::endl
         << "VerSize=2       ; in tiles" << std::endl
@@ -312,7 +312,7 @@ void CreateDefaultSprites::createDesertWorld()
         << "[Doodad015]" << std::endl
         << "name=HighWaterSmoothDiagonalBottomRight" << std::endl
         << "SourceFile=" << doodAddBmp << std::endl
-        << "locationX=" << TILE_X_OFFSET + (width_ * 2 + TILE_SEPARATOR) * 7 << "     ; in pixels" << std::endl
+        << "locationX=" << TILE_X_OFFSET + (width_ * 2 + TILE_SEPARATOR) * 11 << "     ; in pixels" << std::endl
         << "locationY=" << TILE_Y_OFFSET + height_ * 6 + TILE_SEPARATOR << "     ; in pixels" << std::endl
         << "horSize=2       ; in tiles" << std::endl
         << "VerSize=2       ; in tiles" << std::endl

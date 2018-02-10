@@ -26,15 +26,23 @@ void GameScreens::drawScenarioEditor()
         Rect( 0,0,sidebar_coords.width() - 1,sidebar_coords.height() - 1 ) 
     );
     sideBar_.drawNiceBlockInv( minimap_coords );
+
+    sideBar_.drawNiceBlockInv( paletteselector_coords );
+    sideBar_.drawNiceBlockInv( palettewindow_coords );
+
+
+    /*
     // draw icons:
     sideBar_.printXY(
         FRAME_WIDTH + TEXT_OFFSET,
         MINIMAP_Y2 + FRAME_WIDTH + TEXT_OFFSET,
         "Select terrain:"
     );
+
     sideBar_.drawBlock( terrainTypeIcon1,Colors::Black );
     sideBar_.drawBlock( terrainTypeIcon2,Colors::Black );
     sideBar_.drawBlock( terrainTypeIcon3,Colors::Black );
     sideBar_.drawBlock( terrainTypeIcon4,Colors::Black );
+    */
 
 }

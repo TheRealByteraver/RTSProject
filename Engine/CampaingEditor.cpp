@@ -1,5 +1,10 @@
 #include "CampaignEditor.h"
 
+const char* palettetitles[] = { 
+    "<   Terrain    >",
+    "<   Doodads    >" 
+};
+
 void CampaignEditor::init( 
     class MainWindow& wndRef,
     Graphics& gfxRef,
@@ -44,9 +49,20 @@ void CampaignEditor::init(
     // initialize drawing coordinates & // allocate memory for the minimap sprite:
     initMapCoords();
 
+    // create the drawing palettes:
+    createBasicTerrainPalette();
+    createDoodadPalette();
+
+    // initialize the pointers to the current palette:
+    initPalettePointers();
+
     // draw (prepare) the screens that are used by the CampaignEditor onto sprites 
     // stored in memory:
     gameScreens_.drawScenarioEditor(); 
+
+    // draw the currently active palette:
+    redrawPalette();
+
     // And we are done:
     isInitialized_ = true;
 
@@ -89,11 +105,24 @@ int CampaignEditor::loadTerrain( const std::string& terrainName )
     // used in the terrain exist in the world's definition and remove them if 
     // not:
     terrain_.removeUnavailableDoodads( world_.nrOfDoodads() );
+
     // Must be done each time the terrain is modified. Checks if every single 
     // doodad is still in a valid location:
     checkDoodads();
+
+    // initialize the coordinates for terrain drawing:
     initMapCoords();
-    createDoodadIconList();
+
+    // create the drawing palettes:
+    createBasicTerrainPalette();
+    createDoodadPalette();
+
+    // initialize the pointers to the current palette:
+    initPalettePointers();
+
+    // draw the currently active palette:
+    redrawPalette();
+
     return error;
 }
 
@@ -114,40 +143,9 @@ void CampaignEditor::draw()
     if ( isGridVisible_ ) drawTerrainGrid();
     drawMiniMap();
 
-    /*
-    // debug:
-    gfx.paintSprite(
-        gameScreens_.terrainTypeIcon1AbsCoords.x1,
-        gameScreens_.terrainTypeIcon1AbsCoords.y1,
-        world_.getTile( T_LOW_WATER )
-    );
-    gfx.paintSprite(
-        gameScreens_.terrainTypeIcon2AbsCoords.x1,
-        gameScreens_.terrainTypeIcon2AbsCoords.y1,
-        world_.getTile( T_LOW )
-    );
-    gfx.paintSprite(
-        gameScreens_.terrainTypeIcon3AbsCoords.x1,
-        gameScreens_.terrainTypeIcon3AbsCoords.y1,
-        world_.getTile( T_HIGH )
-    );
-    gfx.paintSprite(
-        gameScreens_.terrainTypeIcon4AbsCoords.x1,
-        gameScreens_.terrainTypeIcon4AbsCoords.y1,
-        world_.getTile( T_HIGH_WATER )
-    );
-    */
-    /*
-    gfx.drawBox( gameScreens.terrainTypeIcon1AbsCoords,Colors::Blue );
-    gfx.drawBox( gameScreens.terrainTypeIcon2AbsCoords,Colors::Green );
-    gfx.drawBox( gameScreens.terrainTypeIcon3AbsCoords,Colors::LightGreen );
-    gfx.drawBox( gameScreens.terrainTypeIcon4AbsCoords,Colors::LightBlue );
-    */
-    /* debug:
-    std::string s( "# of doodadd's: " );
-    s += std::to_string( world.nrOfDoodads() );
-    gfx.printXY( 300,3,s.c_str() );
-    */
+    redrawPalette(); // temp, should be moved to side bar drawing function
+
+    //gfx.drawBlock( gameScreens_.paletteWindow,Colors::Red );
 }
 
 void CampaignEditor::handleInput()
@@ -156,6 +154,8 @@ void CampaignEditor::handleInput()
     Mouse& mouse = *mouse_;
     int mX = mouse.GetPosX();
     int mY = mouse.GetPosY();
+    mouseTimer_++;
+    if( !mouse.LeftIsPressed() ) mouseTimer_ += 100; // temp solution ;)
     /*
     // debug:
     std::stringstream s;
@@ -165,6 +165,7 @@ void CampaignEditor::handleInput()
     */
 
     // Scrolling function:
+    // map:
     if ( mouse.isInArea( gameScreens_.scrollMapLeft ) && (TerrainDrawXOrig_ > 0) )
         TerrainDrawXOrig_--;
     if ( mouse.isInArea( gameScreens_.scrollMapRight ) &&
@@ -175,9 +176,30 @@ void CampaignEditor::handleInput()
     if ( mouse.isInArea( gameScreens_.scrollMapDown ) &&
         (TerrainDrawYOrig_ < terrain_.getRows() - visibleTilesY_) )
         TerrainDrawYOrig_++;
-    // drawing function:
+    // palette:
+    int& paletteListIndex = *paletteListIndexPTR_;
+    if ( mouse.isInArea(
+        Rect( gameScreens_.paletteWindow.x1,
+            gameScreens_.paletteWindow.y1,
+            gameScreens_.paletteWindow.x2,
+            gameScreens_.paletteWindow.y1 + 64 ) ) )
+    {
+        if ( paletteListIndex > 0 ) paletteListIndex--;
+        redrawPalette();
+    }
+    if ( mouse.isInArea(
+        Rect( gameScreens_.paletteWindow.x1,
+            gameScreens_.paletteWindow.y2 - 64,
+            gameScreens_.paletteWindow.x2,
+            gameScreens_.paletteWindow.y2 ) ) )
+    {
+        if ( !scrollDownLock_ ) paletteListIndex++;
+        redrawPalette();
+    }
+    // mouse left click functions:
     if ( mouse.LeftIsPressed() )
     {
+        // draw the terrain:
         if ( mouse.isInArea( gameScreens_.map_coords ) )
         {
             int tileX = (mX - gameScreens_.map_coords.x1) / tileWidth_ + TerrainDrawXOrig_;
@@ -189,34 +211,68 @@ void CampaignEditor::handleInput()
                 if ( tileY & 0x1 ) tileY--;
                 Rect redraw = terrain_.drawTerrain( tileX,tileY,terrainType_ );
                 checkDoodads();
-                /*
-                // redraw modified terrain (on minimap):
-                for ( int y = redraw.y1; y < redraw.y2; y++ )
+            }
+        // switch to the next palette:
+        } else if ( mouse.isInArea( gameScreens_.paletteSelector ) )
+        {
+            if ( mouseTimer_ > 10 )
+            {
+                mouseTimer_ = 0;
+                activePalette_++;
+                if ( activePalette_ >= NR_OF_PALETTES ) activePalette_ = 0;
+                initPalettePointers();
+                redrawPalette();
+            }
+        } else if ( mouse.isInArea( gameScreens_.paletteWindow ) )
+        {
+            std::vector<int>& paletteYvalues = *paletteYvaluesPTR_;
+            int& paletteIndex = *paletteListIndexPTR_;
+            if ( paletteYvalues.size() > 0 )
+            {
+                int y = mY - gameScreens_.paletteWindow.y1;
+                int yDelta = paletteYvalues[paletteIndex];
+                int index;
+                for ( index = paletteIndex; index < paletteYvalues.size(); index++ )
                 {
-                    for ( int x = redraw.x1; x < redraw.x2; x++ )
+                    if( paletteYvalues[index] - yDelta > y ) break;
+                }
+                int activeItem = index - 1;
+                switch ( activePalette_ )
+                {
+                    case BASIC_TERRAIN_PALETTE:
                     {
-                        
-                        //gfxTerrain.insertFromSprite(
-                        //x * world.tileWidth(),
-                        //y * world.tileHeight(),
-                        //world.getTile( terrain.getElement( x,y ) ) );
-                        //miniMap_.putPixel( x,y,world_.getAvgColor( terrain_.getElement( x,y ) ) );
+                        switch ( activeItem )
+                        {
+                            case 0:
+                            {
+                                terrainType_ = T_LOW_WATER;
+                                break;
+                            }
+                            case 1:
+                            {
+                                terrainType_ = T_LOW;
+                                break;
+                            }
+                            case 2:
+                            {
+                                terrainType_ = T_HIGH;
+                                break;
+                            }
+                            case 3:
+                            {
+                                terrainType_ = T_HIGH_WATER;
+                                break;
+                            }
+                        }                        
+                        break;
+                    }
+                    case DOODAD_PALETTE:
+                    {
+
+                        break;
                     }
                 }
-                */
             }
-        } else if ( mouse.isInArea( gameScreens_.terrainTypeIcon1AbsCoords ) )
-        {
-            terrainType_ = T_LOW_WATER;
-        } else if ( mouse.isInArea( gameScreens_.terrainTypeIcon2AbsCoords ) )
-        {
-            terrainType_ = T_LOW;
-        } else if ( mouse.isInArea( gameScreens_.terrainTypeIcon3AbsCoords ) )
-        {
-            terrainType_ = T_HIGH;
-        } else if ( mouse.isInArea( gameScreens_.terrainTypeIcon4AbsCoords ) )
-        {
-            terrainType_ = T_HIGH_WATER;
         }
     }
     // debug:
@@ -370,12 +426,10 @@ void CampaignEditor::drawTerrainCursor()
 {
     Graphics& gfx = *gfx_;
     Mouse& mouse = *mouse_;
-    int mX = mouse.GetPosX();
-    int mY = mouse.GetPosY();
     if ( mouse.isInArea( gameScreens_.map_coords ) )
     {
-        int curX = (mX - gameScreens_.map_coords.x1) / tileWidth_;
-        int curY = (mY - gameScreens_.map_coords.y1) / tileHeight_;
+        int curX = (mouse.GetPosX() - gameScreens_.map_coords.x1) / tileWidth_;
+        int curY = (mouse.GetPosY() - gameScreens_.map_coords.y1) / tileHeight_;
         if ( (TerrainDrawXOrig_ + curX) & 0x1 ) curX--;
         if ( (TerrainDrawYOrig_ + curY) & 0x1 ) curY--;
         bool drawTop = true;
@@ -431,7 +485,7 @@ void CampaignEditor::drawMiniMap()
 {
     switch ( miniMapZoom_ )
     {
-        case 1: // one pixel per 4 tiles
+        case ZOOM_QUARTER_PIXEL_PER_TILE: // one pixel per 4 tiles
         {
             int mmpY = 0;
             for ( int y = 0; y < terrain_.getRows(); y += 2 )
@@ -453,7 +507,7 @@ void CampaignEditor::drawMiniMap()
             }
             break;
         }
-        case 2: // one pixel per tile
+        case ZOOM_ONE_PIXEL_PER_TILE: // one pixel per tile
         {
             int i = 0;
             for ( int y = 0; y < terrain_.getRows(); y++ )
@@ -466,7 +520,7 @@ void CampaignEditor::drawMiniMap()
             }
             break;
         }
-        case 3: // two pixels per tile
+        case ZOOM_FOUR_PIXELS_PER_TILE: // two pixels per tile
         {
             for ( int j = 0; j < terrain_.getRows(); j++ )
                 for ( int i = 0; i < terrain_.getColumns(); i++ )
@@ -488,7 +542,7 @@ void CampaignEditor::drawMiniMapCursor()
     // draw the minimap highlighted area delimiter / cursor:
     switch ( miniMapZoom_ )
     {
-        case 1:
+        case ZOOM_QUARTER_PIXEL_PER_TILE:
         {
             miniMapCursor_.x1 = miniMapXOrig_ + TerrainDrawXOrig_ / 2;
             miniMapCursor_.y1 = miniMapYOrig_ + TerrainDrawYOrig_ / 2;
@@ -496,7 +550,7 @@ void CampaignEditor::drawMiniMapCursor()
             miniMapCursor_.y2 = miniMapCursor_.y1 + visibleTilesY_ / 2 - 1;
             break;
         }
-        case 2:
+        case ZOOM_ONE_PIXEL_PER_TILE:
         {
             miniMapCursor_.x1 = miniMapXOrig_ + TerrainDrawXOrig_;
             miniMapCursor_.y1 = miniMapYOrig_ + TerrainDrawYOrig_;
@@ -504,7 +558,7 @@ void CampaignEditor::drawMiniMapCursor()
             miniMapCursor_.y2 = miniMapCursor_.y1 + visibleTilesY_ - 1;
             break;
         }
-        case 3:
+        case ZOOM_FOUR_PIXELS_PER_TILE:
         {
             miniMapCursor_.x1 = miniMapXOrig_ + TerrainDrawXOrig_ * 2;
             miniMapCursor_.y1 = miniMapYOrig_ + TerrainDrawYOrig_ * 2;
@@ -532,15 +586,15 @@ void CampaignEditor::initMapCoords()
     */
     if ( terrain_.getColumns() > 128 )
     {
-        miniMapZoom_ = 1;
+        miniMapZoom_ = ZOOM_QUARTER_PIXEL_PER_TILE;
         miniMap_.createEmptySprite( terrain_.getColumns() / 2,terrain_.getRows() / 2 );
     } else if ( terrain_.getColumns() > 64 )
     {
-        miniMapZoom_ = 2;
+        miniMapZoom_ = ZOOM_ONE_PIXEL_PER_TILE;
         miniMap_.createEmptySprite( terrain_.getColumns(),terrain_.getRows() );
     } else
     {
-        miniMapZoom_ = 3;
+        miniMapZoom_ = ZOOM_FOUR_PIXELS_PER_TILE;
         miniMap_.createEmptySprite( terrain_.getColumns() * 2,terrain_.getRows() * 2 );
     }
     tileWidth_ = world_.tileWidth();
@@ -558,43 +612,283 @@ void CampaignEditor::initMapCoords()
 }
 
 /*
-    Makes a vertical list of icons of the available doodads.
-    Design: list of doodad's on black background, separated by a black line,
-    surrounded by a white frame?
+    Makes a vertical list of icons of the available terrain types.
 */
-void CampaignEditor::createDoodadIconList()
+void CampaignEditor::createBasicTerrainPalette()
 {
-    const int spriteWidth = (gameScreens_.sideBar().getWidth() - FRAME_WIDTH * 2);
-    const int maxHorTiles = spriteWidth / tileWidth_;
+    basicTerrainPalette_.setFont( font_ );
+    Sprite buffer;
+    const int separator = 1;
+    const int iconWidth = 2; // expressed in tiles
+    const int spriteWidth = gameScreens_.paletteclientwindow_coords.width();
+    const int maxHorTiles = (spriteWidth - (2 * separator)) / tileWidth_;
+    const int nrOfTerrainTypes = 4;
+    // calculate how high the icon list will have to be:
+    int nrOfVerticalTiles = iconWidth * nrOfTerrainTypes; // we will create 4 2x2 tile sized icons
+    buffer.createEmptySprite(
+        spriteWidth,
+        separator + nrOfTerrainTypes * separator + nrOfVerticalTiles * tileHeight_
+    );
+    basicTerrainPaletteYvalues_.clear();
+    int yStart = separator;
+    Sprite terrainIcon;
+    terrainIcon.createEmptySprite(
+        separator + tileWidth_ * iconWidth + separator,
+        separator + tileHeight_ * iconWidth + separator,
+        Colors::Black
+    );
+    for ( int iTerrainType = 0; iTerrainType < nrOfTerrainTypes; iTerrainType++ )
+    {
+        int tileIndex = iTerrainType * 16;
+        if ( iTerrainType == 1 ) // dirty hack for low terrain
+        {
+            terrainIcon.insertFromSprite( separator             ,separator              ,world_.getTile( tileIndex ) );
+            terrainIcon.insertFromSprite( separator + tileWidth_,separator              ,world_.getTile( tileIndex ) );
+            terrainIcon.insertFromSprite( separator             ,separator + tileHeight_,world_.getTile( tileIndex ) );
+            terrainIcon.insertFromSprite( separator + tileWidth_,separator + tileHeight_,world_.getTile( tileIndex ) );
+        }
+        else
+        {
+            terrainIcon.insertFromSprite( separator             ,separator              ,world_.getTile( tileIndex ) );
+            terrainIcon.insertFromSprite( separator + tileWidth_,separator              ,world_.getTile( tileIndex + 5 ) );
+            terrainIcon.insertFromSprite( separator             ,separator + tileHeight_,world_.getTile( tileIndex + 7 ) );
+            terrainIcon.insertFromSprite( separator + tileWidth_,separator + tileHeight_,world_.getTile( tileIndex + 11 ) );
+        }
+        int zoomDiv = 1;
+        const int origTerrainIconWidth = iconWidth * tileWidth_;
+        const int origTerrainIconHeight = iconWidth * tileHeight_;
+        int terrainIconWidth = origTerrainIconWidth;
+        for ( ; terrainIconWidth > spriteWidth; )
+        {
+            terrainIconWidth /= 2;
+            zoomDiv *= 2;
+        }
+        const int terrainIconHeight = origTerrainIconHeight / zoomDiv;
+        const int zoomDivSq = zoomDiv * zoomDiv;
+        // draw smaller version (icon) of the doodad onto the icon list sprite
+        const int xOffset = (spriteWidth - terrainIconWidth) / 2;
+        int finalY = yStart;
+        for ( int y = 0; y < origTerrainIconHeight; y += zoomDiv )
+        {
+            int finalX = xOffset;
+            for ( int x = 0; x < origTerrainIconWidth; x += zoomDiv )
+            {
+                int r = 0;
+                int g = 0;
+                int b = 0;
+                for ( int j = 0; j < zoomDiv; j++ )
+                {
+                    for ( int i = 0; i < zoomDiv; i++ )
+                    {
+                        Color c = terrainIcon.getPixel( x + i,y + j );
+                        r += c.GetR();
+                        g += c.GetG();
+                        b += c.GetB();
+                    }
+                }
+                buffer.putPixel(
+                    finalX,
+                    finalY,
+                    Color( r / zoomDivSq,g / zoomDivSq,b / zoomDivSq )
+                );
+                finalX++;
+            }
+            finalY++;
+        }
+        // draw small tile footprint in upper left corner:
+        buffer.drawBlock(
+            separator,
+            separator + yStart,
+            separator + iconWidth * 2,
+            separator + yStart + iconWidth * 2,
+            Colors::Gray
+        );
+        for ( int j = 0; j < iconWidth; j++ )
+        {
+            for ( int i = 0; i < iconWidth; i++ )
+            {
+                buffer.putPixel(
+                    1 + separator + i * 2,
+                    1 + separator + yStart + j * 2,
+                    Colors::Red
+                );
+            }
+        }
+        basicTerrainPaletteYvalues_.push_back( yStart );
+        yStart += separator + terrainIconHeight;
+    }
+    //basicTerrainPaletteYvalues_.push_back( yStart );
+    basicTerrainPalette_.createFromSprite(
+        buffer,
+        Rect( 0,0,buffer.getWidth() - 1,yStart ) );
+}
+
+/*
+Makes a vertical list of icons of the available doodads.
+Design: list of doodad's on black background, separated by a black line
+*/
+void CampaignEditor::createDoodadPalette()
+{
+    doodadPalette_.setFont( font_ );
+    doodadPaletteYvalues_.clear();
+    Sprite buffer;
     const int yOffset = 1;
     const int separator = 1;
+    const int spriteWidth = gameScreens_.paletteclientwindow_coords.width();
+    const int maxHorTiles = (spriteWidth - (2 * separator)) / tileWidth_;
     // calculate how high the icon list will have to be:
     int nrOfVerticalTiles = 0;
     for ( int i = 0; i < world_.nrOfDoodads(); i++ )
         nrOfVerticalTiles += world_.getDoodad( i ).height();
-    doodadIconList_.createEmptySprite(
+    if ( nrOfVerticalTiles == 0 )
+    {
+        doodadPalette_.createEmptySprite( 
+            spriteWidth,
+            FONT_HEIGHT + TEXT_OFFSET * 2 
+        );
+        doodadPalette_.printXY( TEXT_OFFSET,TEXT_OFFSET,"(Empty)" );
+        return;
+    }
+    buffer.createEmptySprite(
         spriteWidth,
-        yOffset + world_.nrOfDoodads() + nrOfVerticalTiles * tileHeight_
+        yOffset + world_.nrOfDoodads() * separator + nrOfVerticalTiles * tileHeight_
     );
-    doodadIconListYvalues_.clear();
     int yStart = yOffset;
     for ( int iDoodad = 0; iDoodad < world_.nrOfDoodads(); iDoodad++ )
     {
         int zoomDiv = 1;
-        int doodadWidth = world_.getDoodad( iDoodad ).width() * tileWidth_;
-        for ( ; doodadWidth > spriteWidth ;)
+        const int origDoodadWidth = world_.getDoodad( iDoodad ).width() * tileWidth_;
+        const int origDoodadHeight = world_.getDoodad( iDoodad ).height() * tileHeight_;
+        int doodadWidth = origDoodadWidth;
+        for ( ; doodadWidth > spriteWidth;)
         {
             doodadWidth /= 2;
             zoomDiv *= 2;
         }
-
-        // ...
+        const int doodadHeight = origDoodadHeight / zoomDiv;
+        const int zoomDivSq = zoomDiv * zoomDiv;
         // draw smaller version (icon) of the doodad onto the icon list sprite
-        // ...
-
-        doodadIconListYvalues_.push_back( yStart );
-        yStart += separator + (world_.getDoodad( iDoodad ).height() * tileHeight_) / zoomDiv;
+        const int xOffset = (spriteWidth - doodadWidth) / 2;
+        int finalY = yStart;
+        for ( int y = 0; y < origDoodadHeight; y += zoomDiv )
+        {
+            int finalX = xOffset;
+            for ( int x = 0; x < origDoodadWidth; x += zoomDiv )
+            {
+                int r = 0;
+                int g = 0;
+                int b = 0;
+                for ( int j = 0; j < zoomDiv; j++ )
+                {
+                    for ( int i = 0; i < zoomDiv; i++ )
+                    {
+                        Color c = world_.getDoodad( iDoodad ).image().getPixel(
+                            x + i,y + j
+                        );
+                        r += c.GetR();
+                        g += c.GetG();
+                        b += c.GetB();
+                    }
+                }
+                buffer.putPixel(
+                    finalX,
+                    finalY,
+                    Color( r / zoomDivSq,g / zoomDivSq,b / zoomDivSq )
+                );
+                finalX++;
+            }
+            finalY++;
+        }
+        // draw small tile footprint in upper left corner:
+        buffer.drawBlock(
+            separator,
+            separator + yStart,
+            separator + world_.getDoodad( iDoodad ).width() * 2,
+            separator + yStart + world_.getDoodad( iDoodad ).height() * 2,
+            Colors::Gray
+        );
+        for ( int j = 0; j < world_.getDoodad( iDoodad ).height(); j++ )
+        {
+            for ( int i = 0; i < world_.getDoodad( iDoodad ).width(); i++ )
+            {
+                buffer.putPixel(
+                    1 + separator + i * 2,
+                    1 + separator + yStart + j * 2,
+                    Colors::Red
+                );
+            }
+        }
+        doodadPaletteYvalues_.push_back( yStart );
+        yStart += separator + doodadHeight;
     }
+    //doodadPaletteYvalues_.push_back( yStart );
+    doodadPalette_.createFromSprite(
+        buffer,
+        Rect( 0,0,buffer.getWidth() - 1,yStart )
+    );
+}
+
+void CampaignEditor::initPalettePointers()
+{
+    switch ( activePalette_ )
+    {
+        case BASIC_TERRAIN_PALETTE:
+        {
+            paletteSpritePTR_ = &basicTerrainPalette_;
+            paletteYvaluesPTR_ = &basicTerrainPaletteYvalues_;
+            paletteListIndexPTR_ = &basicTerrainPaletteIndex_;
+            break;
+        }
+        case DOODAD_PALETTE:
+        {
+            paletteSpritePTR_ = &doodadPalette_;
+            paletteYvaluesPTR_ = &doodadPaletteYvalues_;
+            paletteListIndexPTR_ = &doodadPaletteIndex_;
+            break;
+        }
+    }
+}
+
+void CampaignEditor::redrawPalette()
+{
+    Graphics& gfx = *gfx_;
+    // print title:
+    gfx.printXY(
+        gameScreens_.sidebar_coords.x1 + gameScreens_.paletteselector_coords.x1 + TEXT_OFFSET,
+        gameScreens_.sidebar_coords.y1 + gameScreens_.paletteselector_coords.y1 + TEXT_OFFSET,
+        palettetitles[activePalette_]
+    );
+    // draw palette:
+    Sprite& paletteSprite = *paletteSpritePTR_;
+    std::vector<int>& paletteYvalues = *paletteYvaluesPTR_;
+    int paletteListIndex = *paletteListIndexPTR_;
+    // make sure we do not index an empty vector list:
+    if ( paletteYvalues.size() == 0 )
+    {
+        gfx.paintSprite(
+            gameScreens_.sidebar_coords.x1 + gameScreens_.paletteclientwindow_coords.x1,
+            gameScreens_.sidebar_coords.y1 + gameScreens_.paletteclientwindow_coords.y1,
+            paletteSprite );
+        return;
+    }
+    scrollDownLock_ = false;
+    int paletteSpriteMaxHeight = gameScreens_.paletteclientwindow_coords.height();
+    if ( paletteSpriteMaxHeight >= paletteSprite.getHeight() - paletteYvalues[paletteListIndex] )
+    {
+        paletteSpriteMaxHeight = paletteSprite.getHeight() - paletteYvalues[paletteListIndex] - 1;
+        scrollDownLock_ = true;
+    }
+    gfx.paintSpriteSection(
+        gameScreens_.sidebar_coords.x1 + gameScreens_.paletteclientwindow_coords.x1,
+        gameScreens_.sidebar_coords.y1 + gameScreens_.paletteclientwindow_coords.y1,
+        Rect(
+            0,
+            paletteYvalues[paletteListIndex] - 1,
+            paletteSprite.getWidth() - 1,
+            paletteYvalues[paletteListIndex] - 1 + paletteSpriteMaxHeight - 1
+        ),
+        paletteSprite
+    );
 }
 
 // This function will tell you if a doodad can be placed at a certain location

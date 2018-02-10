@@ -98,7 +98,7 @@ public:
     void    createFromSprite( const Sprite& source, Rect area );
     void    insertFromSprite( int x,int y,const Sprite& source );
     void    setTextColor( Color color ) { textColor = color; }
-    void    setFont( Font *f ) { font_ = f; }
+    void    setFont( Font *font ) { font_ = font; }
     Font    *getFont() { return font_; }    
     void    printXY( int x,int y,const char *s );
     Rect    getSpriteCoordsAt( int x,int y );
@@ -115,7 +115,7 @@ private:
     Color   textColor = Colors::White;
     int     frameWidth_ = 3;
     Color   frameColor_ = Colors::LightGray;
-    Font    *font_;
+    Font    *font_ = nullptr;
 
 private:
     void    loadBrokenImageSpriteData();

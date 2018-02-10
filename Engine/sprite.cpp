@@ -654,7 +654,8 @@ void Sprite::insertFromSprite( int x,int y,const Sprite& source )
 //void Sprite::printXY( void *gfx,int x,int y,const char *s, void *font )
 void Sprite::printXY( int x,int y,const char *s )
 {
-    if ( s == nullptr ) return;
+    assert ( s != nullptr );
+    assert( font_ != nullptr );
     int slen = (int)strlen ( s );
     int fontHeight = font_->height();
     if ( ! font_->isBitmap () )

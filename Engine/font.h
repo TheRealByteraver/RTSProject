@@ -139,6 +139,7 @@ public:
     char       *getCharData( unsigned char c ) { return charData_[c]; }
     Sprite     *getBmpData( unsigned char c );
 private:
+    //bool        isLoaded_ = false;
     int         width_;
     int         height_;   // width & height in pixels of one char
     bool        isBitmap_;

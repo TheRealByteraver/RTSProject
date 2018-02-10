@@ -33,7 +33,8 @@ Defaults::Defaults()
         exit( -1 );
         return;
     }
-    debugLogFile << "Start of RTS Project debug log, defaults loaded.\n";
+    debugLogFile 
+        << "Start of RTS Project debug log, defaults loaded." << std::endl;
     int error = 0;
     error += masterIniFile_.getKeyValue( "Main","ScreenWidth",screenWidth_ );
     error += masterIniFile_.getKeyValue( "Main","ScreenHeight",screenHeight_ );
@@ -46,7 +47,9 @@ Defaults::Defaults()
         (screenHeight_ < minScreenHeight_) ||
         (screenHeight_ > maxScreenHeight_) || (error != 0) )
     {
-        debugLogFile << "Error reading screen resolution from .ini file, exiting.\n";
+        debugLogFile 
+            << "Error reading screen resolution from .ini file, exiting." 
+            << std::endl;
         debugLogFile.close();
         exit( -1 );
         return;
@@ -54,7 +57,7 @@ Defaults::Defaults()
     Graphics::ScreenWidth = screenWidth_;
     Graphics::ScreenHeight = screenHeight_;
     debugLogFile << "Preparing to set screen resolution to "
-        << screenWidth_ << "x" << screenHeight_ << ".\n";
+        << screenWidth_ << "x" << screenHeight_ << "." << std::endl;
     // initialize default terrain dimensions:
     error = masterIniFile_.getKeyValue( "Main","DefaultTerrainWidth",defaultTerrainWidth_ );
     if ( error != 0 ) defaultTerrainWidth_ = DEFAULT_TERRAIN_WIDTH;
@@ -75,7 +78,8 @@ Defaults::Defaults()
     error = masterIniFile_.getKeyValue( "Main","DefaultRace",defaultRace_ );
     if ( (error != 0) || (defaultRace_.length() == 0) )
     {
-        debugLogFile << "Error reading default Race .ini file, exiting.\n";
+        debugLogFile 
+            << "Error reading default Race .ini file, exiting." << std::endl;
         debugLogFile.close();
         exit( -1 );
         return;
@@ -98,17 +102,17 @@ Defaults::Defaults()
     defWorldIni.append( defaultWorld_ );
     defWorldIni.append( ".ini" );
     bool recreate = false;
-    recreate = true; // debug!!!
+    //recreate = true; // debug!!!
     if ( !fileExists( defWorldSpriteLib ) )
     {
         debugLogFile << "Can't open default terrain file " << defWorldSpriteLib 
-            << ", recreating world " << defaultWorld_ << ".\n";
+            << ", recreating world " << defaultWorld_ << "." << std::endl;
         recreate = true;
     }
     if ( ! fileExists( defWorldIni ) ) 
     {
         debugLogFile << "Can't open default terrain file " << defWorldIni
-            << ", recreating world " << defaultWorld_ << ".\n";
+            << ", recreating world " << defaultWorld_ << "." << std::endl;
         recreate = true;
     }     
     if ( recreate ) CreateDefaultSprites().createGreenPrairieWorld();
@@ -127,13 +131,13 @@ Defaults::Defaults()
     if ( !fileExists( desertWorldSpriteLib ) )
     {
         debugLogFile << "Can't open default terrain file " << desertWorldSpriteLib
-            << ", recreating world " << DESERT_WORLD_NAME << ".\n";
+            << ", recreating world " << DESERT_WORLD_NAME << "." << std::endl;
         recreate = true;
     }
     if ( !fileExists( desertWorldIni ) )
     {
         debugLogFile << "Can't open default terrain file " << desertWorldIni
-            << ", recreating world " << DESERT_WORLD_NAME << ".\n";
+            << ", recreating world " << DESERT_WORLD_NAME << "." << std::endl;
         recreate = true;
     }
     recreate = true; // debug !!!
@@ -147,7 +151,7 @@ void Defaults::checkFolder( const std::string& folderType,std::string& folderNam
     {
         debugLogFile << "Illegal entry in " << MASTER_INIFILE_FILENAME 
             << " for variable " << folderType 
-            << ": a valid folder name must be given.\n";
+            << ": a valid folder name must be given." << std::endl;
         debugLogFile.close();
         exit( -1 );
         return;
@@ -155,14 +159,14 @@ void Defaults::checkFolder( const std::string& folderType,std::string& folderNam
     if ( !dirExists( GAME_FOLDER + folderName ) )
     {
         debugLogFile << "The " << folderType << " folder " 
-            << folderName << " is missing, creating.\n";
+            << folderName << " is missing, creating." << std::endl;
         std::string directory( GAME_FOLDER );
         directory.append( folderName );
         if ( !(CreateDirectoryA( directory.c_str(),NULL ) ||
             (ERROR_ALREADY_EXISTS == GetLastError())) )
         {
             debugLogFile << "Unable to create " << folderType << " folder " 
-                << folderName << ", exiting.\n";
+                << folderName << ", exiting." << std::endl;
             debugLogFile.close();
             exit( -1 );
             return;
