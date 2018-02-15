@@ -47,7 +47,11 @@ public:
     static const Color brokenImageSpriteData
         [BROKEN_IMAGE_SPRITE_WIDTH * BROKEN_IMAGE_SPRITE_HEIGHT];
 public:
-    Sprite( Sprite& sprite ) { *this = sprite; }
+    Sprite( const Sprite& sprite ) 
+    { 
+        pixelData_ = nullptr;
+        *this = sprite; 
+    }
     Sprite( int width,int height,const Color *pixelData );
     Sprite() : Sprite(
         BROKEN_IMAGE_SPRITE_WIDTH,

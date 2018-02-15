@@ -53,6 +53,7 @@ private:
     void            createDoodadPalette();
     void            initPalettePointers();
     void            redrawPalette();
+    void            drawDoodadCursorAtLocation( /*int xTile,int yTile*/ );
     void            drawTerrain();
     void            drawTerrainGrid();
     void            drawTerrainCursor();
@@ -80,7 +81,7 @@ private:
     int            *paletteListIndexPTR_ = &basicTerrainPaletteIndex_;
     Sprite         *paletteSpritePTR_ = &basicTerrainPalette_;
     std::vector<int> *paletteYvaluesPTR_ = &basicTerrainPaletteYvalues_;
-    bool            scrollDownLock_; // whether scrolling down is an option
+    bool            scrollDownLock_; // whether we reached the end of the palette
 
     Sprite          basicTerrainPalette_;
     Sprite          doodadPalette_;
@@ -97,6 +98,9 @@ private:
     // specific variables for the terrain editor:
     // the type of terrain we are drawing with now:
     char            terrainType_ = T_DEFAULT;
+    int             doodadNr_ = 0; // which doodad the user selected
+    bool            doodadMouseCursor_ = false; // whether the active doodad is shown on the mouse cursor location
+    Sprite          doodadCursorSprite_; // the original-sized doodad without the compatibility overlay
     bool            isGridVisible_ = true;
     // these coordinates keep track of our location on the map:
     int             TerrainDrawXOrig_ = 0;

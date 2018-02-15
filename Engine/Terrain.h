@@ -125,6 +125,16 @@ typedef char Tile;
 class DoodadLocation
 {
 public:
+    DoodadLocation() {}
+    DoodadLocation(
+        int x_,
+        int y_,
+        int doodadNr_,
+        bool isUsed_ ) :
+        x( x_ ),
+        y( y_ ),
+        doodadNr( doodadNr_ ),
+        isUsed( isUsed_ ) {}
     int     x;
     int     y;
     int     doodadNr;
@@ -246,6 +256,23 @@ public:
         for ( int iDoodad = 0; iDoodad < doodadList_.size();iDoodad++ )
             if ( doodadList_[iDoodad].doodadNr >= highestDoodad )
                 removeDoodad( iDoodad );
+    }
+    void    addDoodad( DoodadLocation doodadLocation )
+    {
+        assert( doodadLocation.x >= 0 );
+        assert( doodadLocation.y >= 0 );
+        assert( doodadLocation.x < columns_ );
+        assert( doodadLocation.y < rows_ );
+        doodadLocation.isUsed = true;
+        bool foundUnsedSlot = false;
+        for ( int iDoodad = 0; iDoodad < doodadList_.size(); iDoodad++ )
+            if ( !doodadList_[iDoodad].isUsed )
+            {
+                foundUnsedSlot = true;
+                doodadList_[iDoodad] = doodadLocation;
+                break;
+            }
+        if ( !foundUnsedSlot ) doodadList_.push_back( doodadLocation );
     }
     // for debugging in text mode only:
     void    show( int curX,int curY ) const;

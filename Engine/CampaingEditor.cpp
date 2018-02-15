@@ -139,11 +139,12 @@ void CampaignEditor::draw()
         gameScreens_.sidebar_coords.y1,
         gameScreens_.sideBar() );
     drawTerrain();
-    drawTerrainCursor();
     if ( isGridVisible_ ) drawTerrainGrid();
     drawMiniMap();
-
     redrawPalette(); // temp, should be moved to side bar drawing function
+
+    if ( doodadMouseCursor_ ) drawDoodadCursorAtLocation();
+    else drawTerrainCursor();
 
     //gfx.drawBlock( gameScreens_.paletteWindow,Colors::Red );
 }
@@ -155,15 +156,8 @@ void CampaignEditor::handleInput()
     int mX = mouse.GetPosX();
     int mY = mouse.GetPosY();
     mouseTimer_++;
-    if( !mouse.LeftIsPressed() ) mouseTimer_ += 100; // temp solution ;)
-    /*
-    // debug:
-    std::stringstream s;
-    s << "Mouse is at pos " << mX << "," << mY;
-    gfx.printXY( 100,3,s.str().c_str() );
-    // end debug
-    */
-
+    if ( !mouse.LeftIsPressed() ) mouseTimer_ += 100; // temp solution ;)
+    if ( mouse.RightIsPressed() ) doodadMouseCursor_ = false; // right-click cancels doodad cursor
     // Scrolling function:
     // map:
     if ( mouse.isInArea( gameScreens_.scrollMapLeft ) && (TerrainDrawXOrig_ > 0) )
@@ -199,18 +193,28 @@ void CampaignEditor::handleInput()
     // mouse left click functions:
     if ( mouse.LeftIsPressed() )
     {
-        // draw the terrain:
         if ( mouse.isInArea( gameScreens_.map_coords ) )
         {
             int tileX = (mX - gameScreens_.map_coords.x1) / tileWidth_ + TerrainDrawXOrig_;
             int tileY = (mY - gameScreens_.map_coords.y1) / tileHeight_ + TerrainDrawYOrig_;
-            if ( (tileX < terrain_.getColumns()) &&
-                (tileY < terrain_.getRows()) )
+            if ( doodadMouseCursor_ )
+            // add the doodad to the terrain where the mouse is: 
             {
-                if ( tileX & 0x1 ) tileX--;
-                if ( tileY & 0x1 ) tileY--;
-                Rect redraw = terrain_.drawTerrain( tileX,tileY,terrainType_ );
-                checkDoodads();
+                if( canPlaceDoodadAtLocation( tileX,tileY,world_.getDoodad( doodadNr_ ) ) )
+                    terrain_.addDoodad( 
+                        DoodadLocation( tileX,tileY,doodadNr_,true ) 
+                    );
+            } else
+            // modify the terrain using :
+            {
+                if ( (tileX < terrain_.getColumns()) &&
+                    (tileY < terrain_.getRows()) )
+                {
+                    if ( tileX & 0x1 ) tileX--;
+                    if ( tileY & 0x1 ) tileY--;
+                    Rect redraw = terrain_.drawTerrain( tileX,tileY,terrainType_ );
+                    checkDoodads();
+                }
             }
         // switch to the next palette:
         } else if ( mouse.isInArea( gameScreens_.paletteSelector ) )
@@ -234,13 +238,14 @@ void CampaignEditor::handleInput()
                 int index;
                 for ( index = paletteIndex; index < paletteYvalues.size(); index++ )
                 {
-                    if( paletteYvalues[index] - yDelta > y ) break;
+                    if ( paletteYvalues[index] - yDelta > y ) break;
                 }
                 int activeItem = index - 1;
                 switch ( activePalette_ )
                 {
                     case BASIC_TERRAIN_PALETTE:
                     {
+                        doodadMouseCursor_ = false;
                         switch ( activeItem )
                         {
                             case 0:
@@ -268,7 +273,9 @@ void CampaignEditor::handleInput()
                     }
                     case DOODAD_PALETTE:
                     {
-
+                        doodadNr_ = activeItem;
+                        doodadCursorSprite_ = world_.getDoodad( doodadNr_ ).image();
+                        doodadMouseCursor_ = true;
                         break;
                     }
                 }
@@ -889,6 +896,66 @@ void CampaignEditor::redrawPalette()
         ),
         paletteSprite
     );
+}
+
+void CampaignEditor::drawDoodadCursorAtLocation( /*int xTile,int yTile*/ )
+{
+    Graphics& gfx = *gfx_;
+    Mouse& mouse = *mouse_;
+    int xTileStart = (mouse.GetPosX() - gameScreens_.map_coords.x1) / tileWidth_;
+    int yTileStart = (mouse.GetPosY() - gameScreens_.map_coords.y1) / tileHeight_;
+    if ( (xTileStart >= visibleTilesX_) || (xTileStart < 0) ) return;
+    if ( (yTileStart >= visibleTilesY_) || (yTileStart < 0) ) return;
+    int doodadWidth = world_.getDoodad( doodadNr_ ).width();
+    int doodadHeight = world_.getDoodad( doodadNr_ ).height();
+    //Sprite cursorImage( world_.getDoodad( doodadNr_ ).image() );
+    int xDoodadOrig = gameScreens_.map_coords.x1 + xTileStart * tileWidth_;
+    int yDoodadOrig = gameScreens_.map_coords.y1 + yTileStart * tileHeight_;
+    int yTile = yTileStart;
+    for ( int j = 0; j < doodadHeight; j++ )
+    {
+        if ( yTile < visibleTilesY_ )
+        {
+            int xTile = xTileStart;
+            for ( int i = 0; i < doodadWidth; i++ )
+            {
+                if ( xTile < visibleTilesX_ )
+                {
+                    Tile terrainElement = terrain_.getElement(
+                        TerrainDrawXOrig_ + xTile,
+                        TerrainDrawYOrig_ + yTile
+                    );
+                    Color rasterColor;
+                    if ( world_.getDoodad( doodadNr_ ).isCompatible( i,j,terrainElement ) )
+                        rasterColor = Colors::Green;
+                    else rasterColor = Colors::Red;
+                    int xTileOffset = i * tileWidth_;
+                    int yTileOffset = j * tileHeight_;
+                    gfx.paintSpriteSection(
+                        xDoodadOrig + xTileOffset,
+                        yDoodadOrig + yTileOffset,
+                        Rect(
+                            xTileOffset,
+                            yTileOffset,
+                            xTileOffset + tileWidth_,
+                            yTileOffset + tileHeight_
+                        ),
+                        doodadCursorSprite_
+                    );
+                    // draw raster in red / green color:
+                    for ( int n = 0; n < tileHeight_; n++ )
+                    {
+                        int x = xDoodadOrig + xTileOffset + (n & 0x1);
+                        int y = yDoodadOrig + yTileOffset + n;
+                        for ( int m = 0; m < tileWidth_ - 1; m += 2 )
+                            gfx.PutPixel( x + m,y,rasterColor );
+                    }
+                }
+                xTile++;
+            }
+        }
+        yTile++;
+    }
 }
 
 // This function will tell you if a doodad can be placed at a certain location
