@@ -16,6 +16,7 @@
 
 // files:
 #define MASTER_INIFILE_FILENAME     "RTSProject.ini"
+#define GREENPRAIRIE_WORLD_NAME     "GreenPrairie"
 #define DESERT_WORLD_NAME           "desert"
 #define DOODAD_SUFFIX               "ddd"
 

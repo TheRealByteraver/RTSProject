@@ -1,8 +1,19 @@
 #include "CampaignEditor.h"
 
+const char *menutitles[] =
+{
+    "Open",
+    "Save",
+    "Save As",
+    "Exit",
+    nullptr
+};
+
+
 const char* palettetitles[] = { 
     "<   Terrain    >",
-    "<   Doodads    >" 
+    "<   Doodads    >",
+    nullptr
 };
 
 void CampaignEditor::init( 
@@ -29,6 +40,9 @@ void CampaignEditor::init(
     // give the screen drawing class a font to write with and draw the screens
     gameScreens_.setFont( &font );  // move font to globals / defaults?
 
+    // create the File menu:
+    fileMenu_.init( menutitles,&font );
+
     // load the default world:
     int error = world_.load( defaults.defaultWorld() );
     if ( error != 0 )
@@ -45,6 +59,9 @@ void CampaignEditor::init(
     }
     // start out with empty terrain
     terrain_.init( defaults.defaultTerrainWidth(),defaults.defaultTerrainHeight() );
+
+    // prepare for doodad editing:
+    initDoodadLocationMap();
 
     // initialize drawing coordinates & // allocate memory for the minimap sprite:
     initMapCoords();
@@ -67,7 +84,7 @@ void CampaignEditor::init(
     isInitialized_ = true;
 
     // debug: load test terrain
-    error = loadTerrain( "testterrain.ini" );
+    //error = loadTerrain( "testterrain.ini" );
 }
 
 int CampaignEditor::loadTerrain( const std::string& terrainName )
@@ -105,6 +122,9 @@ int CampaignEditor::loadTerrain( const std::string& terrainName )
     // used in the terrain exist in the world's definition and remove them if 
     // not:
     terrain_.removeUnavailableDoodads( world_.nrOfDoodads() );
+
+    // init the boolean map containing the doodad locations
+    initDoodadLocationMap();
 
     // Must be done each time the terrain is modified. Checks if every single 
     // doodad is still in a valid location:
@@ -145,8 +165,16 @@ void CampaignEditor::draw()
 
     if ( doodadMouseCursor_ ) drawDoodadCursorAtLocation();
     else drawTerrainCursor();
-
-    //gfx.drawBlock( gameScreens_.paletteWindow,Colors::Red );
+    gfx.paintSprite( 10,22,fileMenu_.getImage() );
+    
+    /*
+    // show the doodadLocation Map: (debug)
+    for ( int j = 0; j < terrain_.getRows(); j++ )
+        for ( int i = 0; i < terrain_.getColumns(); i++ )
+            if ( doodadLocationMap_[j * terrain_.getColumns() + i] )
+                gfx.PutPixel( 10 + i,400 + j,Colors::Green );
+            else gfx.PutPixel( 10 + i,400 + j,Colors::Gray );            
+    */
 }
 
 void CampaignEditor::handleInput()
@@ -157,7 +185,12 @@ void CampaignEditor::handleInput()
     int mY = mouse.GetPosY();
     mouseTimer_++;
     if ( !mouse.LeftIsPressed() ) mouseTimer_ += 100; // temp solution ;)
-    if ( mouse.RightIsPressed() ) doodadMouseCursor_ = false; // right-click cancels doodad cursor
+    if ( mouse.RightIsPressed() )
+    {
+        doodadMouseCursor_ = false; // right-click cancels doodad cursor
+        // temp debug:
+        //terrain_.saveTerrain( "c:\\RTSMedia\\savetest.ini" );
+    }
     // Scrolling function:
     // map:
     if ( mouse.isInArea( gameScreens_.scrollMapLeft ) && (TerrainDrawXOrig_ > 0) )
@@ -200,10 +233,21 @@ void CampaignEditor::handleInput()
             if ( doodadMouseCursor_ )
             // add the doodad to the terrain where the mouse is: 
             {
-                if( canPlaceDoodadAtLocation( tileX,tileY,world_.getDoodad( doodadNr_ ) ) )
-                    terrain_.addDoodad( 
-                        DoodadLocation( tileX,tileY,doodadNr_,true ) 
+                const Doodad& doodad = world_.getDoodad( doodadNr_ );
+                if ( canPlaceDoodadAtLocation( tileX,tileY,doodad )
+                    && (!doodadPresentInArea( Rect(
+                        tileX,
+                        tileY,
+                        tileX + doodad.width() - 1,
+                        tileY + doodad.height() - 1 ) )) )
+                {
+                    terrain_.addDoodad(
+                        DoodadLocation( tileX,tileY,doodadNr_,true )
                     );
+                    for( int j = tileY; j < tileY + doodad.height(); j++ )
+                        for ( int i = tileX; i < tileX + doodad.width(); i++ )
+                            doodadLocationMap_[j * terrain_.getColumns() + i] = true;
+                }
             } else
             // modify the terrain using :
             {
@@ -543,7 +587,7 @@ void CampaignEditor::drawMiniMap()
     gfx.paintSprite( miniMapXOrig_,miniMapYOrig_,miniMap_ );
     drawMiniMapCursor();
 }
-// draws mini map cursor
+
 void CampaignEditor::drawMiniMapCursor()
 {
     // draw the minimap highlighted area delimiter / cursor:
@@ -898,7 +942,7 @@ void CampaignEditor::redrawPalette()
     );
 }
 
-void CampaignEditor::drawDoodadCursorAtLocation( /*int xTile,int yTile*/ )
+void CampaignEditor::drawDoodadCursorAtLocation()
 {
     Graphics& gfx = *gfx_;
     Mouse& mouse = *mouse_;
@@ -908,7 +952,6 @@ void CampaignEditor::drawDoodadCursorAtLocation( /*int xTile,int yTile*/ )
     if ( (yTileStart >= visibleTilesY_) || (yTileStart < 0) ) return;
     int doodadWidth = world_.getDoodad( doodadNr_ ).width();
     int doodadHeight = world_.getDoodad( doodadNr_ ).height();
-    //Sprite cursorImage( world_.getDoodad( doodadNr_ ).image() );
     int xDoodadOrig = gameScreens_.map_coords.x1 + xTileStart * tileWidth_;
     int yDoodadOrig = gameScreens_.map_coords.y1 + yTileStart * tileHeight_;
     int yTile = yTileStart;
@@ -925,8 +968,11 @@ void CampaignEditor::drawDoodadCursorAtLocation( /*int xTile,int yTile*/ )
                         TerrainDrawXOrig_ + xTile,
                         TerrainDrawYOrig_ + yTile
                     );
+                    bool doodadAlreadyThere = doodadLocationMap_
+                        [(TerrainDrawYOrig_ + yTile) * terrain_.getColumns() + TerrainDrawXOrig_ + xTile];
                     Color rasterColor;
-                    if ( world_.getDoodad( doodadNr_ ).isCompatible( i,j,terrainElement ) )
+                    if ( world_.getDoodad( doodadNr_ ).isCompatible( i,j,terrainElement ) 
+                        && (!doodadAlreadyThere) )
                         rasterColor = Colors::Green;
                     else rasterColor = Colors::Red;
                     int xTileOffset = i * tileWidth_;
@@ -947,8 +993,8 @@ void CampaignEditor::drawDoodadCursorAtLocation( /*int xTile,int yTile*/ )
                     {
                         int x = xDoodadOrig + xTileOffset + (n & 0x1);
                         int y = yDoodadOrig + yTileOffset + n;
-                        for ( int m = 0; m < tileWidth_ - 1; m += 2 )
-                            gfx.PutPixel( x + m,y,rasterColor );
+                        for ( int m = x; m < x + tileWidth_ - 1; m += 2 ) 
+                            gfx.PutPixel( m,y,rasterColor );
                     }
                 }
                 xTile++;
@@ -959,17 +1005,61 @@ void CampaignEditor::drawDoodadCursorAtLocation( /*int xTile,int yTile*/ )
 }
 
 // This function will tell you if a doodad can be placed at a certain location
-// on the terrain (if it is compatible):
+// on the terrain (if it is compatible). This function does NOT check if another
+// doodad is already present though!
 bool CampaignEditor::canPlaceDoodadAtLocation( int x,int y,const Doodad& doodad ) const
 {
     if ( x + doodad.width() >= terrain_.getColumns() ) return false;
     if ( y + doodad.height() >= terrain_.getRows() ) return false;
     for ( int j = 0; j < doodad.height(); j++ )
         for ( int i = 0; i < doodad.width(); i++ )
-            if ( !doodad.isCompatible( i,j,terrain_.getElement( x + i,y + j ) ) )
+        {
+            if ( 
+                (!doodad.isCompatible( i,j,terrain_.getElement( x + i,y + j ) )) 
+//                || (!doodadLocationMap_[(y + j) * terrain_.getColumns() + x + i]) 
+                )
                 return false;
+        }
     return true;
 }
+
+/*
+    The terrain & world must be loaded before this function is called.
+*/
+void CampaignEditor::initDoodadLocationMap()
+{
+    if ( doodadLocationMap_ != nullptr ) delete doodadLocationMap_;
+    int size = terrain_.getRows() * terrain_.getColumns();
+    doodadLocationMap_ = new bool[size];
+    for ( int i = 0; i < size; i++ ) doodadLocationMap_[i] = false;
+    // now put the doodads in there:
+    const std::vector<DoodadLocation>& doodadList = terrain_.getDoodadList();
+    for ( int iDoodad = 0; iDoodad < doodadList.size(); iDoodad++ )
+    {
+        const DoodadLocation& doodadLocation = doodadList[iDoodad];
+        if ( !doodadLocation.isUsed ) continue;
+        const Doodad& doodad = world_.getDoodad( doodadList[iDoodad].doodadNr );
+        int x2 = doodadList[iDoodad].x + doodad.width() - 1;
+        int y2 = doodadList[iDoodad].y + doodad.height() - 1;
+        for ( int j = doodadList[iDoodad].y; j <= y2; j++ )
+            for ( int i = doodadList[iDoodad].x; i <= x2; i++ )
+                doodadLocationMap_[j * terrain_.getColumns() + i] = true;
+    }
+}
+
+bool CampaignEditor::doodadPresentInArea( Rect area )
+{
+    assert( doodadLocationMap_ != nullptr );
+    assert( (area.x1 >= 0) && (area.y1 >= 0) );
+    assert( area.x2 < terrain_.getColumns() );
+    assert( area.y2 < terrain_.getRows() );
+    bool doodadPresent = false;
+    for ( int y = area.y1; y <= area.y2; y++ )
+        for ( int x = area.x1; x <= area.x2; x++ )
+            doodadPresent |= doodadLocationMap_[y * terrain_.getColumns() + x];
+    return doodadPresent;
+}
+
 /*
 This function checks for each doodad if the newly modified terrain is still
 compatible with the current doodad and it's location, and disables the
@@ -987,6 +1077,10 @@ void CampaignEditor::checkDoodads()
             doodadLocation.y,
             world_.getDoodad( doodadLocation.doodadNr ) ) )
         {
+            const Doodad& doodad = world_.getDoodad( doodadLocation.doodadNr );
+            for ( int j = doodadLocation.y; j < doodadLocation.y + doodad.height(); j++ )
+                for ( int i = doodadLocation.x; i < doodadLocation.x + doodad.width(); i++ )
+                    doodadLocationMap_[j * terrain_.getColumns() + i] = false;
             terrain_.removeDoodad( iDoodad );
         }
     }

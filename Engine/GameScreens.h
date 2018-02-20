@@ -13,6 +13,7 @@ Start of Game screen drawing class
 // miscellaneous constants
 #define GRID_COLOR                  Colors::Gray
 #define CURSOR_COLOR                Colors::Red
+#define MENU_COLOR                  Color( 226,193,170 )
 
 // basic coordinates
 #define ANCHOR_SCREEN_LEFT          0
@@ -22,6 +23,7 @@ Start of Game screen drawing class
 
 // general relative coordinates & spaces
 #define FRAME_WIDTH                 3
+#define FONT_WIDTH                  8
 #define FONT_HEIGHT                 16
 #define TEXT_OFFSET                 FRAME_WIDTH
 #define MENU_BAR_HEIGHT             (FONT_HEIGHT + 2 * FRAME_WIDTH)
@@ -171,7 +173,7 @@ public:
     Font            *getFont() { return font_; }
 public:
     // absolute coordinates for drawing and mouse:
-    const Color menuColor = Color( 226,193,170 );
+    const Color menuColor = MENU_COLOR;
     const Rect screen_coords = { ANCHOR_SCREEN_LEFT,ANCHOR_SCREEN_TOP,ANCHOR_SCREEN_RIGHT,ANCHOR_SCREEN_BOTTOM };
     const Rect menubar_coords = { MENU_BAR_X1,MENU_BAR_Y1,MENU_BAR_X2,MENU_BAR_Y2 };
     const Rect sidebar_coords = { SIDEBAR_X1,SIDEBAR_Y1,SIDEBAR_X2,SIDEBAR_Y2 };

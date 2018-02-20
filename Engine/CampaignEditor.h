@@ -11,6 +11,52 @@
 #include "Sprite.h"
 #include "Font.h"
 
+const char *menutitles[];
+
+class Menu
+{
+public:
+    Menu() {}
+    void    init( const char *menus[],Font* fontPTR )
+    {
+        assert( menus[0] != nullptr );
+        assert( font != nullptr );
+        font_ = fontPTR;
+        int maxLength = 0;
+        for ( nrOfMenus_ = 0; menus[nrOfMenus_] != nullptr; nrOfMenus_++ )
+        {
+            int s = strlen( menus[nrOfMenus_] );
+            if ( s > maxLength ) maxLength = s;
+        }
+        // Create graphical representation of menu:
+        image_.setFont( font_ );
+        Font& font = *font_;
+        image_.createEmptySprite(
+            maxLength * font.width() + 2 * (FRAME_WIDTH + TEXT_OFFSET),
+            nrOfMenus_ * font.height() + 2 * (FRAME_WIDTH + TEXT_OFFSET)
+        );
+        image_.setFrameColor( MENU_COLOR );
+        image_.drawNiceBlock( 
+            Rect( 0,0,image_.getWidth() - 1,image_.getHeight() - 1 ) 
+        );
+        for ( int menuNr = 0; menuNr < nrOfMenus_; menuNr++ )
+        {
+            image_.printXY(
+                FRAME_WIDTH + TEXT_OFFSET,
+                FRAME_WIDTH + TEXT_OFFSET + menuNr * font.height(),
+                menus[menuNr]
+            );
+        }
+    }
+    Sprite& getImage() { return image_; }
+private:
+    Font   *font_;
+    int     nrOfMenus_;
+    Sprite  image_;
+};
+
+
+// keep track of which palette is visible in the side bar:
 #define BASIC_TERRAIN_PALETTE           0
 #define DOODAD_PALETTE                  1
 #define NR_OF_PALETTES                  2
@@ -29,7 +75,6 @@ is 64x64 (or smaller)
 #define ZOOM_ONE_PIXEL_PER_TILE         1
 #define ZOOM_FOUR_PIXELS_PER_TILE       2
 
-
 class CampaignEditor
 {
 public:
@@ -41,12 +86,19 @@ public:
         Mouse& mouseRef,
         Keyboard& keyboardRef
     );
+    ~CampaignEditor() 
+    {
+        if ( doodadLocationMap_ != nullptr )
+            delete doodadLocationMap_;
+    }
     void            draw();
     void            handleInput();
     bool            isInitialized() const { return isInitialized_; }
 private:
     int             loadTerrain( const std::string& terrainName );
     bool            canPlaceDoodadAtLocation( int x,int y,const Doodad& doodad ) const;
+    void            initDoodadLocationMap();
+    bool            doodadPresentInArea( Rect area );
     void            checkDoodads();
     void            initMapCoords();
     void            createBasicTerrainPalette();
@@ -76,6 +128,8 @@ private:
     World           world_;
     Terrain         terrain_;
     Sprite          miniMap_;
+    Menu            fileMenu_;
+
     // tells which palette is currently selected in the editor:
     int             activePalette_ = BASIC_TERRAIN_PALETTE;
     int            *paletteListIndexPTR_ = &basicTerrainPaletteIndex_;
@@ -102,6 +156,7 @@ private:
     bool            doodadMouseCursor_ = false; // whether the active doodad is shown on the mouse cursor location
     Sprite          doodadCursorSprite_; // the original-sized doodad without the compatibility overlay
     bool            isGridVisible_ = true;
+    bool           *doodadLocationMap_ = nullptr;
     // these coordinates keep track of our location on the map:
     int             TerrainDrawXOrig_ = 0;
     int             TerrainDrawYOrig_ = 0;

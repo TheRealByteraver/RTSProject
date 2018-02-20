@@ -6,7 +6,7 @@
 
 // the default width of one tile used to create the terrain
 // change this value to zoom in or out
-#define WORLD_TILE_DEFAULT_WIDTH    48
+#define WORLD_TILE_DEFAULT_WIDTH    16
 
 // there are 64 tiles, some of whom are not used (black)
 // do not change this value, or program will crash

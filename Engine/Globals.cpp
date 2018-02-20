@@ -84,35 +84,29 @@ Defaults::Defaults()
         exit( -1 );
         return;
     }
-    // load default terrain name:
-    error = masterIniFile_.getKeyValue( "Main","DefaultWorld",defaultWorld_ );
-    if ( (error != 0) || (defaultWorld_.length() == 0) )
-    {
-        defaultWorld_ = "GreenPrairie";
-    }
-    // check if the default terrain is present and recreate it if it isn't
+    // check if the GreenPrairie terrain is present and recreate it if it isn't
     std::string defWorldSpriteLib( GAME_FOLDER );
     defWorldSpriteLib.append( worldsFolder_ );
     defWorldSpriteLib.append( "\\" );
-    defWorldSpriteLib.append( defaultWorld_ );
+    defWorldSpriteLib.append( GREENPRAIRIE_WORLD_NAME );
     defWorldSpriteLib.append( ".bmp" );
     std::string defWorldIni( GAME_FOLDER );
     defWorldIni.append( worldsFolder_ );
     defWorldIni.append( "\\" );
-    defWorldIni.append( defaultWorld_ );
+    defWorldIni.append( GREENPRAIRIE_WORLD_NAME );
     defWorldIni.append( ".ini" );
     bool recreate = false;
     //recreate = true; // debug!!!
     if ( !fileExists( defWorldSpriteLib ) )
     {
         debugLogFile << "Can't open default terrain file " << defWorldSpriteLib 
-            << ", recreating world " << defaultWorld_ << "." << std::endl;
+            << ", recreating world " << GREENPRAIRIE_WORLD_NAME << "." << std::endl;
         recreate = true;
     }
     if ( ! fileExists( defWorldIni ) ) 
     {
         debugLogFile << "Can't open default terrain file " << defWorldIni
-            << ", recreating world " << defaultWorld_ << "." << std::endl;
+            << ", recreating world " << GREENPRAIRIE_WORLD_NAME << "." << std::endl;
         recreate = true;
     }     
     if ( recreate ) CreateDefaultSprites().createGreenPrairieWorld();
@@ -140,8 +134,39 @@ Defaults::Defaults()
             << ", recreating world " << DESERT_WORLD_NAME << "." << std::endl;
         recreate = true;
     }
-    recreate = true; // debug !!!
+    //recreate = true; // debug !!!
     if ( recreate ) CreateDefaultSprites().createDesertWorld();
+
+    // load default terrain name and check if the terrain exists:
+    error = masterIniFile_.getKeyValue( "Main","DefaultWorld",defaultWorld_ );
+    if ( (error != 0) || (defaultWorld_.length() == 0) )
+    {
+        defaultWorld_ = GREENPRAIRIE_WORLD_NAME;
+    } else
+    {
+        std::string defWorldSpriteLib( GAME_FOLDER );
+        defWorldSpriteLib.append( worldsFolder_ );
+        defWorldSpriteLib.append( "\\" );
+        defWorldSpriteLib.append( defaultWorld_ );
+        defWorldSpriteLib.append( ".bmp" );
+        std::string defWorldIni( GAME_FOLDER );
+        defWorldIni.append( worldsFolder_ );
+        defWorldIni.append( "\\" );
+        defWorldIni.append( defaultWorld_ );
+        defWorldIni.append( ".ini" );
+        if ( !fileExists( defWorldSpriteLib ) )
+        {
+            debugLogFile << "Can't open default terrain file " << defWorldSpriteLib
+                << ", recreating world " << defaultWorld_ << "." << std::endl;
+            defaultWorld_ = GREENPRAIRIE_WORLD_NAME;
+        }
+        if ( !fileExists( defWorldIni ) )
+        {
+            debugLogFile << "Can't open default terrain file " << defWorldIni
+                << ", recreating world " << defaultWorld_ << "." << std::endl;
+            defaultWorld_ = GREENPRAIRIE_WORLD_NAME;
+        }
+    }
 }
 
 void Defaults::checkFolder( const std::string& folderType,std::string& folderName )
@@ -184,8 +209,18 @@ bool Defaults::dirExists( const std::string& dirName )
     return false;    // this is not a directory!
 }
 
+#include <experimental/filesystem>
 bool Defaults::fileExists( const std::string& fileName )
 {
-    std::ifstream infile( fileName );
-    return infile.good();
+    return std::experimental::filesystem::exists( fileName );
+    /*
+    In MS Visual Studio 2013 this function is available under std::tr2::sys::exists( "helloworld.txt" ); – Constantin Mar 30 '15 at 4:41
+        2
+        I actually hope it won't be std::exists, that would be quite confusing (think: exists in an STL container like a set). – einpoklum Feb 17 '16 at 15:00
+        1
+        Also in Visual Studio 2015 : #include <experimental/filesystem> bool file_exists( std::string fn ) { std::experimental::filesystem::exists( "helloworld.txt" ); } – Orwellophile Feb 16 '17 at 12:49
+
+    //std::ifstream infile( fileName );
+    //return infile.good();
+    */
 }

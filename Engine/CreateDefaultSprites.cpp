@@ -12,7 +12,7 @@ void CreateDefaultSprites::createGreenPrairieWorld()
     std::string path( GAME_FOLDER );
     path.append( defaults.worldsFolder() );
     path.append( "\\" );
-    path.append( defaults.defaultWorld() );
+    path.append( GREENPRAIRIE_WORLD_NAME );
     // Create and save the greenprairie (default) world tiles:
     createGreenPrairieWorldTiles();
     terrainSpriteLib_.saveToBMP( (path + ".bmp").c_str() );
@@ -26,7 +26,7 @@ void CreateDefaultSprites::createGreenPrairieWorld()
 
     // Now create & save the .ini file:
     std::ofstream defaultWorldIni( path + ".ini" );
-    defaultWorldIni << "; This describes the " << defaults.defaultWorld()
+    defaultWorldIni << "; This describes the " << GREENPRAIRIE_WORLD_NAME
         << " world spritesheet." << std::endl;
     defaultWorldIni
         << "; If this file is corrupt then delete it, the game will"
