@@ -11,21 +11,43 @@
 #include "Sprite.h"
 #include "Font.h"
 
+
+
+#define MENU_FILE_OPEN              0
+#define MENU_FILE_SAVE              1
+#define MENU_FILE_SAVE_AS           2
+#define MENU_FILE_EXIT              3
+#define MENU_FILE_NR_MENUS          4
+
 const char *menutitles[];
+/*
+const char *menutitles[] =
+{
+    "Open",
+    "Save",
+    "Save As",
+    "Exit",
+    nullptr
+};
+*/
 
 class Menu
 {
 public:
     Menu() {}
-    void    init( const char *menus[],Font* fontPTR )
+    void        init( int xOrig,int yOrig,const char *menus[],Font* fontPTR )
     {
         assert( menus[0] != nullptr );
-        assert( font != nullptr );
+        assert( fontPTR != nullptr );
+        assert( xOrig >= 0 );
+        assert( yOrig >= 0 );
         font_ = fontPTR;
+        xOrig_ = xOrig;
+        yOrig_ = yOrig;
         int maxLength = 0;
         for ( nrOfMenus_ = 0; menus[nrOfMenus_] != nullptr; nrOfMenus_++ )
         {
-            int s = strlen( menus[nrOfMenus_] );
+            int s = (int)strlen( menus[nrOfMenus_] );
             if ( s > maxLength ) maxLength = s;
         }
         // Create graphical representation of menu:
@@ -47,12 +69,32 @@ public:
                 menus[menuNr]
             );
         }
+        dimensions_ = Rect(
+            xOrig_,
+            yOrig_,
+            xOrig_ + image_.getWidth() - 1,
+            yOrig_ + image_.getHeight() - 1
+        );
     }
-    Sprite& getImage() { return image_; }
+    Sprite&     getImage() { return image_; }
+    Rect        dimensions() { return dimensions_; }
+    int         getSelectedSubMenu( int mouseY )
+    {
+        assert( mouseY >= 0 );
+        assert( font_ != nullptr );
+        Font& font = *font_;
+        if ( (mouseY < dimensions_.y1) || (mouseY > dimensions_.y2) )
+            return -1;
+        return (mouseY - dimensions_.y1 - FRAME_WIDTH - TEXT_OFFSET) 
+            / font.height();
+    }
 private:
-    Font   *font_;
+    int     xOrig_;
+    int     yOrig_;
+    Font   *font_ = nullptr;
     int     nrOfMenus_;
     Sprite  image_;
+    Rect    dimensions_ = Rect( 0,0,0,0 );
 };
 
 
@@ -149,6 +191,9 @@ private:
     int             basicTerrainSelectedIcon_ = 0;
     int             doodadSelectedIcon_ = 0;
 
+    // For the menu: if the menu is shown or not
+    bool            menuFileVisible_ = false;
+
     // specific variables for the terrain editor:
     // the type of terrain we are drawing with now:
     char            terrainType_ = T_DEFAULT;
@@ -156,8 +201,11 @@ private:
     bool            doodadMouseCursor_ = false; // whether the active doodad is shown on the mouse cursor location
     Sprite          doodadCursorSprite_; // the original-sized doodad without the compatibility overlay
     bool            isGridVisible_ = true;
+    bool            isTerrainSaved_ = false;
+    // this pointer is a two dimensional boolean map that tells if a given 
+    // tile has a doodad on top of it or not:
     bool           *doodadLocationMap_ = nullptr;
-    // these coordinates keep track of our location on the map:
+    // these coordinates keep track of our location (in tiles) on the map:
     int             TerrainDrawXOrig_ = 0;
     int             TerrainDrawYOrig_ = 0;
     // nr of visible tiles in Horizontal and vertical direction:

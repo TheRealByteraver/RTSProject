@@ -9,13 +9,12 @@ void GameScreens::drawScenarioEditor()
     menuBar_.setFrameWidth( FRAME_WIDTH );
     menuBar_.setFrameColor( menuColor );
     menuBar_.drawNiceBlock( 
-        Rect( 0,0,menubar_coords.width() - 1,menubar_coords.height() - 1 )
+        //Rect( 0,0,menubar_coords.width() - 1,menubar_coords.height() - 1 )
+        menubar_coords
+        
     );
     
-    menuBar_.printXY(
-        MENU_BAR_X1 + TEXT_OFFSET,
-        MENU_BAR_Y1 + TEXT_OFFSET,
-        "Test String" );
+    menuBar_.printXY( MENU_FILE_X,MENU_FILE_Y,MENU_FILE_TITLE );
     
     // Draw Side Bar:
     sideBar_.createEmptySprite( sidebar_coords.width(),sidebar_coords.height() );

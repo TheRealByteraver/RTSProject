@@ -41,7 +41,11 @@ void CampaignEditor::init(
     gameScreens_.setFont( &font );  // move font to globals / defaults?
 
     // create the File menu:
-    fileMenu_.init( menutitles,&font );
+    fileMenu_.init( 
+        gameScreens_.menubar_coords.x1 + MENU_FILE_X,
+        gameScreens_.menubar_coords.y2,
+        menutitles,&font 
+    );
 
     // load the default world:
     int error = world_.load( defaults.defaultWorld() );
@@ -84,7 +88,7 @@ void CampaignEditor::init(
     isInitialized_ = true;
 
     // debug: load test terrain
-    //error = loadTerrain( "testterrain.ini" );
+    error = loadTerrain( "savetestbak.ini" );
 }
 
 int CampaignEditor::loadTerrain( const std::string& terrainName )
@@ -149,6 +153,9 @@ int CampaignEditor::loadTerrain( const std::string& terrainName )
 void CampaignEditor::draw()
 {
     Graphics& gfx = *gfx_;
+    Mouse& mouse = *mouse_;
+    int mX = mouse.GetPosX();
+    int mY = mouse.GetPosY();
     // Draw the terrain editor menu's:
     gfx.paintSprite(
         gameScreens_.menubar_coords.x1,
@@ -163,9 +170,30 @@ void CampaignEditor::draw()
     drawMiniMap();
     redrawPalette(); // temp, should be moved to side bar drawing function
 
-    if ( doodadMouseCursor_ ) drawDoodadCursorAtLocation();
-    else drawTerrainCursor();
-    gfx.paintSprite( 10,22,fileMenu_.getImage() );
+    if ( menuFileVisible_ )
+    {
+        gfx.paintSprite(
+            fileMenu_.dimensions().x1,
+            fileMenu_.dimensions().y1,
+            fileMenu_.getImage()
+        );
+        if ( (mY >= fileMenu_.dimensions().y1) &&
+            (mY <= fileMenu_.dimensions().y2 - FRAME_WIDTH - TEXT_OFFSET) )
+        {
+            const int menuNr = fileMenu_.getSelectedSubMenu( mY );
+            const int y1 = fileMenu_.dimensions().y1 + FRAME_WIDTH + TEXT_OFFSET + menuNr * FONT_HEIGHT;
+            gfx.drawBox(
+                fileMenu_.dimensions().x1 + FRAME_WIDTH,
+                y1,
+                fileMenu_.dimensions().x2 - FRAME_WIDTH,
+                y1 + FONT_HEIGHT - 1,
+                Colors::Red
+            );
+        }
+    } else {
+        if ( doodadMouseCursor_ ) drawDoodadCursorAtLocation();
+        else drawTerrainCursor();
+    }
     
     /*
     // show the doodadLocation Map: (debug)
@@ -184,12 +212,19 @@ void CampaignEditor::handleInput()
     int mX = mouse.GetPosX();
     int mY = mouse.GetPosY();
     mouseTimer_++;
-    if ( !mouse.LeftIsPressed() ) mouseTimer_ += 100; // temp solution ;)
+    if ( !mouse.LeftIsPressed() ) mouseTimer_ = 20; // temp solution ;)
+
+    if ( menuFileVisible_ )
+    {
+        if ( !( 
+            mouse.isInArea( gameScreens_.menuFileTitle ) ||
+            mouse.isInArea( fileMenu_.dimensions() )
+            ) ) menuFileVisible_ = false;
+    }
+
     if ( mouse.RightIsPressed() )
     {
         doodadMouseCursor_ = false; // right-click cancels doodad cursor
-        // temp debug:
-        //terrain_.saveTerrain( "c:\\RTSMedia\\savetest.ini" );
     }
     // Scrolling function:
     // map:
@@ -230,34 +265,65 @@ void CampaignEditor::handleInput()
         {
             int tileX = (mX - gameScreens_.map_coords.x1) / tileWidth_ + TerrainDrawXOrig_;
             int tileY = (mY - gameScreens_.map_coords.y1) / tileHeight_ + TerrainDrawYOrig_;
-            if ( doodadMouseCursor_ )
-            // add the doodad to the terrain where the mouse is: 
+            if ( menuFileVisible_ )
             {
-                const Doodad& doodad = world_.getDoodad( doodadNr_ );
-                if ( canPlaceDoodadAtLocation( tileX,tileY,doodad )
-                    && (!doodadPresentInArea( Rect(
-                        tileX,
-                        tileY,
-                        tileX + doodad.width() - 1,
-                        tileY + doodad.height() - 1 ) )) )
+                const int menuNr = fileMenu_.getSelectedSubMenu( mY );
+                switch ( menuNr )
                 {
-                    terrain_.addDoodad(
-                        DoodadLocation( tileX,tileY,doodadNr_,true )
-                    );
-                    for( int j = tileY; j < tileY + doodad.height(); j++ )
-                        for ( int i = tileX; i < tileX + doodad.width(); i++ )
-                            doodadLocationMap_[j * terrain_.getColumns() + i] = true;
+                    case MENU_FILE_OPEN:
+                    {
+                        menuFileVisible_ = false;
+                        break;
+                    }
+                    case MENU_FILE_SAVE:
+                    {
+                        terrain_.saveTerrain( GAME_FOLDER "terrains\\savetest.ini" ); 
+                        menuFileVisible_ = false;
+                        break;
+                    }
+                    case MENU_FILE_SAVE_AS:
+                    {
+                        menuFileVisible_ = false;
+                        break;
+                    }
+                    case MENU_FILE_EXIT:
+                    {
+                        menuFileVisible_ = false;
+                        break;
+                    }
                 }
-            } else
-            // modify the terrain using :
-            {
-                if ( (tileX < terrain_.getColumns()) &&
-                    (tileY < terrain_.getRows()) )
+            } else {
+                if ( doodadMouseCursor_ )
+                    // add the doodad to the terrain where the mouse is: 
                 {
-                    if ( tileX & 0x1 ) tileX--;
-                    if ( tileY & 0x1 ) tileY--;
-                    Rect redraw = terrain_.drawTerrain( tileX,tileY,terrainType_ );
-                    checkDoodads();
+                    const Doodad& doodad = world_.getDoodad( doodadNr_ );
+                    if ( canPlaceDoodadAtLocation( tileX,tileY,doodad )
+                        && (!doodadPresentInArea( Rect(
+                            tileX,
+                            tileY,
+                            tileX + doodad.width() - 1,
+                            tileY + doodad.height() - 1 ) )) )
+                    {
+                        terrain_.addDoodad(
+                            DoodadLocation( tileX,tileY,doodadNr_,true )
+                        );
+                        for ( int j = tileY; j < tileY + doodad.height(); j++ )
+                            for ( int i = tileX; i < tileX + doodad.width(); i++ )
+                                doodadLocationMap_[j * terrain_.getColumns() + i] = true;
+                        isTerrainSaved_ = false;
+                    }
+                } else
+                    // modify the terrain using :
+                {
+                    if ( (tileX < terrain_.getColumns()) &&
+                        (tileY < terrain_.getRows()) )
+                    {
+                        if ( tileX & 0x1 ) tileX--;
+                        if ( tileY & 0x1 ) tileY--;
+                        Rect redraw = terrain_.drawTerrain( tileX,tileY,terrainType_ );
+                        checkDoodads();
+                        isTerrainSaved_ = false;
+                    }
                 }
             }
         // switch to the next palette:
@@ -290,6 +356,8 @@ void CampaignEditor::handleInput()
                     case BASIC_TERRAIN_PALETTE:
                     {
                         doodadMouseCursor_ = false;
+                        terrainType_ = activeItem << 4;
+                        /*
                         switch ( activeItem )
                         {
                             case 0:
@@ -313,6 +381,7 @@ void CampaignEditor::handleInput()
                                 break;
                             }
                         }                        
+                        */
                         break;
                     }
                     case DOODAD_PALETTE:
@@ -324,6 +393,9 @@ void CampaignEditor::handleInput()
                     }
                 }
             }
+        } else if ( mouse.isInArea( gameScreens_.menuFileTitle ) )
+        {
+            menuFileVisible_ = true;
         }
     }
     // debug:

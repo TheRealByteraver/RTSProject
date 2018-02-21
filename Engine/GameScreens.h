@@ -24,7 +24,7 @@ Start of Game screen drawing class
 // general relative coordinates & spaces
 #define FRAME_WIDTH                 3
 #define FONT_WIDTH                  8
-#define FONT_HEIGHT                 16
+#define FONT_HEIGHT                 14
 #define TEXT_OFFSET                 FRAME_WIDTH
 #define MENU_BAR_HEIGHT             (FONT_HEIGHT + 2 * FRAME_WIDTH)
 #define MINI_MAP_CLIENT_WIDTH       128//MAX_TERRAIN_WIDTH
@@ -35,6 +35,11 @@ Start of Game screen drawing class
 #define MENU_BAR_X2                 ANCHOR_SCREEN_RIGHT
 #define MENU_BAR_Y1                 ANCHOR_SCREEN_TOP
 #define MENU_BAR_Y2                 (MENU_BAR_Y1 + MENU_BAR_HEIGHT - 1)
+
+#define MENU_FILE_X                 (MENU_BAR_X1 + FRAME_WIDTH + TEXT_OFFSET)
+#define MENU_FILE_Y                 (MENU_BAR_Y1 + TEXT_OFFSET)
+#define MENU_FILE_TITLE             "File"
+#define MENU_FILE_TITLE_WIDTH       (4 * FONT_WIDTH)
 
 #define SIDEBAR_X1                  (ANCHOR_SCREEN_RIGHT       \
                                      - MINI_MAP_CLIENT_WIDTH   \
@@ -187,14 +192,15 @@ public:
     const Rect palettewindow_coords = { PALETTE_WINDOW_X1,PALETTE_WINDOW_Y1,PALETTE_WINDOW_X2,PALETTE_WINDOW_Y2 };
     const Rect paletteclientwindow_coords = { PALETTE_CLIENT_WINDOW_X1,PALETTE_CLIENT_WINDOW_Y1,PALETTE_CLIENT_WINDOW_X2,PALETTE_CLIENT_WINDOW_Y2 };
 
-    // mouse sensitive area's for map scrolling action (absolute coordinates, for the mouse):
+    // mouse sensitive area's for a.o. map scrolling action (absolute coordinates, for the mouse):
     const Rect scrollMapLeft = { SCROLL_MAP_LEFT_X1,SCROLL_MAP_LEFT_Y1,SCROLL_MAP_LEFT_X2,SCROLL_MAP_LEFT_Y2 };
     const Rect scrollMapRight = { SCROLL_MAP_RIGHT_X1,SCROLL_MAP_RIGHT_Y1,SCROLL_MAP_RIGHT_X2,SCROLL_MAP_RIGHT_Y2 };
     const Rect scrollMapUp = { SCROLL_MAP_UP_X1,SCROLL_MAP_UP_Y1,SCROLL_MAP_UP_X2,SCROLL_MAP_UP_Y2 };
     const Rect scrollMapDown = { SCROLL_MAP_DOWN_X1,SCROLL_MAP_DOWN_Y1,SCROLL_MAP_DOWN_X2,SCROLL_MAP_DOWN_Y2 };
     const Rect paletteSelector = { PALETTE_SELECTOR_X1,PALETTE_SELECTOR_Y1,PALETTE_SELECTOR_X2,PALETTE_SELECTOR_Y2 };
     const Rect paletteWindow = { PALETTE_WINDOW_ABS_X1,PALETTE_WINDOW_ABS_Y1,PALETTE_WINDOW_ABS_X2,PALETTE_WINDOW_ABS_Y2 };
-
+    const Rect menuFileTitle = { MENU_FILE_X,MENU_BAR_Y1,MENU_FILE_X + MENU_FILE_TITLE_WIDTH,MENU_BAR_Y2 };
+    
 private:
     Sprite      menuBar_,sideBar_;
     Font*       font_;
