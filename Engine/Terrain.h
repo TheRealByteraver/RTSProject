@@ -118,6 +118,8 @@ one of the below master terrain types.
 Initialization constants: default terrain
 */
 #define T_DEFAULT                       T_LOW
+#define T_MIN_CURSORWIDTH               1
+#define T_MAX_CURSORWIDTH               3
 #define T_DEFAULT_CURSORWIDTH           2
 
 typedef char Tile;
@@ -144,16 +146,7 @@ public:
 class Terrain
 {
 public:
-    Terrain()
-    {
-        /*
-        // done in variable definition
-        data_ = nullptr;
-        columns_ = 0;
-        rows_ = 0;
-        size_ = 0;
-        */
-    }
+    Terrain() {}
     Terrain( int columns,int rows )
     {
         data_ = nullptr;
@@ -192,12 +185,6 @@ public:
     {
         return drawTerrain( j * columns_ + i,terrain );
     }
-    //  Can only be used to assign basic terrain:
-    void    assign( int i,Tile terrain );
-    void    assign( int i,int j,Tile terrain )
-    {
-        assign( j * columns_ + i,terrain );
-    }
     const Tile getElement( const int i ) const 
     {
         assert( i >= 0 );
@@ -215,14 +202,20 @@ public:
         return data_[y * columns_ + x];
     }
     const std::string& getName() const { return name_; }
-    void    setName( const std::string& name )
-    {
-        assert( name.length() > 0 );
-        name_ = name;
-    }
     const std::string& getWorld() const { return world_; }
     const int getColumns() const { return columns_; }
     const int getRows()  const { return rows_; }
+    void    setName( const std::string& name )
+    {
+        //assert( name.length() > 0 );
+        name_ = name;
+    }
+    void    setCursorDrawWidth( int drawWidth )
+    {
+        assert( drawWidth >= T_MIN_CURSORWIDTH );
+        assert( drawWidth <= T_MAX_CURSORWIDTH );
+        cursorWidth_ = drawWidth;
+    }
     // convert from ini file encoding to in-program number:
     Tile    decode( const char terrainElement )
     {
@@ -243,6 +236,19 @@ public:
         return encodestr_[terrainElement];
     }
     //const char *encodeStr()  const { return encodestr_; }
+    /* 
+        converts the basic terrain types to the internal terrain constant: 
+        0 -> T_LOW_WATER        ( 0  )
+        1 -> T_LOW              ( 16 )
+        2 -> T_HIGH             ( 32 )
+        3 -> T_HIGH_WATER       ( 48 )
+    */
+    int     getBasicTerrainValue( int terrainType )
+    {
+        assert( terrainType >= 0 );
+        assert( terrainType <= 3 );
+        return terrainType << 4;
+    }
     const std::vector<DoodadLocation>& getDoodadList() const { return doodadList_; }
     void    removeDoodad( int doodAdNr )
     {
@@ -278,7 +284,8 @@ public:
     void    show( int curX,int curY ) const;
 private:
     static const char *encodestr_;
-    std::string world_; // which environment the terrain was made with: desert, greenprairie, etc
+    // which environment the terrain was made with: desert, greenprairie, etc
+    std::string world_; 
     std::string name_;
     int     cursorWidth_ = T_DEFAULT_CURSORWIDTH;
     int     columns_ = 0;
@@ -287,6 +294,12 @@ private:
     Tile    *data_ = nullptr;
     std::vector<DoodadLocation> doodadList_;
 private:
+    //  Can only be used to assign basic terrain:
+    void    assign( int i,Tile terrain );
+    void    assign( int i,int j,Tile terrain )
+    {
+        assign( j * columns_ + i,terrain );
+    }
     bool    isBasicTerrain( const Tile data )
     {
         return (data >= T_BASIC_TERRAIN_LOWER_LIMIT) &&

@@ -51,6 +51,7 @@ int Terrain::loadTerrain( std::string filename )
     error += iniFile.getKeyValue( "Characteristics","rows",rows_ );
     error += iniFile.getKeyValue( "Characteristics","world",world_ );
     if ( error != 0 ) return -1;
+    doodadList_.clear();
     // load with default data:
     init( columns_,rows_ );
     // now load the actual data:

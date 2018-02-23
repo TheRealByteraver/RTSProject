@@ -21,13 +21,18 @@ class Doodad
 public:
     Doodad()
     {
-        width_ = 0;
-        height_ = 0;
+        //width_ = 0;
+        //height_ = 0;
         for ( int i = 0; i < DOODAD_MAX_WIDTH * DOODAD_MAX_HEIGHT; i++ )
         {
             walkAbleMask_[i] = true;
-            terrainMask_[i] = DOODAD_NOT_USED;
+            terrainMask_[i] = DOODAD_NOT_USED;  // ?
         }
+    }
+    ~Doodad()
+    {
+        if ( avgColors_ != nullptr ) delete avgColors_;
+        if ( avgColors_2x2_ != nullptr ) delete avgColors_2x2_;        
     }
     Doodad( const Doodad &source )  // copy constructor
     {
@@ -35,6 +40,13 @@ public:
         width_ = source.width_;
         height_ = source.height_;
         image_ = source.image_;
+        int nrOfTiles = width_ * height_;
+        avgColors_ = new Color[nrOfTiles];
+        avgColors_2x2_ = new Color[nrOfTiles * 2 * 2];
+        for ( int i = 0; i < nrOfTiles; i++ )
+            avgColors_[i] = source.avgColors_[i];
+        for ( int i = 0; i < nrOfTiles * 2 * 2; i++ )
+            avgColors_2x2_[i] = source.avgColors_2x2_[i];
         for ( int i = 0; i < DOODAD_MAX_WIDTH * DOODAD_MAX_HEIGHT; i++ )
         {
             walkAbleMask_[i] = source.walkAbleMask_[i];
@@ -148,21 +160,103 @@ public:
             }
         }
         // now load the bitmap of the Doodad:
-        return image_.loadFromBMP( 
+        error = image_.loadFromBMP( 
             spriteFilePath.c_str(),
             Rect(   spriteX,
                     spriteY,
                     spriteX + width_  * tileWidth  - 1,
                     spriteY + height_ * tileHeight - 1 )
         );
+        if ( error != 0 )
+        {
+            defaults.debugLogFile << "Error whilst loading the sprite of Doodad nr "
+                << doodadNr << " in " << iniFile.getFilename()
+                << ", halting loading this doodad." << std::endl;
+            return -1;
+        }
+
+        // to test:
+
+        // Now create tiny versions of the doodad for the minimap:
+        int nrOfTiles = width_ * height_;
+        avgColors_ = new Color[nrOfTiles];
+        avgColors_2x2_ = new Color[nrOfTiles * 2 * 2];
+        Color *data = image_.getPixelData();
+
+        int halfWidth = (tileWidth / 2);
+        int halfHeight = (tileHeight / 2);
+        int tileSize = tileWidth * tileHeight;
+        int nrPixels = halfWidth * halfHeight;
+        index = 0;
+        int tileNr = 0;
+        for ( int nrTileRows = 0; nrTileRows < height_; nrTileRows++ )
+        {
+            for ( int nrTileColumns = 0; nrTileColumns < width_; nrTileColumns++ )
+            {
+                int R = 0;
+                int G = 0;
+                int B = 0;
+                for ( int y = 0; y < tileHeight; y += halfHeight )
+                {
+                    for ( int x = 0; x < tileWidth; x += halfWidth )
+                    {
+                        int r = 0;
+                        int g = 0;
+                        int b = 0;
+                        for ( int j = 0; j < halfHeight; j++ )
+                            for ( int i = 0; i < halfWidth; i++ )
+                            {
+                                //Color c = data[(y + j) * tileHeight + x + i];
+                                Color c = data[
+                                    (nrTileRows * tileHeight + y + j) * image_.getWidth() 
+                                    + nrTileColumns * tileWidth + x + i
+                                ];
+                                r += c.GetR();
+                                g += c.GetG();
+                                b += c.GetB();
+                            }
+                        r /= nrPixels;
+                        g /= nrPixels;
+                        b /= nrPixels;
+                        avgColors_2x2_[index] = Color( r,g,b );
+                        R += r;
+                        G += g;
+                        B += b;
+                        index++;
+                    }
+                }
+                R /= 4;
+                G /= 4;
+                B /= 4;
+                avgColors_[tileNr] = Color( R,G,B );
+                tileNr++;
+            }
+        }
+        return 0;
+    }
+    const Color   getAvgColor( int i,int j ) const
+    {
+        assert( i >= 0 );
+        assert( j >= 0 );
+        assert( (j * width_ + i) < width_ * height_ );
+        return getAvgColor( j * width_ + i );
+    }
+    Color   getAvgColor( int i ) const
+    {
+        assert( avgColors_ != nullptr );
+        assert( i >= 0 );
+        assert( i < width_ * height_ );
+        return avgColors_[i];
     }
 private:
     std::string     name_;
-    int             width_;   // in tiles
-    int             height_;  // in tiles
+    int             width_ = 0;   // in tiles
+    int             height_ = 0;  // in tiles
     Sprite          image_;
     bool            walkAbleMask_[DOODAD_MAX_WIDTH * DOODAD_MAX_HEIGHT];
     Tile            terrainMask_[DOODAD_MAX_WIDTH * DOODAD_MAX_HEIGHT];
+    Color          *avgColors_ = nullptr;
+    Color          *avgColors_2x2_ = nullptr;
 };
 
 class World
@@ -274,28 +368,6 @@ private:
             //}
         }
         // now calculate the average color of each tile for the mini map:
-
-        /*
-        int nrPixels = tileWidth_ * tileHeight_;
-        for ( int tileNr = 0; tileNr < nrOfTiles; tileNr++ )
-        {
-            int r = 0;
-            int g = 0;
-            int b = 0;
-            Color *data = tileLibrary_[tileNr].getPixelData();
-            Color *end = data + nrPixels;
-            for ( ; data < end; data++ )
-            {
-                Color c = *data;
-                r += c.GetR();
-                g += c.GetG();
-                b += c.GetB();
-            }
-            r /= nrPixels;
-            g /= nrPixels;
-            b /= nrPixels;
-            AvgColors_[tileNr] = Color( r,g,b );
-        }*/
         // one quarter of a tile at a time:
         int halfWidth = (tileWidth_ / 2);
         int halfHeight = (tileHeight_ / 2);
@@ -317,7 +389,8 @@ private:
                     for ( int j = 0; j < halfHeight; j++ )
                         for ( int i = 0; i < halfWidth; i++ )
                         {
-                            Color c = data[(y + j) * tileHeight_ + x + i];
+                            //Color c = data[(y + j) * tileHeight_ + x + i];
+                            Color c = data[(y + j) * tileWidth_ + x + i];
                             r += c.GetR();
                             g += c.GetG();
                             b += c.GetB();
@@ -350,6 +423,7 @@ private:
         IniFile doodadIni( path + ".ini",defaults.debugLogFile );
         if ( !doodadIni.isLoaded() ) return -1;
         int error = 0;
+        doodads_.clear();
         for ( int doodadNr = 0; error == 0; doodadNr++ )
         {
             Doodad doodad;

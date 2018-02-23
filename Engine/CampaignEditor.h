@@ -13,16 +13,18 @@
 
 
 
-#define MENU_FILE_OPEN              0
-#define MENU_FILE_SAVE              1
-#define MENU_FILE_SAVE_AS           2
-#define MENU_FILE_EXIT              3
-#define MENU_FILE_NR_MENUS          4
+#define MENU_FILE_NEW               0
+#define MENU_FILE_OPEN              1
+#define MENU_FILE_SAVE              2
+#define MENU_FILE_SAVE_AS           3
+#define MENU_FILE_EXIT              4
+#define MENU_FILE_NR_MENUS          5
 
 const char *menutitles[];
 /*
 const char *menutitles[] =
 {
+    "New",
     "Open",
     "Save",
     "Save As",
@@ -117,6 +119,20 @@ is 64x64 (or smaller)
 #define ZOOM_ONE_PIXEL_PER_TILE         1
 #define ZOOM_FOUR_PIXELS_PER_TILE       2
 
+class Palette
+{
+public:
+    Palette() 
+    {
+        listIndex = 0;
+    }
+    // we need to keep track of which palette member is visible:
+    int                 listIndex;
+    Sprite              image;
+    // this list keeps track of which palette member icon starts at which y value
+    std::vector<int>    yValues;
+};
+
 class CampaignEditor
 {
 public:
@@ -152,6 +168,7 @@ private:
     void            drawTerrainGrid();
     void            drawTerrainCursor();
     void            drawMiniMap();
+    void            redrawMiniMap();
     void            drawMiniMapCursor();
 private:
     bool            isInitialized_ = false;
@@ -169,27 +186,15 @@ private:
     GameScreens     gameScreens_;
     World           world_;
     Terrain         terrain_;
-    Sprite          miniMap_;
     Menu            fileMenu_;
 
+    // the two palettes and a pointer to the currently active palette:
+    Palette        basicTerrainPalette_;
+    Palette        doodadPalette_;
+    Palette        *palettePTR_ = &basicTerrainPalette_;
     // tells which palette is currently selected in the editor:
     int             activePalette_ = BASIC_TERRAIN_PALETTE;
-    int            *paletteListIndexPTR_ = &basicTerrainPaletteIndex_;
-    Sprite         *paletteSpritePTR_ = &basicTerrainPalette_;
-    std::vector<int> *paletteYvaluesPTR_ = &basicTerrainPaletteYvalues_;
     bool            scrollDownLock_; // whether we reached the end of the palette
-
-    Sprite          basicTerrainPalette_;
-    Sprite          doodadPalette_;
-    // this list keeps track of which palette member icon starts at which y value
-    std::vector<int> basicTerrainPaletteYvalues_;
-    std::vector<int> doodadPaletteYvalues_;
-    // we need to keep track of which palette member is visible:
-    int             basicTerrainPaletteIndex_ = 0;
-    int             doodadPaletteIndex_ = 0;
-    // which icon we are currently drawing with:
-    int             basicTerrainSelectedIcon_ = 0;
-    int             doodadSelectedIcon_ = 0;
 
     // For the menu: if the menu is shown or not
     bool            menuFileVisible_ = false;
@@ -214,9 +219,13 @@ private:
     // width & height of the tiles in pixels:
     int             tileWidth_;
     int             tileHeight_;
-    // these coordinates are used to draw the minimap (the radar screen):
-    int             miniMapXOrig_;
-    int             miniMapYOrig_;
-    Rect            miniMapCursor_;
-    int             miniMapZoom_ = ZOOM_ONE_PIXEL_PER_TILE;
+    // these variables are used to draw the minimap (the radar screen):
+    struct Minimap
+    {
+        int             xOrig;
+        int             yOrig;
+        Sprite          image;
+        Rect            cursorCoords;
+        int             zoomLevel = ZOOM_ONE_PIXEL_PER_TILE;
+    } minimap_;
 };

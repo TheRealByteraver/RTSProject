@@ -2,6 +2,7 @@
 
 const char *menutitles[] =
 {
+    "New",
     "Open",
     "Save",
     "Save As",
@@ -84,11 +85,14 @@ void CampaignEditor::init(
     // draw the currently active palette:
     redrawPalette();
 
+    // Draw the minimap:
+    redrawMiniMap();
+
     // And we are done:
     isInitialized_ = true;
 
     // debug: load test terrain
-    error = loadTerrain( "savetestbak.ini" );
+    //error = loadTerrain( "savetestbak.ini" );
 }
 
 int CampaignEditor::loadTerrain( const std::string& terrainName )
@@ -147,6 +151,9 @@ int CampaignEditor::loadTerrain( const std::string& terrainName )
     // draw the currently active palette:
     redrawPalette();
 
+    // Draw the minimap:
+    redrawMiniMap();
+
     return error;
 }
 
@@ -168,6 +175,7 @@ void CampaignEditor::draw()
     drawTerrain();
     if ( isGridVisible_ ) drawTerrainGrid();
     drawMiniMap();
+    drawMiniMapCursor();
     redrawPalette(); // temp, should be moved to side bar drawing function
 
     if ( menuFileVisible_ )
@@ -194,7 +202,41 @@ void CampaignEditor::draw()
         if ( doodadMouseCursor_ ) drawDoodadCursorAtLocation();
         else drawTerrainCursor();
     }
-    
+    /*
+    gfx.paintSpriteSection( 
+        10,22,
+        Rect( 
+            0,
+            0,
+            doodadPalette_.image.getWidth() - 1,
+            700 
+        ),
+        doodadPalette_.image
+    );
+
+    gfx.paintSpriteSection(
+        10 + doodadPalette_.image.getWidth() + 1,22,
+        Rect(
+            0,
+            700,
+            doodadPalette_.image.getWidth() - 1,
+            1400
+        ),
+        doodadPalette_.image
+    );
+
+    gfx.paintSpriteSection(
+        10 + doodadPalette_.image.getWidth() * 2 + 2,22,
+        Rect(
+            0,
+            1400,
+            doodadPalette_.image.getWidth() - 1,
+            doodadPalette_.image.getHeight() - 1
+        ),
+        doodadPalette_.image
+    );
+    */
+
     /*
     // show the doodadLocation Map: (debug)
     for ( int j = 0; j < terrain_.getRows(); j++ )
@@ -239,14 +281,14 @@ void CampaignEditor::handleInput()
         (TerrainDrawYOrig_ < terrain_.getRows() - visibleTilesY_) )
         TerrainDrawYOrig_++;
     // palette:
-    int& paletteListIndex = *paletteListIndexPTR_;
+    Palette& palette = *palettePTR_;
     if ( mouse.isInArea(
         Rect( gameScreens_.paletteWindow.x1,
             gameScreens_.paletteWindow.y1,
             gameScreens_.paletteWindow.x2,
             gameScreens_.paletteWindow.y1 + 64 ) ) )
     {
-        if ( paletteListIndex > 0 ) paletteListIndex--;
+        if ( palette.listIndex > 0 ) palette.listIndex--;
         redrawPalette();
     }
     if ( mouse.isInArea(
@@ -255,7 +297,7 @@ void CampaignEditor::handleInput()
             gameScreens_.paletteWindow.x2,
             gameScreens_.paletteWindow.y2 ) ) )
     {
-        if ( !scrollDownLock_ ) paletteListIndex++;
+        if ( !scrollDownLock_ ) palette.listIndex++;
         redrawPalette();
     }
     // mouse left click functions:
@@ -270,6 +312,11 @@ void CampaignEditor::handleInput()
                 const int menuNr = fileMenu_.getSelectedSubMenu( mY );
                 switch ( menuNr )
                 {
+                    case MENU_FILE_NEW:
+                    {
+                        menuFileVisible_ = false;
+                        break;
+                    }
                     case MENU_FILE_OPEN:
                     {
                         menuFileVisible_ = false;
@@ -310,6 +357,7 @@ void CampaignEditor::handleInput()
                         for ( int j = tileY; j < tileY + doodad.height(); j++ )
                             for ( int i = tileX; i < tileX + doodad.width(); i++ )
                                 doodadLocationMap_[j * terrain_.getColumns() + i] = true;
+                        redrawMiniMap();
                         isTerrainSaved_ = false;
                     }
                 } else
@@ -322,6 +370,7 @@ void CampaignEditor::handleInput()
                         if ( tileY & 0x1 ) tileY--;
                         Rect redraw = terrain_.drawTerrain( tileX,tileY,terrainType_ );
                         checkDoodads();
+                        redrawMiniMap();
                         isTerrainSaved_ = false;
                     }
                 }
@@ -339,16 +388,15 @@ void CampaignEditor::handleInput()
             }
         } else if ( mouse.isInArea( gameScreens_.paletteWindow ) )
         {
-            std::vector<int>& paletteYvalues = *paletteYvaluesPTR_;
-            int& paletteIndex = *paletteListIndexPTR_;
-            if ( paletteYvalues.size() > 0 )
+            Palette& palette = *palettePTR_;
+            if ( palette.yValues.size() > 0 )
             {
                 int y = mY - gameScreens_.paletteWindow.y1;
-                int yDelta = paletteYvalues[paletteIndex];
+                int yDelta = palette.yValues[palette.listIndex];
                 int index;
-                for ( index = paletteIndex; index < paletteYvalues.size(); index++ )
+                for ( index = palette.listIndex; index < palette.yValues.size(); index++ )
                 {
-                    if ( paletteYvalues[index] - yDelta > y ) break;
+                    if ( palette.yValues[index] - yDelta > y ) break;
                 }
                 int activeItem = index - 1;
                 switch ( activePalette_ )
@@ -356,32 +404,8 @@ void CampaignEditor::handleInput()
                     case BASIC_TERRAIN_PALETTE:
                     {
                         doodadMouseCursor_ = false;
-                        terrainType_ = activeItem << 4;
-                        /*
-                        switch ( activeItem )
-                        {
-                            case 0:
-                            {
-                                terrainType_ = T_LOW_WATER;
-                                break;
-                            }
-                            case 1:
-                            {
-                                terrainType_ = T_LOW;
-                                break;
-                            }
-                            case 2:
-                            {
-                                terrainType_ = T_HIGH;
-                                break;
-                            }
-                            case 3:
-                            {
-                                terrainType_ = T_HIGH_WATER;
-                                break;
-                            }
-                        }                        
-                        */
+                        // terrainType_ = activeItem << 4;
+                        terrainType_ = terrain_.getBasicTerrainValue( activeItem );
                         break;
                     }
                     case DOODAD_PALETTE:
@@ -606,7 +630,13 @@ void CampaignEditor::drawTerrainCursor()
 
 void CampaignEditor::drawMiniMap()
 {
-    switch ( miniMapZoom_ )
+    Graphics& gfx = *gfx_;
+    gfx.paintSprite( minimap_.xOrig,minimap_.yOrig,minimap_.image );
+}
+
+void CampaignEditor::redrawMiniMap()
+{
+    switch ( minimap_.zoomLevel )
     {
         case ZOOM_QUARTER_PIXEL_PER_TILE: // one pixel per 4 tiles
         {
@@ -620,7 +650,7 @@ void CampaignEditor::drawMiniMap()
                     Color c1 = world_.getAvgColor( terrain_.getElement( x + 1,y     ) );
                     Color c2 = world_.getAvgColor( terrain_.getElement( x    ,y + 1 ) );
                     Color c3 = world_.getAvgColor( terrain_.getElement( x + 1,y + 1 ) );
-                    miniMap_.putPixel( mmpX,mmpY,Color( 
+                    minimap_.image.putPixel( mmpX,mmpY,Color(
                         (c0.GetR() + c1.GetR() + c2.GetR() + c3.GetR()) >> 2,
                         (c0.GetG() + c1.GetG() + c2.GetG() + c3.GetG()) >> 2,
                         (c0.GetB() + c1.GetB() + c2.GetB() + c3.GetB()) >> 2 ) );
@@ -637,9 +667,25 @@ void CampaignEditor::drawMiniMap()
             {
                 for ( int x = 0; x < terrain_.getColumns(); x++ )
                 {
-                    miniMap_.putPixel( x,y,world_.getAvgColor( terrain_.getElement( i ) ) );
+                    minimap_.image.putPixel( x,y,world_.getAvgColor( terrain_.getElement( i ) ) );
                     i++;
                 }
+            }
+            // and now the doodads:
+            const std::vector<DoodadLocation>& doodadList = terrain_.getDoodadList();
+            for ( int iDoodad = 0; iDoodad < doodadList.size(); iDoodad++ )
+            {
+                const DoodadLocation& doodadLocation = doodadList[iDoodad];
+                const Doodad& doodad = world_.getDoodad( doodadLocation.doodadNr );
+                for( int j = 0; j < doodad.height(); j++ )
+                    for ( int i = 0; i < doodad.width(); i++ )
+                    {
+                        minimap_.image.putPixel(
+                            doodadLocation.x + i,
+                            doodadLocation.y + j,
+                            doodad.getAvgColor( i,j )
+                        );
+                    }
             }
             break;
         }
@@ -648,50 +694,48 @@ void CampaignEditor::drawMiniMap()
             for ( int j = 0; j < terrain_.getRows(); j++ )
                 for ( int i = 0; i < terrain_.getColumns(); i++ )
                     for ( int p = 0; p < 4; p++ )
-                        miniMap_.putPixel(
+                        minimap_.image.putPixel(
                             (i << 1) + (p & 1),
                             (j << 1) + (p >> 1),
                             world_.getAvgColors_2x2( terrain_.getElement( i,j ) )[p] );
             break;
         }
     }
-    Graphics& gfx = *gfx_;
-    gfx.paintSprite( miniMapXOrig_,miniMapYOrig_,miniMap_ );
-    drawMiniMapCursor();
 }
 
 void CampaignEditor::drawMiniMapCursor()
 {
     // draw the minimap highlighted area delimiter / cursor:
-    switch ( miniMapZoom_ )
+    Rect& cursor = minimap_.cursorCoords;
+    switch ( minimap_.zoomLevel )
     {
         case ZOOM_QUARTER_PIXEL_PER_TILE:
         {
-            miniMapCursor_.x1 = miniMapXOrig_ + TerrainDrawXOrig_ / 2;
-            miniMapCursor_.y1 = miniMapYOrig_ + TerrainDrawYOrig_ / 2;
-            miniMapCursor_.x2 = miniMapCursor_.x1 + visibleTilesX_ / 2 - 1;
-            miniMapCursor_.y2 = miniMapCursor_.y1 + visibleTilesY_ / 2 - 1;
+            cursor.x1 = minimap_.xOrig + TerrainDrawXOrig_ / 2;
+            cursor.y1 = minimap_.yOrig + TerrainDrawYOrig_ / 2;
+            cursor.x2 = cursor.x1 + visibleTilesX_ / 2 - 1;
+            cursor.y2 = cursor.y1 + visibleTilesY_ / 2 - 1;
             break;
         }
         case ZOOM_ONE_PIXEL_PER_TILE:
         {
-            miniMapCursor_.x1 = miniMapXOrig_ + TerrainDrawXOrig_;
-            miniMapCursor_.y1 = miniMapYOrig_ + TerrainDrawYOrig_;
-            miniMapCursor_.x2 = miniMapCursor_.x1 + visibleTilesX_ - 1;
-            miniMapCursor_.y2 = miniMapCursor_.y1 + visibleTilesY_ - 1;
+            cursor.x1 = minimap_.xOrig + TerrainDrawXOrig_;
+            cursor.y1 = minimap_.yOrig + TerrainDrawYOrig_;
+            cursor.x2 = cursor.x1 + visibleTilesX_ - 1;
+            cursor.y2 = cursor.y1 + visibleTilesY_ - 1;
             break;
         }
         case ZOOM_FOUR_PIXELS_PER_TILE:
         {
-            miniMapCursor_.x1 = miniMapXOrig_ + TerrainDrawXOrig_ * 2;
-            miniMapCursor_.y1 = miniMapYOrig_ + TerrainDrawYOrig_ * 2;
-            miniMapCursor_.x2 = miniMapCursor_.x1 + visibleTilesX_ * 2 - 1;
-            miniMapCursor_.y2 = miniMapCursor_.y1 + visibleTilesY_ * 2 - 1;
+            cursor.x1 = minimap_.xOrig + TerrainDrawXOrig_ * 2;
+            cursor.y1 = minimap_.yOrig + TerrainDrawYOrig_ * 2;
+            cursor.x2 = cursor.x1 + visibleTilesX_ * 2 - 1;
+            cursor.y2 = cursor.y1 + visibleTilesY_ * 2 - 1;
             break;
         }
     }
     Graphics& gfx = *gfx_;
-    gfx.drawBox( miniMapCursor_,Colors::White );
+    gfx.drawBox( minimap_.cursorCoords,Colors::White );
 }
 
 // This function needs to be called each time a new world or terrain is loaded
@@ -709,24 +753,24 @@ void CampaignEditor::initMapCoords()
     */
     if ( terrain_.getColumns() > 128 )
     {
-        miniMapZoom_ = ZOOM_QUARTER_PIXEL_PER_TILE;
-        miniMap_.createEmptySprite( terrain_.getColumns() / 2,terrain_.getRows() / 2 );
+        minimap_.zoomLevel = ZOOM_QUARTER_PIXEL_PER_TILE;
+        minimap_.image.createEmptySprite( terrain_.getColumns() / 2,terrain_.getRows() / 2 );
     } else if ( terrain_.getColumns() > 64 )
     {
-        miniMapZoom_ = ZOOM_ONE_PIXEL_PER_TILE;
-        miniMap_.createEmptySprite( terrain_.getColumns(),terrain_.getRows() );
+        minimap_.zoomLevel = ZOOM_ONE_PIXEL_PER_TILE;
+        minimap_.image.createEmptySprite( terrain_.getColumns(),terrain_.getRows() );
     } else
     {
-        miniMapZoom_ = ZOOM_FOUR_PIXELS_PER_TILE;
-        miniMap_.createEmptySprite( terrain_.getColumns() * 2,terrain_.getRows() * 2 );
+        minimap_.zoomLevel = ZOOM_FOUR_PIXELS_PER_TILE;
+        minimap_.image.createEmptySprite( terrain_.getColumns() * 2,terrain_.getRows() * 2 );
     }
     tileWidth_ = world_.tileWidth();
     tileHeight_ = world_.tileHeight();
     GameScreens& gS = gameScreens_; // save some screen real estate here ;)
-    miniMapXOrig_ = gS.sidebar_coords.x1 + gS.minimapclient_coords.x1 +
-        (gS.minimapclient_coords.width() - miniMap_.getWidth()) / 2;
-    miniMapYOrig_ = gS.sidebar_coords.y1 + gS.minimapclient_coords.y1 +
-        (gS.minimapclient_coords.height() - miniMap_.getHeight()) / 2;
+    minimap_.xOrig = gS.sidebar_coords.x1 + gS.minimapclient_coords.x1 +
+        (gS.minimapclient_coords.width() - minimap_.image.getWidth()) / 2;
+    minimap_.yOrig = gS.sidebar_coords.y1 + gS.minimapclient_coords.y1 +
+        (gS.minimapclient_coords.height() - minimap_.image.getHeight()) / 2;
     // Initialize nr of Grid lines in both directions:
     visibleTilesX_ = gameScreens_.map_coords.width() / tileWidth_;
     visibleTilesY_ = gameScreens_.map_coords.height() / tileHeight_;
@@ -739,7 +783,7 @@ void CampaignEditor::initMapCoords()
 */
 void CampaignEditor::createBasicTerrainPalette()
 {
-    basicTerrainPalette_.setFont( font_ );
+    basicTerrainPalette_.image.setFont( font_ );
     Sprite buffer;
     const int separator = 1;
     const int iconWidth = 2; // expressed in tiles
@@ -752,7 +796,7 @@ void CampaignEditor::createBasicTerrainPalette()
         spriteWidth,
         separator + nrOfTerrainTypes * separator + nrOfVerticalTiles * tileHeight_
     );
-    basicTerrainPaletteYvalues_.clear();
+    basicTerrainPalette_.yValues.clear();
     int yStart = separator;
     Sprite terrainIcon;
     terrainIcon.createEmptySprite(
@@ -762,7 +806,7 @@ void CampaignEditor::createBasicTerrainPalette()
     );
     for ( int iTerrainType = 0; iTerrainType < nrOfTerrainTypes; iTerrainType++ )
     {
-        int tileIndex = iTerrainType * 16;
+        int tileIndex = iTerrainType * 16; // only works if tile is in 8 x 8 configuration
         if ( iTerrainType == 1 ) // dirty hack for low terrain
         {
             terrainIcon.insertFromSprite( separator             ,separator              ,world_.getTile( tileIndex ) );
@@ -837,11 +881,10 @@ void CampaignEditor::createBasicTerrainPalette()
                 );
             }
         }
-        basicTerrainPaletteYvalues_.push_back( yStart );
+        basicTerrainPalette_.yValues.push_back( yStart );
         yStart += separator + terrainIconHeight;
     }
-    //basicTerrainPaletteYvalues_.push_back( yStart );
-    basicTerrainPalette_.createFromSprite(
+    basicTerrainPalette_.image.createFromSprite(
         buffer,
         Rect( 0,0,buffer.getWidth() - 1,yStart ) );
 }
@@ -852,8 +895,8 @@ Design: list of doodad's on black background, separated by a black line
 */
 void CampaignEditor::createDoodadPalette()
 {
-    doodadPalette_.setFont( font_ );
-    doodadPaletteYvalues_.clear();
+    doodadPalette_.image.setFont( font_ );
+    doodadPalette_.yValues.clear();
     Sprite buffer;
     const int yOffset = 1;
     const int separator = 1;
@@ -865,11 +908,11 @@ void CampaignEditor::createDoodadPalette()
         nrOfVerticalTiles += world_.getDoodad( i ).height();
     if ( nrOfVerticalTiles == 0 )
     {
-        doodadPalette_.createEmptySprite( 
+        doodadPalette_.image.createEmptySprite( 
             spriteWidth,
             FONT_HEIGHT + TEXT_OFFSET * 2 
         );
-        doodadPalette_.printXY( TEXT_OFFSET,TEXT_OFFSET,"(Empty)" );
+        doodadPalette_.image.printXY( TEXT_OFFSET,TEXT_OFFSET,"(Empty)" );
         return;
     }
     buffer.createEmptySprite(
@@ -941,11 +984,10 @@ void CampaignEditor::createDoodadPalette()
                 );
             }
         }
-        doodadPaletteYvalues_.push_back( yStart );
+        doodadPalette_.yValues.push_back( yStart );
         yStart += separator + doodadHeight;
     }
-    //doodadPaletteYvalues_.push_back( yStart );
-    doodadPalette_.createFromSprite(
+    doodadPalette_.image.createFromSprite(
         buffer,
         Rect( 0,0,buffer.getWidth() - 1,yStart )
     );
@@ -957,16 +999,12 @@ void CampaignEditor::initPalettePointers()
     {
         case BASIC_TERRAIN_PALETTE:
         {
-            paletteSpritePTR_ = &basicTerrainPalette_;
-            paletteYvaluesPTR_ = &basicTerrainPaletteYvalues_;
-            paletteListIndexPTR_ = &basicTerrainPaletteIndex_;
+            palettePTR_ = &basicTerrainPalette_;
             break;
         }
         case DOODAD_PALETTE:
         {
-            paletteSpritePTR_ = &doodadPalette_;
-            paletteYvaluesPTR_ = &doodadPaletteYvalues_;
-            paletteListIndexPTR_ = &doodadPaletteIndex_;
+            palettePTR_ = &doodadPalette_;
             break;
         }
     }
@@ -982,23 +1020,21 @@ void CampaignEditor::redrawPalette()
         palettetitles[activePalette_]
     );
     // draw palette:
-    Sprite& paletteSprite = *paletteSpritePTR_;
-    std::vector<int>& paletteYvalues = *paletteYvaluesPTR_;
-    int paletteListIndex = *paletteListIndexPTR_;
+    Palette& palette = *palettePTR_;
     // make sure we do not index an empty vector list:
-    if ( paletteYvalues.size() == 0 )
+    if ( palette.yValues.size() == 0 )
     {
         gfx.paintSprite(
             gameScreens_.sidebar_coords.x1 + gameScreens_.paletteclientwindow_coords.x1,
             gameScreens_.sidebar_coords.y1 + gameScreens_.paletteclientwindow_coords.y1,
-            paletteSprite );
+            palette.image );
         return;
     }
     scrollDownLock_ = false;
     int paletteSpriteMaxHeight = gameScreens_.paletteclientwindow_coords.height();
-    if ( paletteSpriteMaxHeight >= paletteSprite.getHeight() - paletteYvalues[paletteListIndex] )
+    if ( paletteSpriteMaxHeight >= palette.image.getHeight() - palette.yValues[palette.listIndex] )
     {
-        paletteSpriteMaxHeight = paletteSprite.getHeight() - paletteYvalues[paletteListIndex] - 1;
+        paletteSpriteMaxHeight = palette.image.getHeight() - palette.yValues[palette.listIndex] - 1;
         scrollDownLock_ = true;
     }
     gfx.paintSpriteSection(
@@ -1006,11 +1042,11 @@ void CampaignEditor::redrawPalette()
         gameScreens_.sidebar_coords.y1 + gameScreens_.paletteclientwindow_coords.y1,
         Rect(
             0,
-            paletteYvalues[paletteListIndex] - 1,
-            paletteSprite.getWidth() - 1,
-            paletteYvalues[paletteListIndex] - 1 + paletteSpriteMaxHeight - 1
+            palette.yValues[palette.listIndex] - 1,
+            palette.image.getWidth() - 1,
+            palette.yValues[palette.listIndex] - 1 + paletteSpriteMaxHeight - 1
         ),
-        paletteSprite
+        palette.image
     );
 }
 
