@@ -234,7 +234,7 @@ public:
         }
         return 0;
     }
-    const Color   getAvgColor( int i,int j ) const
+    Color   getAvgColor( int i,int j ) const
     {
         assert( i >= 0 );
         assert( j >= 0 );
@@ -247,6 +247,22 @@ public:
         assert( i >= 0 );
         assert( i < width_ * height_ );
         return avgColors_[i];
+    }
+    /*
+    Color   getAvgColor2x2( int i,int j ) const
+    {
+        assert( i >= 0 );
+        assert( j >= 0 );
+        assert( (j * width_ * 2 + i) < width_ * height_ * 2 * 2 );
+        return getAvgColor2x2( j * width_ * 2 + i );
+    }
+    */
+    Color   getAvgColor2x2( int i ) const
+    {
+        assert( avgColors_2x2_ != nullptr );
+        assert( i >= 0 );
+        assert( i < width_ * height_ * 2 * 2 );
+        return avgColors_2x2_[i];
     }
 private:
     std::string     name_;

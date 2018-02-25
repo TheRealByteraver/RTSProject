@@ -6,7 +6,7 @@
 
 // the default width of one tile used to create the terrain
 // change this value to zoom in or out
-#define WORLD_TILE_DEFAULT_WIDTH    16
+#define WORLD_TILE_DEFAULT_WIDTH    32
 
 // there are 64 tiles, some of whom are not used (black)
 // do not change this value, or program will crash
@@ -35,15 +35,38 @@
 #define TERRAIN_SPRITE_LIB_HEIGHT   (TILE_Y_OFFSET + NR_OF_TILE_ROWS * \
                                     (WORLD_TILE_DEFAULT_WIDTH + TILE_SEPARATOR))
 
+
+
 // some color constants for the greenprairie world drawing function:
-#define T_LOW_WATER_COLOR           0x202080
-#define T_LOW_COLOR                 0x208020
-#define T_HIGH_COLOR                0x20F020
-#define T_HIGH_WATER_COLOR          0x2020F0
-#define T_TRANS_SHADE_COLOR         0x00D000
-#define T_TRANS_DARKSHADE_COLOR     0x00B000
-#define T_TRANS_SUN_COLOR           0x40F040
-#define T_TRANS_LIGHTSUN_COLOR      0x60FF60
+#define T_GREENPRAIRIE_LOW_WATER_COLOR      0x1010A0
+#define T_GREENPRAIRIE_LOW_COLOR            0x40A010
+#define T_GREENPRAIRIE_HIGH_COLOR           0x20F020
+#define T_GREENPRAIRIE_HIGH_WATER_COLOR     0x2020F0
+// hill colors from Brightest to darkest:
+#define T_GREENPRAIRIE_TOP_RIGHT_COLOR      0x40FF40     // 1
+#define T_GREENPRAIRIE_TOP_COLOR            0x38EF38     // 2
+#define T_GREENPRAIRIE_RIGHT_COLOR          0x30DF30     // 3
+#define T_GREENPRAIRIE_TOP_LEFT_COLOR       0x28CF28     // 4
+#define T_GREENPRAIRIE_BOTTOM_RIGHT_COLOR   0x20BF20     // 5
+#define T_GREENPRAIRIE_BOTTOM_COLOR         0x18AF18     // 6
+#define T_GREENPRAIRIE_LEFT_COLOR           0x109F10     // 7
+#define T_GREENPRAIRIE_BOTTOM_LEFT_COLOR    0x088F08     // 8
+/*
+// some color constants for the greenprairie world drawing function:
+#define T_GREENPRAIRIE_LOW_WATER_COLOR      0x101010
+#define T_GREENPRAIRIE_LOW_COLOR            0xE7C987
+#define T_GREENPRAIRIE_HIGH_COLOR           0xCD8F6D
+#define T_GREENPRAIRIE_HIGH_WATER_COLOR     0x2020F0
+// hill colors from Brightest to darkest:
+#define T_GREENPRAIRIE_TOP_RIGHT_COLOR      0xFABC9A     // 1
+#define T_GREENPRAIRIE_TOP_COLOR            0xEAAC8A     // 2
+#define T_GREENPRAIRIE_RIGHT_COLOR          0xDA9C7A     // 3
+#define T_GREENPRAIRIE_TOP_LEFT_COLOR       0xCA8C6A     // 4
+#define T_GREENPRAIRIE_BOTTOM_RIGHT_COLOR   0xBA7C5A     // 5
+#define T_GREENPRAIRIE_BOTTOM_COLOR         0xAA6C4A     // 6
+#define T_GREENPRAIRIE_LEFT_COLOR           0x9A5C3A     // 7
+#define T_GREENPRAIRIE_BOTTOM_LEFT_COLOR    0x8A4C2A     // 8
+*/
 
 // some color constants for the desert world drawing function:
 #define T_DESERT_LOW_TARPIT_COLOR       0x101010
@@ -74,10 +97,10 @@ private:
     int     height_ = WORLD_TILE_DEFAULT_WIDTH;
 private:
     void    createGreenPrairieWorldTiles();
-    //void    createGreenPrairieWorldDoodAdds(); // TODO!
+    void    createGreenPrairieWorldDoodads();
     void    createDesertWorldTiles();
-    void    createDesertWorldDoodAdds();
-    void    createSmoothEdgeDoodAds( 
+    void    createDesertWorldDoodads();
+    void    createSmoothEdgeDoodads( 
                 int xDest,int yDest,
                 const Sprite& tiles,
                 int sourceTileRow,

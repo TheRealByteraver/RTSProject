@@ -202,6 +202,29 @@ void CampaignEditor::draw()
         if ( doodadMouseCursor_ ) drawDoodadCursorAtLocation();
         else drawTerrainCursor();
     }
+
+
+
+    /*
+    // debug:
+    gfx.drawBlock( 19,19,19 + (6 * 2 + 1),19 + (6 * 2 + 1) * 4,Colors::Black );
+    for ( int iDoodad = 0; iDoodad < 4; iDoodad++ )
+    {
+        const Doodad& D = world_.getDoodad( iDoodad );
+        int idx = 0;
+        for ( int j = 0; j < 6 * 2; j += 2 )
+            for ( int i = 0; i < 6 * 2; i += 2 )
+            {
+                int x = 20 + i;
+                int y = 20 + (6 * 2 + 1) * iDoodad + j;
+
+                gfx.PutPixel( x    ,y    ,D.getAvgColor2x2( idx++ ) );
+                gfx.PutPixel( x + 1,y    ,D.getAvgColor2x2( idx++ ) );
+                gfx.PutPixel( x    ,y + 1,D.getAvgColor2x2( idx++ ) );
+                gfx.PutPixel( x + 1,y + 1,D.getAvgColor2x2( idx++ ) );
+            }
+    }
+    */
     /*
     gfx.paintSpriteSection( 
         10,22,
@@ -640,6 +663,36 @@ void CampaignEditor::redrawMiniMap()
     {
         case ZOOM_QUARTER_PIXEL_PER_TILE: // one pixel per 4 tiles
         {
+            Sprite buffer;
+            buffer.createEmptySprite( terrain_.getColumns(),terrain_.getRows() );
+            int t = 0;
+            for ( int y = 0; y < terrain_.getRows(); y++ )
+                for ( int x = 0; x < terrain_.getColumns(); x++ )
+                    buffer.putPixel(
+                        x,
+                        y,
+                        world_.getAvgColor( terrain_.getElement( t++ ) )
+                    );
+            // and now the doodads:
+            const std::vector<DoodadLocation>& doodadList = terrain_.getDoodadList();
+            for ( int iDoodad = 0; iDoodad < doodadList.size(); iDoodad++ )
+            {
+                const DoodadLocation& doodadLocation = doodadList[iDoodad];
+                const Doodad& doodad = world_.getDoodad( doodadLocation.doodadNr );
+                int idx = 0;
+                for ( int j = 0; j < doodad.height(); j++ )
+                    for ( int i = 0; i < doodad.width(); i++ )
+                        buffer.putPixel(
+                            doodadLocation.x + i,
+                            doodadLocation.y + j,
+                            doodad.getAvgColor( idx++ )
+                        );
+            }
+
+
+
+
+            
             int mmpY = 0;
             for ( int y = 0; y < terrain_.getRows(); y += 2 )
             {
@@ -658,18 +711,52 @@ void CampaignEditor::redrawMiniMap()
                 }
                 mmpY++;
             }
+            
             break;
         }
         case ZOOM_ONE_PIXEL_PER_TILE: // one pixel per tile
         {
-            int i = 0;
+            int t = 0;
             for ( int y = 0; y < terrain_.getRows(); y++ )
-            {
                 for ( int x = 0; x < terrain_.getColumns(); x++ )
+                    minimap_.image.putPixel( 
+                        x,
+                        y,
+                        world_.getAvgColor( terrain_.getElement( t++ ) ) 
+                    );
+            // and now the doodads:
+            const std::vector<DoodadLocation>& doodadList = terrain_.getDoodadList();
+            for ( int iDoodad = 0; iDoodad < doodadList.size(); iDoodad++ )
+            {
+                const DoodadLocation& doodadLocation = doodadList[iDoodad];
+                const Doodad& doodad = world_.getDoodad( doodadLocation.doodadNr );
+                int idx = 0;
+                for( int j = 0; j < doodad.height(); j++ )
+                    for ( int i = 0; i < doodad.width(); i++ )
+                        minimap_.image.putPixel(
+                            doodadLocation.x + i,
+                            doodadLocation.y + j,
+                            doodad.getAvgColor( idx++ )
+                        );
+            }
+            break;
+        }
+        case ZOOM_FOUR_PIXELS_PER_TILE: // two pixels per tile
+        {
+            int y = 0;
+            for ( int j = 0; j < terrain_.getRows(); j++ )
+            {
+                int x = 0;
+                for ( int i = 0; i < terrain_.getColumns(); i++ )
                 {
-                    minimap_.image.putPixel( x,y,world_.getAvgColor( terrain_.getElement( i ) ) );
-                    i++;
+                    const Color *src = world_.getAvgColors_2x2( terrain_.getElement( i,j ) );
+                    minimap_.image.putPixel( x    ,y    ,*src++ );
+                    minimap_.image.putPixel( x + 1,y    ,*src++ );
+                    minimap_.image.putPixel( x    ,y + 1,*src++ );
+                    minimap_.image.putPixel( x + 1,y + 1,*src );
+                    x += 2;
                 }
+                y += 2;
             }
             // and now the doodads:
             const std::vector<DoodadLocation>& doodadList = terrain_.getDoodadList();
@@ -677,27 +764,24 @@ void CampaignEditor::redrawMiniMap()
             {
                 const DoodadLocation& doodadLocation = doodadList[iDoodad];
                 const Doodad& doodad = world_.getDoodad( doodadLocation.doodadNr );
-                for( int j = 0; j < doodad.height(); j++ )
-                    for ( int i = 0; i < doodad.width(); i++ )
+                int idx = 0;
+                int doubleWidth = doodad.width() * 2;
+                int doubleHeight = doodad.height() * 2;
+                int y = doodadLocation.y * 2;
+                for ( int j = 0; j < doubleHeight; j += 2 )
+                {
+                    int x = doodadLocation.x * 2;
+                    for ( int i = 0; i < doubleWidth; i += 2 )
                     {
-                        minimap_.image.putPixel(
-                            doodadLocation.x + i,
-                            doodadLocation.y + j,
-                            doodad.getAvgColor( i,j )
-                        );
+                        minimap_.image.putPixel( x    ,y    ,doodad.getAvgColor2x2( idx++ ) );
+                        minimap_.image.putPixel( x + 1,y    ,doodad.getAvgColor2x2( idx++ ) );
+                        minimap_.image.putPixel( x    ,y + 1,doodad.getAvgColor2x2( idx++ ) );
+                        minimap_.image.putPixel( x + 1,y + 1,doodad.getAvgColor2x2( idx++ ) );
+                        x += 2;
                     }
+                    y += 2;
+                }
             }
-            break;
-        }
-        case ZOOM_FOUR_PIXELS_PER_TILE: // two pixels per tile
-        {
-            for ( int j = 0; j < terrain_.getRows(); j++ )
-                for ( int i = 0; i < terrain_.getColumns(); i++ )
-                    for ( int p = 0; p < 4; p++ )
-                        minimap_.image.putPixel(
-                            (i << 1) + (p & 1),
-                            (j << 1) + (p >> 1),
-                            world_.getAvgColors_2x2( terrain_.getElement( i,j ) )[p] );
             break;
         }
     }

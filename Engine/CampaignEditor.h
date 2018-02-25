@@ -205,7 +205,7 @@ private:
     int             doodadNr_ = 0; // which doodad the user selected
     bool            doodadMouseCursor_ = false; // whether the active doodad is shown on the mouse cursor location
     Sprite          doodadCursorSprite_; // the original-sized doodad without the compatibility overlay
-    bool            isGridVisible_ = true;
+    bool            isGridVisible_ = false;//true;
     bool            isTerrainSaved_ = false;
     // this pointer is a two dimensional boolean map that tells if a given 
     // tile has a doodad on top of it or not:
