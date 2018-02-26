@@ -20,7 +20,7 @@
 #define MENU_FILE_EXIT              4
 #define MENU_FILE_NR_MENUS          5
 
-const char *menutitles[];
+const char *menufiletitles[];
 /*
 const char *menutitles[] =
 {
@@ -100,6 +100,12 @@ private:
 };
 
 
+// Mouse delay timer constants, in frames (1/60 of a second)
+#define MOUSE_LEFT_CLICK_DELAY          15
+#define MOUSE_SCROLL_START_DELAY        20
+#define MOUSE_NO_DELAY                  0
+#define MOUSE_SCROLL_SPEED              10  // higher = slower
+
 // keep track of which palette is visible in the side bar:
 #define BASIC_TERRAIN_PALETTE           0
 #define DOODAD_PALETTE                  1
@@ -153,6 +159,13 @@ public:
     void            handleInput();
     bool            isInitialized() const { return isInitialized_; }
 private:
+    void            handleMapScrollingFunction();
+    void            handlePaletteScrollingFunction();
+    void            switchToNextPalette();
+    void            paletteHandleInput( int mY );
+    void            drawBasicTerrain( int tileX,int tileY );
+    void            tryDrawDoodad( int tileX,int tileY );
+    void            menuFileHandleInput( int mY );
     int             loadTerrain( const std::string& terrainName );
     bool            canPlaceDoodadAtLocation( int x,int y,const Doodad& doodad ) const;
     void            initDoodadLocationMap();
@@ -163,7 +176,7 @@ private:
     void            createDoodadPalette();
     void            initPalettePointers();
     void            redrawPalette();
-    void            drawDoodadCursorAtLocation( /*int xTile,int yTile*/ );
+    void            drawDoodadCursorAtLocation();
     void            drawTerrain();
     void            drawTerrainGrid();
     void            drawTerrainCursor();
@@ -180,7 +193,11 @@ private:
     Keyboard*       keyboard_;
 
     // this variable is used for single-click actions:
-    int             mouseTimer_ = 0;
+    bool            mouseWaitForLeftButtonReleased_ = false;
+    int             mouseLeftClickDelay_ = MOUSE_NO_DELAY;
+    int             mouseMapScrollDelay_ = MOUSE_SCROLL_START_DELAY;
+    int             mousePaletteScrollDelay_ = MOUSE_SCROLL_START_DELAY;
+    int             mousePaletteScrollSpeed_ = MOUSE_SCROLL_SPEED;
 
     // class variables:
     GameScreens     gameScreens_;

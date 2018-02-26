@@ -1,6 +1,6 @@
 #include "CampaignEditor.h"
 
-const char *menutitles[] =
+const char *menufiletitles[] =
 {
     "New",
     "Open",
@@ -45,7 +45,7 @@ void CampaignEditor::init(
     fileMenu_.init( 
         gameScreens_.menubar_coords.x1 + MENU_FILE_X,
         gameScreens_.menubar_coords.y2,
-        menutitles,&font 
+        menufiletitles,&font
     );
 
     // load the default world:
@@ -276,183 +276,63 @@ void CampaignEditor::handleInput()
     Mouse& mouse = *mouse_;
     int mX = mouse.GetPosX();
     int mY = mouse.GetPosY();
-    mouseTimer_++;
-    if ( !mouse.LeftIsPressed() ) mouseTimer_ = 20; // temp solution ;)
-
+    if ( mouseLeftClickDelay_ ) mouseLeftClickDelay_--;
+    // cancel delay if left mouse released:
+    if ( !mouse.LeftIsPressed() )
+    {
+        mouseWaitForLeftButtonReleased_ = false;
+        mouseLeftClickDelay_ = MOUSE_NO_DELAY;
+    }
     if ( menuFileVisible_ )
     {
-        if ( !( 
-            mouse.isInArea( gameScreens_.menuFileTitle ) ||
-            mouse.isInArea( fileMenu_.dimensions() )
-            ) ) menuFileVisible_ = false;
+        if ( !(mouse.isInArea( gameScreens_.menuFileTitle ) ||
+            mouse.isInArea( fileMenu_.dimensions() )) )
+        {
+            menuFileVisible_ = false;
+        }
     }
-
     if ( mouse.RightIsPressed() )
     {
         doodadMouseCursor_ = false; // right-click cancels doodad cursor
     }
-    // Scrolling function:
-    // map:
-    if ( mouse.isInArea( gameScreens_.scrollMapLeft ) && (TerrainDrawXOrig_ > 0) )
-        TerrainDrawXOrig_--;
-    if ( mouse.isInArea( gameScreens_.scrollMapRight ) &&
-        (TerrainDrawXOrig_ < terrain_.getColumns() - visibleTilesX_) )
-        TerrainDrawXOrig_++;
-    if ( mouse.isInArea( gameScreens_.scrollMapUp ) && (TerrainDrawYOrig_ > 0) )
-        TerrainDrawYOrig_--;
-    if ( mouse.isInArea( gameScreens_.scrollMapDown ) &&
-        (TerrainDrawYOrig_ < terrain_.getRows() - visibleTilesY_) )
-        TerrainDrawYOrig_++;
-    // palette:
-    Palette& palette = *palettePTR_;
-    if ( mouse.isInArea(
-        Rect( gameScreens_.paletteWindow.x1,
-            gameScreens_.paletteWindow.y1,
-            gameScreens_.paletteWindow.x2,
-            gameScreens_.paletteWindow.y1 + 64 ) ) )
-    {
-        if ( palette.listIndex > 0 ) palette.listIndex--;
-        redrawPalette();
-    }
-    if ( mouse.isInArea(
-        Rect( gameScreens_.paletteWindow.x1,
-            gameScreens_.paletteWindow.y2 - 64,
-            gameScreens_.paletteWindow.x2,
-            gameScreens_.paletteWindow.y2 ) ) )
-    {
-        if ( !scrollDownLock_ ) palette.listIndex++;
-        redrawPalette();
-    }
+    handleMapScrollingFunction();
+    handlePaletteScrollingFunction();
     // mouse left click functions:
     if ( mouse.LeftIsPressed() )
     {
         if ( mouse.isInArea( gameScreens_.map_coords ) )
         {
-            int tileX = (mX - gameScreens_.map_coords.x1) / tileWidth_ + TerrainDrawXOrig_;
-            int tileY = (mY - gameScreens_.map_coords.y1) / tileHeight_ + TerrainDrawYOrig_;
             if ( menuFileVisible_ )
             {
-                const int menuNr = fileMenu_.getSelectedSubMenu( mY );
-                switch ( menuNr )
-                {
-                    case MENU_FILE_NEW:
-                    {
-                        menuFileVisible_ = false;
-                        break;
-                    }
-                    case MENU_FILE_OPEN:
-                    {
-                        menuFileVisible_ = false;
-                        break;
-                    }
-                    case MENU_FILE_SAVE:
-                    {
-                        terrain_.saveTerrain( GAME_FOLDER "terrains\\savetest.ini" ); 
-                        menuFileVisible_ = false;
-                        break;
-                    }
-                    case MENU_FILE_SAVE_AS:
-                    {
-                        menuFileVisible_ = false;
-                        break;
-                    }
-                    case MENU_FILE_EXIT:
-                    {
-                        menuFileVisible_ = false;
-                        break;
-                    }
-                }
+                menuFileHandleInput( mY );
+                mouseWaitForLeftButtonReleased_ = true;
             } else {
                 if ( doodadMouseCursor_ )
-                    // add the doodad to the terrain where the mouse is: 
                 {
-                    const Doodad& doodad = world_.getDoodad( doodadNr_ );
-                    if ( canPlaceDoodadAtLocation( tileX,tileY,doodad )
-                        && (!doodadPresentInArea( Rect(
-                            tileX,
-                            tileY,
-                            tileX + doodad.width() - 1,
-                            tileY + doodad.height() - 1 ) )) )
-                    {
-                        terrain_.addDoodad(
-                            DoodadLocation( tileX,tileY,doodadNr_,true )
-                        );
-                        for ( int j = tileY; j < tileY + doodad.height(); j++ )
-                            for ( int i = tileX; i < tileX + doodad.width(); i++ )
-                                doodadLocationMap_[j * terrain_.getColumns() + i] = true;
-                        redrawMiniMap();
-                        isTerrainSaved_ = false;
-                    }
+                    if (!mouseWaitForLeftButtonReleased_ ) 
+                        tryDrawDoodad( mX,mY );
                 } else
-                    // modify the terrain using :
                 {
-                    if ( (tileX < terrain_.getColumns()) &&
-                        (tileY < terrain_.getRows()) )
-                    {
-                        if ( tileX & 0x1 ) tileX--;
-                        if ( tileY & 0x1 ) tileY--;
-                        Rect redraw = terrain_.drawTerrain( tileX,tileY,terrainType_ );
-                        checkDoodads();
-                        redrawMiniMap();
-                        isTerrainSaved_ = false;
-                    }
+                    if ( !mouseWaitForLeftButtonReleased_ ) 
+                        drawBasicTerrain( mX,mY );
                 }
             }
         // switch to the next palette:
         } else if ( mouse.isInArea( gameScreens_.paletteSelector ) )
         {
-            if ( mouseTimer_ > 10 )
+            if ( mouseLeftClickDelay_ == MOUSE_NO_DELAY )
             {
-                mouseTimer_ = 0;
-                activePalette_++;
-                if ( activePalette_ >= NR_OF_PALETTES ) activePalette_ = 0;
-                initPalettePointers();
-                redrawPalette();
+                mouseLeftClickDelay_ = MOUSE_LEFT_CLICK_DELAY;
+                switchToNextPalette();
             }
         } else if ( mouse.isInArea( gameScreens_.paletteWindow ) )
         {
-            Palette& palette = *palettePTR_;
-            if ( palette.yValues.size() > 0 )
-            {
-                int y = mY - gameScreens_.paletteWindow.y1;
-                int yDelta = palette.yValues[palette.listIndex];
-                int index;
-                for ( index = palette.listIndex; index < palette.yValues.size(); index++ )
-                {
-                    if ( palette.yValues[index] - yDelta > y ) break;
-                }
-                int activeItem = index - 1;
-                switch ( activePalette_ )
-                {
-                    case BASIC_TERRAIN_PALETTE:
-                    {
-                        doodadMouseCursor_ = false;
-                        // terrainType_ = activeItem << 4;
-                        terrainType_ = terrain_.getBasicTerrainValue( activeItem );
-                        break;
-                    }
-                    case DOODAD_PALETTE:
-                    {
-                        doodadNr_ = activeItem;
-                        doodadCursorSprite_ = world_.getDoodad( doodadNr_ ).image();
-                        doodadMouseCursor_ = true;
-                        break;
-                    }
-                }
-            }
+            paletteHandleInput( mY );
         } else if ( mouse.isInArea( gameScreens_.menuFileTitle ) )
         {
             menuFileVisible_ = true;
         }
     }
-    // debug:
-    /*
-    CreateDefaultSprites test;
-    test.createDesertWorld();
-    //gfx.paintSprite( -1,21,test.getSpriteLibrary() );
-    gfx.paintSprite( 10,31 + 400,test.getSpriteLibrary() );
-    */
-
     /*
     for ( ;;)
     {
@@ -462,6 +342,206 @@ void CampaignEditor::handleInput()
     int mY = event.GetPosY();
     }
     */
+}
+
+void CampaignEditor::handleMapScrollingFunction()
+{
+    Mouse& mouse = *mouse_;
+    bool mouseInScrollArea = false;
+    if ( mouse.isInArea( gameScreens_.scrollMapLeft ) && (TerrainDrawXOrig_ > 0) )
+    {
+        if ( mouseMapScrollDelay_ > 0 ) mouseMapScrollDelay_--;
+        else {
+            TerrainDrawXOrig_--;
+        }
+        mouseInScrollArea = true;
+    }
+    if ( mouse.isInArea( gameScreens_.scrollMapRight ) &&
+        (TerrainDrawXOrig_ < terrain_.getColumns() - visibleTilesX_) )
+    {
+        if ( mouseMapScrollDelay_ > 0 ) mouseMapScrollDelay_--;
+        else {
+            TerrainDrawXOrig_++;
+        }
+        mouseInScrollArea = true;
+    }
+    if ( mouse.isInArea( gameScreens_.scrollMapUp ) && (TerrainDrawYOrig_ > 0) )
+    {
+        if ( mouseMapScrollDelay_ > 0 ) mouseMapScrollDelay_--;
+        else {
+            TerrainDrawYOrig_--;
+        }
+        mouseInScrollArea = true;
+    }
+    if ( mouse.isInArea( gameScreens_.scrollMapDown ) &&
+        (TerrainDrawYOrig_ < terrain_.getRows() - visibleTilesY_) )
+    {
+        if ( mouseMapScrollDelay_ > 0 ) mouseMapScrollDelay_--;
+        else {
+            TerrainDrawYOrig_++;
+        }
+        mouseInScrollArea = true;
+    }
+    if ( !mouseInScrollArea ) mouseMapScrollDelay_ = MOUSE_SCROLL_START_DELAY;
+}
+
+void CampaignEditor::handlePaletteScrollingFunction()
+{
+    Mouse& mouse = *mouse_;
+    bool mouseInScrollArea = false;
+    Palette& palette = *palettePTR_;
+    if ( mouse.isInArea(
+        Rect( gameScreens_.paletteWindow.x1,
+            gameScreens_.paletteWindow.y1,
+            gameScreens_.paletteWindow.x2,
+            gameScreens_.paletteWindow.y1 + 64 ) ) )
+    {
+        if ( mousePaletteScrollDelay_ > 0 ) mousePaletteScrollDelay_--;
+        else {
+            if ( mousePaletteScrollSpeed_ > 0 ) mousePaletteScrollSpeed_--;
+            else {
+                if ( palette.listIndex > 0 ) palette.listIndex--;
+                redrawPalette();
+                mousePaletteScrollSpeed_ = MOUSE_SCROLL_SPEED;
+            }
+        }
+        mouseInScrollArea = true;
+    }
+    if ( mouse.isInArea(
+        Rect( gameScreens_.paletteWindow.x1,
+            gameScreens_.paletteWindow.y2 - 64,
+            gameScreens_.paletteWindow.x2,
+            gameScreens_.paletteWindow.y2 ) ) )
+    {
+        if ( mousePaletteScrollDelay_ > 0 ) mousePaletteScrollDelay_--;
+        else {
+            if ( mousePaletteScrollSpeed_ > 0 ) mousePaletteScrollSpeed_--;
+            else {
+                if ( !scrollDownLock_ ) palette.listIndex++;
+                redrawPalette();
+                mousePaletteScrollSpeed_ = MOUSE_SCROLL_SPEED;
+            }
+        }
+        mouseInScrollArea = true;
+    }
+    if ( !mouseInScrollArea ) mousePaletteScrollDelay_ = MOUSE_SCROLL_START_DELAY;
+}
+
+void CampaignEditor::switchToNextPalette()
+{
+    activePalette_++;
+    if ( activePalette_ >= NR_OF_PALETTES ) activePalette_ = 0;
+    initPalettePointers();
+    redrawPalette();
+}
+
+void CampaignEditor::paletteHandleInput( int mY )
+{
+    Palette& palette = *palettePTR_;
+    if ( palette.yValues.size() > 0 )
+    {
+        int y = mY - gameScreens_.paletteWindow.y1;
+        int yDelta = palette.yValues[palette.listIndex];
+        if ( palette.image.getHeight() - yDelta < y ) return; // below lowest icon
+        int index;
+        for ( index = palette.listIndex; index < palette.yValues.size(); index++ )
+        {
+            if ( palette.yValues[index] - yDelta > y ) break;
+        }
+        int activeItem = index - 1;
+        switch ( activePalette_ )
+        {
+            case BASIC_TERRAIN_PALETTE:
+            {
+                doodadMouseCursor_ = false;
+                // terrainType_ = activeItem << 4;
+                terrainType_ = terrain_.getBasicTerrainValue( activeItem );
+                break;
+            }
+            case DOODAD_PALETTE:
+            {
+                doodadNr_ = activeItem;
+                doodadCursorSprite_ = world_.getDoodad( doodadNr_ ).image();
+                doodadMouseCursor_ = true;
+                break;
+            }
+        }
+    }
+}
+
+void CampaignEditor::drawBasicTerrain( int mX,int mY )
+{
+    // Calculate the absolute tile coordinates at mouse' location:
+    int tileX = (mX - gameScreens_.map_coords.x1) / tileWidth_ + TerrainDrawXOrig_;
+    int tileY = (mY - gameScreens_.map_coords.y1) / tileHeight_ + TerrainDrawYOrig_;
+    if ( (tileX < terrain_.getColumns()) &&
+        (tileY < terrain_.getRows()) )
+    {
+        if ( tileX & 0x1 ) tileX--;
+        if ( tileY & 0x1 ) tileY--;
+        Rect redraw = terrain_.drawTerrain( tileX,tileY,terrainType_ );
+        checkDoodads();
+        redrawMiniMap();
+        isTerrainSaved_ = false;
+    }
+}
+
+void CampaignEditor::tryDrawDoodad( int mX,int mY )
+{
+    // Calculate the absolute tile coordinates at mouse' location:
+    int tileX = (mX - gameScreens_.map_coords.x1) / tileWidth_ + TerrainDrawXOrig_;
+    int tileY = (mY - gameScreens_.map_coords.y1) / tileHeight_ + TerrainDrawYOrig_;
+    const Doodad& doodad = world_.getDoodad( doodadNr_ );
+    if ( canPlaceDoodadAtLocation( tileX,tileY,doodad )
+        && (!doodadPresentInArea( Rect(
+            tileX,
+            tileY,
+            tileX + doodad.width() - 1,
+            tileY + doodad.height() - 1 ) )) )
+    {
+        terrain_.addDoodad(
+            DoodadLocation( tileX,tileY,doodadNr_,true )
+        );
+        for ( int j = tileY; j < tileY + doodad.height(); j++ )
+            for ( int i = tileX; i < tileX + doodad.width(); i++ )
+                doodadLocationMap_[j * terrain_.getColumns() + i] = true;
+        redrawMiniMap();
+        isTerrainSaved_ = false;
+    }
+}
+
+void CampaignEditor::menuFileHandleInput( int mY )
+{
+    const int menuNr = fileMenu_.getSelectedSubMenu( mY );
+    switch ( menuNr )
+    {
+        case MENU_FILE_NEW:
+        {
+            menuFileVisible_ = false;
+            break;
+        }
+        case MENU_FILE_OPEN:
+        {
+            menuFileVisible_ = false;
+            break;
+        }
+        case MENU_FILE_SAVE:
+        {
+            terrain_.saveTerrain( GAME_FOLDER "terrains\\savetest.ini" );
+            menuFileVisible_ = false;
+            break;
+        }
+        case MENU_FILE_SAVE_AS:
+        {
+            menuFileVisible_ = false;
+            break;
+        }
+        case MENU_FILE_EXIT:
+        {
+            menuFileVisible_ = false;
+            break;
+        }
+    }
 }
 
 void CampaignEditor::drawTerrain()
@@ -671,47 +751,46 @@ void CampaignEditor::redrawMiniMap()
                     buffer.putPixel(
                         x,
                         y,
-                        world_.getAvgColor( terrain_.getElement( t++ ) )
-                    );
+                        world_.getAvgColor( terrain_.getElement( t++ ) ) );
             // and now the doodads:
             const std::vector<DoodadLocation>& doodadList = terrain_.getDoodadList();
             for ( int iDoodad = 0; iDoodad < doodadList.size(); iDoodad++ )
             {
                 const DoodadLocation& doodadLocation = doodadList[iDoodad];
-                const Doodad& doodad = world_.getDoodad( doodadLocation.doodadNr );
-                int idx = 0;
-                for ( int j = 0; j < doodad.height(); j++ )
-                    for ( int i = 0; i < doodad.width(); i++ )
-                        buffer.putPixel(
-                            doodadLocation.x + i,
-                            doodadLocation.y + j,
-                            doodad.getAvgColor( idx++ )
-                        );
+                if ( doodadLocation.isUsed )
+                {
+                    const Doodad& doodad = world_.getDoodad( doodadLocation.doodadNr );
+                    int idx = 0;
+                    for ( int j = 0; j < doodad.height(); j++ )
+                        for ( int i = 0; i < doodad.width(); i++ )
+                            buffer.putPixel(
+                                doodadLocation.x + i,
+                                doodadLocation.y + j,
+                                doodad.getAvgColor( idx++ ) );
+                }
             }
-
-
-
-
-            
+            Color * bufPtr = buffer.getPixelData();
+            int nextLine = buffer.getWidth() - 1;
             int mmpY = 0;
             for ( int y = 0; y < terrain_.getRows(); y += 2 )
             {
                 int mmpX = 0;
                 for ( int x = 0; x < terrain_.getColumns(); x += 2 )
                 {
-                    Color c0 = world_.getAvgColor( terrain_.getElement( x    ,y     ) );
-                    Color c1 = world_.getAvgColor( terrain_.getElement( x + 1,y     ) );
-                    Color c2 = world_.getAvgColor( terrain_.getElement( x    ,y + 1 ) );
-                    Color c3 = world_.getAvgColor( terrain_.getElement( x + 1,y + 1 ) );
+                    Color c0 = *bufPtr++;
+                    Color c1 = *bufPtr;
+                    Color c2 = bufPtr[nextLine];
+                    bufPtr++;
+                    Color c3 = bufPtr[nextLine];
                     minimap_.image.putPixel( mmpX,mmpY,Color(
                         (c0.GetR() + c1.GetR() + c2.GetR() + c3.GetR()) >> 2,
                         (c0.GetG() + c1.GetG() + c2.GetG() + c3.GetG()) >> 2,
                         (c0.GetB() + c1.GetB() + c2.GetB() + c3.GetB()) >> 2 ) );
                     mmpX++;
                 }
+                bufPtr += buffer.getWidth();
                 mmpY++;
             }
-            
             break;
         }
         case ZOOM_ONE_PIXEL_PER_TILE: // one pixel per tile
@@ -729,15 +808,18 @@ void CampaignEditor::redrawMiniMap()
             for ( int iDoodad = 0; iDoodad < doodadList.size(); iDoodad++ )
             {
                 const DoodadLocation& doodadLocation = doodadList[iDoodad];
-                const Doodad& doodad = world_.getDoodad( doodadLocation.doodadNr );
-                int idx = 0;
-                for( int j = 0; j < doodad.height(); j++ )
-                    for ( int i = 0; i < doodad.width(); i++ )
-                        minimap_.image.putPixel(
-                            doodadLocation.x + i,
-                            doodadLocation.y + j,
-                            doodad.getAvgColor( idx++ )
-                        );
+                if ( doodadLocation.isUsed )
+                {
+                    const Doodad& doodad = world_.getDoodad( doodadLocation.doodadNr );
+                    int idx = 0;
+                    for ( int j = 0; j < doodad.height(); j++ )
+                        for ( int i = 0; i < doodad.width(); i++ )
+                            minimap_.image.putPixel(
+                                doodadLocation.x + i,
+                                doodadLocation.y + j,
+                                doodad.getAvgColor( idx++ )
+                            );
+                }
             }
             break;
         }
@@ -763,23 +845,26 @@ void CampaignEditor::redrawMiniMap()
             for ( int iDoodad = 0; iDoodad < doodadList.size(); iDoodad++ )
             {
                 const DoodadLocation& doodadLocation = doodadList[iDoodad];
-                const Doodad& doodad = world_.getDoodad( doodadLocation.doodadNr );
-                int idx = 0;
-                int doubleWidth = doodad.width() * 2;
-                int doubleHeight = doodad.height() * 2;
-                int y = doodadLocation.y * 2;
-                for ( int j = 0; j < doubleHeight; j += 2 )
+                if ( doodadLocation.isUsed )
                 {
-                    int x = doodadLocation.x * 2;
-                    for ( int i = 0; i < doubleWidth; i += 2 )
+                    const Doodad& doodad = world_.getDoodad( doodadLocation.doodadNr );
+                    int idx = 0;
+                    int doubleWidth = doodad.width() * 2;
+                    int doubleHeight = doodad.height() * 2;
+                    int y = doodadLocation.y * 2;
+                    for ( int j = 0; j < doubleHeight; j += 2 )
                     {
-                        minimap_.image.putPixel( x    ,y    ,doodad.getAvgColor2x2( idx++ ) );
-                        minimap_.image.putPixel( x + 1,y    ,doodad.getAvgColor2x2( idx++ ) );
-                        minimap_.image.putPixel( x    ,y + 1,doodad.getAvgColor2x2( idx++ ) );
-                        minimap_.image.putPixel( x + 1,y + 1,doodad.getAvgColor2x2( idx++ ) );
-                        x += 2;
+                        int x = doodadLocation.x * 2;
+                        for ( int i = 0; i < doubleWidth; i += 2 )
+                        {
+                            minimap_.image.putPixel( x    ,y    ,doodad.getAvgColor2x2( idx++ ) );
+                            minimap_.image.putPixel( x + 1,y    ,doodad.getAvgColor2x2( idx++ ) );
+                            minimap_.image.putPixel( x    ,y + 1,doodad.getAvgColor2x2( idx++ ) );
+                            minimap_.image.putPixel( x + 1,y + 1,doodad.getAvgColor2x2( idx++ ) );
+                            x += 2;
+                        }
+                        y += 2;
                     }
-                    y += 2;
                 }
             }
             break;
@@ -1201,8 +1286,8 @@ void CampaignEditor::drawDoodadCursorAtLocation()
 // doodad is already present though!
 bool CampaignEditor::canPlaceDoodadAtLocation( int x,int y,const Doodad& doodad ) const
 {
-    if ( x + doodad.width() >= terrain_.getColumns() ) return false;
-    if ( y + doodad.height() >= terrain_.getRows() ) return false;
+    if ( x + doodad.width() > terrain_.getColumns() ) return false;
+    if ( y + doodad.height() > terrain_.getRows() ) return false;
     for ( int j = 0; j < doodad.height(); j++ )
         for ( int i = 0; i < doodad.width(); i++ )
         {

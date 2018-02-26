@@ -96,7 +96,7 @@ Defaults::Defaults()
     defWorldIni.append( GREENPRAIRIE_WORLD_NAME );
     defWorldIni.append( ".ini" );
     bool recreate = false;
-    recreate = true; // debug!!!
+    //recreate = true; // debug!!!
     if ( !fileExists( defWorldSpriteLib ) )
     {
         debugLogFile << "Can't open default terrain file " << defWorldSpriteLib 
