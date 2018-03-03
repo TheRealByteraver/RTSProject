@@ -36,7 +36,6 @@
                                     (WORLD_TILE_DEFAULT_WIDTH + TILE_SEPARATOR))
 
 
-
 // some color constants for the greenprairie world drawing function:
 #define T_GREENPRAIRIE_LOW_WATER_COLOR      0x1010A0
 #define T_GREENPRAIRIE_LOW_COLOR            0x40A010
@@ -51,22 +50,6 @@
 #define T_GREENPRAIRIE_BOTTOM_COLOR         0x18AF18     // 6
 #define T_GREENPRAIRIE_LEFT_COLOR           0x109F10     // 7
 #define T_GREENPRAIRIE_BOTTOM_LEFT_COLOR    0x088F08     // 8
-/*
-// some color constants for the greenprairie world drawing function:
-#define T_GREENPRAIRIE_LOW_WATER_COLOR      0x101010
-#define T_GREENPRAIRIE_LOW_COLOR            0xE7C987
-#define T_GREENPRAIRIE_HIGH_COLOR           0xCD8F6D
-#define T_GREENPRAIRIE_HIGH_WATER_COLOR     0x2020F0
-// hill colors from Brightest to darkest:
-#define T_GREENPRAIRIE_TOP_RIGHT_COLOR      0xFABC9A     // 1
-#define T_GREENPRAIRIE_TOP_COLOR            0xEAAC8A     // 2
-#define T_GREENPRAIRIE_RIGHT_COLOR          0xDA9C7A     // 3
-#define T_GREENPRAIRIE_TOP_LEFT_COLOR       0xCA8C6A     // 4
-#define T_GREENPRAIRIE_BOTTOM_RIGHT_COLOR   0xBA7C5A     // 5
-#define T_GREENPRAIRIE_BOTTOM_COLOR         0xAA6C4A     // 6
-#define T_GREENPRAIRIE_LEFT_COLOR           0x9A5C3A     // 7
-#define T_GREENPRAIRIE_BOTTOM_LEFT_COLOR    0x8A4C2A     // 8
-*/
 
 // some color constants for the desert world drawing function:
 #define T_DESERT_LOW_TARPIT_COLOR       0x101010

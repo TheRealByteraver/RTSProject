@@ -466,6 +466,42 @@ void Sprite::drawVerLine( int x,int y1,int y2,Color color )
     for ( int y = y1; y <= y2; y++ ) putPixel( x,y,color );
 }
 
+void Sprite::drawCircle( int centerX,int centerY,int radius,Color color )
+{
+    int rSquared = radius * radius;
+    int xPivot = (int)(radius * 0.707107f + 0.5f);
+    for ( int x = 0; x <= xPivot; x++ )
+    {
+        int y = (int)(sqrt( (float)(rSquared - x * x) ) + 0.5f);
+        putPixel( centerX + x,centerY + y,color );
+        putPixel( centerX - x,centerY + y,color );
+        putPixel( centerX + x,centerY - y,color );
+        putPixel( centerX - x,centerY - y,color );
+        putPixel( centerX + y,centerY + x,color );
+        putPixel( centerX - y,centerY + x,color );
+        putPixel( centerX + y,centerY - x,color );
+        putPixel( centerX - y,centerY - x,color );
+    }
+}
+
+void Sprite::drawDisc( int cx,int cy,int r,Color color )
+{
+    int rSquared = r * r;
+    int xPivot = (int)(r * 0.707107f + 0.5f);
+    for ( int x = 0; x <= xPivot; x++ )
+    {
+        int y = (int)(sqrt( (float)(rSquared - x*x) ) + 0.5f);
+        int yHi = cy - y;
+        int yLo = cy + y;
+        for ( int ix = cx - x; ix <= cx + x; ix++ ) putPixel( ix,yHi,color );
+        for ( int ix = cx - x; ix <= cx + x; ix++ ) putPixel( ix,yLo,color );
+        yHi = cy - x;
+        yLo = cy + x;
+        for ( int ix = cx - y; ix <= cx + y; ix++ ) putPixel( ix,yHi,color );
+        for ( int ix = cx - y; ix <= cx + y; ix++ ) putPixel( ix,yLo,color );
+    }
+}
+
 void Sprite::drawBox( const Rect& coords,Color color )
 {
     drawBox( coords.x1,coords.y1,coords.x2,coords.y2,color );
@@ -575,6 +611,27 @@ void Sprite::drawButtonPlusMinus( Rect r,int width )
         int x = r.x1 + 5 + i * font_->width();
         printXY( x,r.y1 + 1,"+" );
         printXY( x,ySplit,"-" );
+    }
+}
+
+void Sprite::drawRadioButton( int x,int y,int width,bool selected )
+{
+    int r = width / 2;
+    assert( r > 3 );
+    int cx = x + r;
+    int cy = y + r;
+    Color backColor( textColor_ );
+    Color frameColorSoft = Color(
+        (frameColor_.GetR() + 0xFF) / 2,
+        (frameColor_.GetG() + 0xFF) / 2,
+        (frameColor_.GetB() + 0xFF) / 2
+    );
+    drawDisc( cx,cy,r,backColor );
+    //drawCircle( cx,cy,r,frameColorSoft );
+    if ( selected )
+    {
+        r -= 2;
+        drawDisc( cx,cy,r,Colors::Black );
     }
 }
 

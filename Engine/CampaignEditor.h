@@ -159,6 +159,7 @@ public:
     void            handleInput();
     bool            isInitialized() const { return isInitialized_; }
 private:
+    void            populateWorldsList();
     void            handleMapScrollingFunction();
     void            handlePaletteScrollingFunction();
     void            switchToNextPalette();
@@ -166,6 +167,8 @@ private:
     void            drawBasicTerrain( int tileX,int tileY );
     void            tryDrawDoodad( int tileX,int tileY );
     void            menuFileHandleInput( int mY );
+    void            menuFileNewHandleInput( int mX,int mY );
+    void            menuFileNewDrawSubmenu();
     int             loadTerrain( const std::string& terrainName );
     bool            canPlaceDoodadAtLocation( int x,int y,const Doodad& doodad ) const;
     void            initDoodadLocationMap();
@@ -192,7 +195,7 @@ private:
     Mouse*          mouse_;
     Keyboard*       keyboard_;
 
-    // this variable is used for single-click actions:
+    // this variables are used for mouse control:
     bool            mouseWaitForLeftButtonReleased_ = false;
     int             mouseLeftClickDelay_ = MOUSE_NO_DELAY;
     int             mouseMapScrollDelay_ = MOUSE_SCROLL_START_DELAY;
@@ -215,6 +218,14 @@ private:
 
     // For the menu: if the menu is shown or not
     bool            menuFileVisible_ = false;
+    bool            submenuVisible_ = false;
+    Sprite          submenuImage_;
+    Rect            submenuCoords_;
+
+    // contains the file list of all the worlds, is only read once since new
+    // worlds can't be created with the campaign editor
+    std::vector<std::string> worldsList_;
+
 
     // specific variables for the terrain editor:
     // the type of terrain we are drawing with now:
@@ -222,7 +233,7 @@ private:
     int             doodadNr_ = 0; // which doodad the user selected
     bool            doodadMouseCursor_ = false; // whether the active doodad is shown on the mouse cursor location
     Sprite          doodadCursorSprite_; // the original-sized doodad without the compatibility overlay
-    bool            isGridVisible_ = false;//true;
+    bool            isGridVisible_ = true;
     bool            isTerrainSaved_ = false;
     // this pointer is a two dimensional boolean map that tells if a given 
     // tile has a doodad on top of it or not:

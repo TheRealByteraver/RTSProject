@@ -81,6 +81,8 @@ public:
     void    putPixel( int x,int y,Color color );
     void    drawHorLine( int x1,int y,int x2,Color color );
     void    drawVerLine( int x,int y1,int y2,Color color );
+    void    drawCircle( int centerX,int centerY,int radius,Color color );
+    void    drawDisc( int cx,int cy,int r,Color color );
     void    drawBox( const Rect& coords,Color color );
     void    drawBox( int x1,int y1,int x2,int y2,Color color );
     void    drawBlock( Rect coords,Color color );
@@ -97,11 +99,11 @@ public:
     void    drawNiceBlockInv( Rect r );
     void    drawButton( Rect r );
     void    drawButtonPlusMinus( Rect r,int width );
-
+    void    drawRadioButton( int x,int y,int width,bool selected );
     Color   getPixel( int x,int y ) const;
     void    createFromSprite( const Sprite& source, Rect area );
     void    insertFromSprite( int x,int y,const Sprite& source );
-    void    setTextColor( Color color ) { textColor = color; }
+    void    setTextColor( Color color ) { textColor_ = color; }
     void    setFont( Font *font ) { font_ = font; }
     Font    *getFont() { return font_; }    
     void    printXY( int x,int y,const char *s );
@@ -116,7 +118,7 @@ private:
     int     height_;
     Color   *pixelData_;
 
-    Color   textColor = Colors::White;
+    Color   textColor_ = Colors::White;
     int     frameWidth_ = 3;
     Color   frameColor_ = Colors::LightGray;
     Font    *font_ = nullptr;
