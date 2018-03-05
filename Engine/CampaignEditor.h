@@ -10,6 +10,7 @@
 #include "Mouse.h"
 #include "Sprite.h"
 #include "Font.h"
+#include "WindowSystem.h"
 
 
 
@@ -167,6 +168,7 @@ private:
     void            drawBasicTerrain( int tileX,int tileY );
     void            tryDrawDoodad( int tileX,int tileY );
     void            menuFileHandleInput( int mY );
+    void            submenuHandleInput();
     void            menuFileNewHandleInput( int mX,int mY );
     void            menuFileNewDrawSubmenu();
     int             loadTerrain( const std::string& terrainName );
@@ -222,8 +224,7 @@ private:
     Sprite          submenuImage_;
     Rect            submenuCoords_;
 
-    // contains the file list of all the worlds, is only read once since new
-    // worlds can't be created with the campaign editor
+    // contains the file list of all the worlds
     std::vector<std::string> worldsList_;
 
 

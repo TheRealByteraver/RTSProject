@@ -18,7 +18,7 @@ const char *terraindimensions[] =
     "192x192",
     "256x256",
 //  "Custom:  256  -+ x  256  -+",
-    "Custom:                    ",
+//    "Custom:                    ", // not for now
     nullptr
 };
 
@@ -58,9 +58,6 @@ void CampaignEditor::init(
         gameScreens_.menubar_coords.y2,
         menufiletitles,&font
     );
-
-    // Get the list with the available worlds for later use (menu's):
-    populateWorldsList();
 
     // load the default world:
     int error = world_.load( defaults.defaultWorld() );
@@ -111,13 +108,13 @@ void CampaignEditor::init(
 
 void CampaignEditor::populateWorldsList()
 {
+    worldsList_.clear();
     std::wstring searchPath;
     for ( char c : std::string( GAME_FOLDER ) ) searchPath += c;
     for ( char c : defaults.worldsFolder() ) searchPath += c;
     searchPath.append( L"\\*.ini" );
     WIN32_FIND_DATA findData;
     HANDLE hFind = ::FindFirstFile( searchPath.c_str(),&findData );
-
     if ( hFind != INVALID_HANDLE_VALUE )
     {
         do {
@@ -315,7 +312,7 @@ void CampaignEditor::draw()
 
 void CampaignEditor::handleInput()
 {
-    Graphics& gfx = *gfx_;
+    //Graphics& gfx = *gfx_;
     Mouse& mouse = *mouse_;
     int mX = mouse.GetPosX();
     int mY = mouse.GetPosY();
@@ -333,6 +330,11 @@ void CampaignEditor::handleInput()
         {
             menuFileVisible_ = false;
         }
+    }
+    if ( submenuVisible_ )
+    {
+        submenuHandleInput();
+        return;
     }
     if ( mouse.RightIsPressed() )
     {
@@ -590,82 +592,58 @@ void CampaignEditor::menuFileHandleInput( int mY )
     }
 }
 
+void CampaignEditor::submenuHandleInput()
+{
+
+}
+
 void CampaignEditor::menuFileNewDrawSubmenu()
 {
-    int nrOfDimensions;
-    for ( nrOfDimensions = 0; terraindimensions[nrOfDimensions] != nullptr; nrOfDimensions++ );
-    const int nrOfWorlds = (int)worldsList_.size();
-    const int offset = FRAME_WIDTH * 2 + TEXT_OFFSET;
-    const int entrySize = FONT_HEIGHT + TEXT_OFFSET * 2;
-    bool overSize = false;
-    int visibleEntries = (nrOfDimensions > nrOfWorlds) ? nrOfDimensions : nrOfWorlds;
-    int windowHeight = offset * 2 + entrySize * visibleEntries;
-    if ( windowHeight > Graphics::ScreenHeight )
-    {
-        overSize = true;
-        visibleEntries = (Graphics::ScreenHeight - offset * 2) / entrySize - 2;
-        windowHeight = visibleEntries * entrySize + offset * 2;
-    }
-    int worldStrLen = 0;
-    for ( int i = 0; i < worldsList_.size(); i++ )
-    {
-        int slen = (int)worldsList_[i].length();
-        if ( slen > worldStrLen ) worldStrLen = slen;
-    }
-    int dimStrLen = 0;
-    for ( int i = 0; i < nrOfDimensions; i++ )
-    {
-        int slen = (int)strlen( terraindimensions[i] );
-        if ( slen > dimStrLen ) dimStrLen = slen;
-    }
-    const int radioButtonWidth = 16;
-    int windowWidth = offset * 2 + (worldStrLen + dimStrLen) * FONT_WIDTH + radioButtonWidth * 2;
-    if ( windowWidth > Graphics::ScreenWidth )
-    {
-        windowWidth = Graphics::ScreenWidth - 2 * FRAME_WIDTH;
-    }
-    int filenameMaxLength = (windowWidth / FONT_WIDTH) - dimStrLen;
-    // start with graphics:
-    submenuImage_.setFont( font_ );
-    submenuImage_.setFrameColor( MENU_COLOR );
-    submenuImage_.createEmptySprite( windowWidth,windowHeight );
-    int x1 = (Graphics::ScreenWidth - windowWidth) / 2;
-    int y1 = (Graphics::ScreenHeight - windowHeight) / 2;
-    submenuCoords_ = Rect( x1,y1,x1 + windowWidth - 1,y1 + windowHeight - 1 );
-    submenuImage_.drawNiceBlock( Rect( 0,0,windowWidth - 1,windowHeight - 1 ) );
-    submenuImage_.drawNiceBlockInv( Rect(
-        0 + FRAME_WIDTH,
-        0 + FRAME_WIDTH,
-        windowWidth - 1 - FRAME_WIDTH,
-        windowHeight - 1 - FRAME_WIDTH )
+    // half the screen width should be enough:
+    WinDim dimConstraint( 
+        0,
+        0,
+        Graphics::ScreenWidth / 2,
+        Graphics::ScreenHeight / 2
     );
-    for ( int worldNr = 0; worldNr < worldsList_.size(); worldNr++ )
-    {
-        int y = offset + worldNr * (TEXT_OFFSET * 2 + FONT_HEIGHT);
-        submenuImage_.drawRadioButton( 
-            offset,
-            y + (FONT_HEIGHT - FONT_WIDTH) / 2,
-            FONT_WIDTH,(bool)(worldNr & 0x1) );
-        submenuImage_.printXY(
-            offset + radioButtonWidth,
-            y,
-            worldsList_[worldNr].c_str()
-        );
-    }
-    int Ofs = offset + worldStrLen * FONT_WIDTH + radioButtonWidth + TEXT_OFFSET;
-    for ( int dimNr = 0; dimNr < nrOfDimensions; dimNr++ )
-    {
-        int y = offset + dimNr * (TEXT_OFFSET * 2 + FONT_HEIGHT);
-        submenuImage_.drawRadioButton(
-            Ofs,
-            y + (FONT_HEIGHT - FONT_WIDTH) / 2,
-            FONT_WIDTH,(bool)(dimNr & 0x1) );
-        submenuImage_.printXY(
-            Ofs + radioButtonWidth,
-            y,
-            terraindimensions[dimNr]
-        );
-    }
+    VerticalRadiobuttonGroup terrainDimensionsRadioBtnGroup( dimConstraint );
+    terrainDimensionsRadioBtnGroup.setFont( font_ );
+    terrainDimensionsRadioBtnGroup.init( std::string( " Choose the size: " ),terraindimensions );
+
+    // Get the list with the available worlds .ini files:
+    populateWorldsList();
+    // reset the maximum size constraint for the new radio button group:
+    dimConstraint.init(
+        0,
+        0,
+        Graphics::ScreenWidth - terrainDimensionsRadioBtnGroup.dim().width(),
+        Graphics::ScreenHeight - terrainDimensionsRadioBtnGroup.dim().height()
+    );
+    VerticalRadiobuttonGroup worldsRadioBtnGroup( dimConstraint );
+    worldsRadioBtnGroup.setFont( font_ );
+    worldsRadioBtnGroup.init( std::string( " Choose the world: " ),worldsList_ );
+
+    int h1 = terrainDimensionsRadioBtnGroup.image().getHeight();
+    int h2 = worldsRadioBtnGroup.image().getHeight();
+    int hf = (h1 > h2) ? h1 : h2;
+    submenuImage_.createEmptySprite(
+        terrainDimensionsRadioBtnGroup.image().getWidth() +
+        worldsRadioBtnGroup.image().getWidth(),
+        hf
+    );
+    submenuImage_.insertFromSprite(
+        0,
+        0,
+        worldsRadioBtnGroup.image()
+    );
+    submenuImage_.insertFromSprite(
+        worldsRadioBtnGroup.image().getWidth(),
+        0,
+        terrainDimensionsRadioBtnGroup.image()
+    );
+    submenuCoords_ =
+        Rect( 0,20,submenuImage_.getWidth() - 1,submenuImage_.getHeight() - 1 );
+
 }
 
 void CampaignEditor::menuFileNewHandleInput( int mX,int mY )

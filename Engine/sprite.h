@@ -12,6 +12,7 @@ class Font;
 
 // for changeing the egdes of a bitmap to create a block like effect
 #define BLOCK_EDGE_COLOR_DELTA              60
+
 #define BROKEN_IMAGE_SPRITE_WIDTH           16
 #define BROKEN_IMAGE_SPRITE_HEIGHT          16
 
