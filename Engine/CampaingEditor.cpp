@@ -18,7 +18,7 @@ const char *terraindimensions[] =
     "192x192",
     "256x256",
 //  "Custom:  256  -+ x  256  -+",
-//    "Custom:                    ", // not for now
+  //    "Custom:                    ", // not for now
     nullptr
 };
 
@@ -599,16 +599,19 @@ void CampaignEditor::submenuHandleInput()
 
 void CampaignEditor::menuFileNewDrawSubmenu()
 {
-    // half the screen width should be enough:
+    // half the screen width should be enough for the dimensions:
     WinDim dimConstraint( 
         0,
         0,
         Graphics::ScreenWidth / 2,
-        Graphics::ScreenHeight / 2
+        Graphics::ScreenHeight
     );
     VerticalRadiobuttonGroup terrainDimensionsRadioBtnGroup( dimConstraint );
     terrainDimensionsRadioBtnGroup.setFont( font_ );
-    terrainDimensionsRadioBtnGroup.init( std::string( " Choose the size: " ),terraindimensions );
+    terrainDimensionsRadioBtnGroup.init( std::string( 
+        //" Choose the size: " 
+        " Choose the size: Let us make this a mega long title now like way too long and shit so it will definately not fit on screen yo"
+    ),terraindimensions );
 
     // Get the list with the available worlds .ini files:
     populateWorldsList();
@@ -616,8 +619,8 @@ void CampaignEditor::menuFileNewDrawSubmenu()
     dimConstraint.init(
         0,
         0,
-        Graphics::ScreenWidth - terrainDimensionsRadioBtnGroup.dim().width(),
-        Graphics::ScreenHeight - terrainDimensionsRadioBtnGroup.dim().height()
+        Graphics::ScreenWidth - terrainDimensionsRadioBtnGroup.getDimensions().width(),
+        Graphics::ScreenHeight
     );
     VerticalRadiobuttonGroup worldsRadioBtnGroup( dimConstraint );
     worldsRadioBtnGroup.setFont( font_ );
@@ -628,8 +631,9 @@ void CampaignEditor::menuFileNewDrawSubmenu()
     int hf = (h1 > h2) ? h1 : h2;
     submenuImage_.createEmptySprite(
         terrainDimensionsRadioBtnGroup.image().getWidth() +
-        worldsRadioBtnGroup.image().getWidth(),
-        hf
+                        worldsRadioBtnGroup.image().getWidth(),
+        hf,
+        MENU_COLOR
     );
     submenuImage_.insertFromSprite(
         0,
@@ -642,7 +646,7 @@ void CampaignEditor::menuFileNewDrawSubmenu()
         terrainDimensionsRadioBtnGroup.image()
     );
     submenuCoords_ =
-        Rect( 0,20,submenuImage_.getWidth() - 1,submenuImage_.getHeight() - 1 );
+        Rect( 0,0,submenuImage_.getWidth() - 1,submenuImage_.getHeight() - 1 );
 
 }
 

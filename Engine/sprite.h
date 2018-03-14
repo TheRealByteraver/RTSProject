@@ -96,6 +96,10 @@ public:
     {
         frameColor_ = color;
     }
+    Color   getFrameColor()
+    {
+        return frameColor_;
+    }
     void    drawNiceBlock( Rect r );
     void    drawNiceBlockInv( Rect r );
     void    drawButton( Rect r );
