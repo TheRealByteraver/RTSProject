@@ -17,7 +17,8 @@ const char *terraindimensions[] =
     "128x128",
     "192x192",
     "256x256",
-//  "Custom:  256  -+ x  256  -+",
+
+  //  "Custom:  256  -+ x  256  -+",
   //    "Custom:                    ", // not for now
     nullptr
 };
@@ -103,7 +104,7 @@ void CampaignEditor::init(
     isInitialized_ = true;
 
     // debug: load test terrain
-    //error = loadTerrain( "savetestbak.ini" );
+    error = loadTerrain( "default.ini" );
 }
 
 void CampaignEditor::populateWorldsList()
@@ -236,78 +237,50 @@ void CampaignEditor::draw()
         }
     } else if ( submenuVisible_ ) 
     {
+        /*
         gfx.paintSprite(
             submenuCoords_.x1,
             submenuCoords_.y1,
             submenuImage_
         );
+        */
+        gfx.setFrameColor( MENU_COLOR );
+        gfx.drawNiceBlock( Rect(
+            winElementBar_.getDimensions().rect().x1 - FRAME_WIDTH, 
+            winElementBar_.getDimensions().rect().y1 - FRAME_WIDTH,
+            winElementBar_.getDimensions().rect().x2 + FRAME_WIDTH,
+            winElementBar_.getDimensions().rect().y2 + FRAME_WIDTH )
+        );
+        int x = winElementBar_.getDimensions().xOrig();
+        int y = winElementBar_.getDimensions().yOrig();
+        for ( auto& s : winElementBar_.winElementList() )
+        {
+            gfx.paintSprite(
+                x,
+                y,
+                s->image()
+            );
+            x += s->getDimensions().width();
+        }
     } else {
         if ( doodadMouseCursor_ ) drawDoodadCursorAtLocation();
         else drawTerrainCursor();
     }
 
     /*
-    // debug:
-    gfx.drawBlock( 19,19,19 + (6 * 2 + 1),19 + (6 * 2 + 1) * 4,Colors::Black );
-    for ( int iDoodad = 0; iDoodad < 4; iDoodad++ )
-    {
-        const Doodad& D = world_.getDoodad( iDoodad );
-        int idx = 0;
-        for ( int j = 0; j < 6 * 2; j += 2 )
-            for ( int i = 0; i < 6 * 2; i += 2 )
-            {
-                int x = 20 + i;
-                int y = 20 + (6 * 2 + 1) * iDoodad + j;
-
-                gfx.PutPixel( x    ,y    ,D.getAvgColor2x2( idx++ ) );
-                gfx.PutPixel( x + 1,y    ,D.getAvgColor2x2( idx++ ) );
-                gfx.PutPixel( x    ,y + 1,D.getAvgColor2x2( idx++ ) );
-                gfx.PutPixel( x + 1,y + 1,D.getAvgColor2x2( idx++ ) );
-            }
-    }
-    */
-    /*
-    gfx.paintSpriteSection( 
-        10,22,
-        Rect( 
-            0,
-            0,
-            doodadPalette_.image.getWidth() - 1,
-            700 
-        ),
-        doodadPalette_.image
+    ScrollBar scrollBar( WinDim(
+        0,600,600,60 ) 
     );
+    scrollBar.init( 18,600,SCROLL_BAR_HORIZONTAL );
+    gfx.paintSprite( 0,600,scrollBar.image() );
 
-    gfx.paintSpriteSection(
-        10 + doodadPalette_.image.getWidth() + 1,22,
-        Rect(
-            0,
-            700,
-            doodadPalette_.image.getWidth() - 1,
-            1400
-        ),
-        doodadPalette_.image
+    ScrollBar scrollBar2( WinDim(
+        0,600,60,600 )
     );
+    scrollBar2.init( 18,600,SCROLL_BAR_VERTICAL );
+    gfx.paintSprite( 620,60,scrollBar2.image() );
+    */
 
-    gfx.paintSpriteSection(
-        10 + doodadPalette_.image.getWidth() * 2 + 2,22,
-        Rect(
-            0,
-            1400,
-            doodadPalette_.image.getWidth() - 1,
-            doodadPalette_.image.getHeight() - 1
-        ),
-        doodadPalette_.image
-    );
-    */
-    /*
-    // show the doodadLocation Map: (debug)
-    for ( int j = 0; j < terrain_.getRows(); j++ )
-        for ( int i = 0; i < terrain_.getColumns(); i++ )
-            if ( doodadLocationMap_[j * terrain_.getColumns() + i] )
-                gfx.PutPixel( 10 + i,400 + j,Colors::Green );
-            else gfx.PutPixel( 10 + i,400 + j,Colors::Gray );            
-    */
 }
 
 void CampaignEditor::handleInput()
@@ -333,8 +306,9 @@ void CampaignEditor::handleInput()
     }
     if ( submenuVisible_ )
     {
-        submenuHandleInput();
-        return;
+        //submenuHandleInput();
+        //menuFileNewHandleInput( mX,mY ); // temp
+        //return;
     }
     if ( mouse.RightIsPressed() )
     {
@@ -345,13 +319,24 @@ void CampaignEditor::handleInput()
     // mouse left click functions:
     if ( mouse.LeftIsPressed() )
     {
-        if ( mouse.isInArea( gameScreens_.map_coords ) )
+        if ( menuFileVisible_ )
         {
+            menuFileHandleInput( mY );
+            mouseWaitForLeftButtonReleased_ = true;
+        } else if ( submenuVisible_ )
+        {
+            //if ( mouse.isInArea( submenuCoords_ ) )
+            if ( mouse.isInArea( winElementBar_.getDimensions().rect() ) )
+                menuFileNewHandleInput( mX,mY );
+            mouseWaitForLeftButtonReleased_ = true;
+        } else if ( mouse.isInArea( gameScreens_.map_coords ) )
+        {
+            /*
             if ( menuFileVisible_ )
             {
                 menuFileHandleInput( mY );
                 mouseWaitForLeftButtonReleased_ = true;
-            } else {
+            } else {*/
                 if ( doodadMouseCursor_ )
                 {
                     if (!mouseWaitForLeftButtonReleased_ ) 
@@ -361,7 +346,7 @@ void CampaignEditor::handleInput()
                     if ( !mouseWaitForLeftButtonReleased_ ) 
                         drawBasicTerrain( mX,mY );
                 }
-            }
+            //}
         // switch to the next palette:
         } else if ( mouse.isInArea( gameScreens_.paletteSelector ) )
         {
@@ -606,12 +591,12 @@ void CampaignEditor::menuFileNewDrawSubmenu()
         Graphics::ScreenWidth / 2,
         Graphics::ScreenHeight
     );
-    VerticalRadiobuttonGroup terrainDimensionsRadioBtnGroup( dimConstraint );
-    terrainDimensionsRadioBtnGroup.setFont( font_ );
-    terrainDimensionsRadioBtnGroup.init( std::string( 
-        //" Choose the size: " 
-        " Choose the size: Let us make this a mega long title now like way too long and shit so it will definately not fit on screen yo"
-    ),terraindimensions );
+    terrainDimensionsRadioBtnGroup_.setDimConstraint( dimConstraint );
+    terrainDimensionsRadioBtnGroup_.setFont( font_ );
+    terrainDimensionsRadioBtnGroup_.init( 
+        std::string( " Choose the size: " ),
+        terraindimensions 
+    );
 
     // Get the list with the available worlds .ini files:
     populateWorldsList();
@@ -619,45 +604,91 @@ void CampaignEditor::menuFileNewDrawSubmenu()
     dimConstraint.init(
         0,
         0,
-        Graphics::ScreenWidth - terrainDimensionsRadioBtnGroup.getDimensions().width(),
+        Graphics::ScreenWidth - terrainDimensionsRadioBtnGroup_.getDimensions().width(),
         Graphics::ScreenHeight
     );
-    VerticalRadiobuttonGroup worldsRadioBtnGroup( dimConstraint );
-    worldsRadioBtnGroup.setFont( font_ );
-    worldsRadioBtnGroup.init( std::string( " Choose the world: " ),worldsList_ );
+    worldsRadioBtnGroup_.setDimConstraint( dimConstraint );
+    worldsRadioBtnGroup_.setFont( font_ );
+    worldsRadioBtnGroup_.init( std::string( " Choose the world: " ),worldsList_ );
 
-    int h1 = terrainDimensionsRadioBtnGroup.image().getHeight();
-    int h2 = worldsRadioBtnGroup.image().getHeight();
+    /*
+    int h1 = terrainDimensionsRadioBtnGroup_.image().getHeight();
+    int h2 = worldsRadioBtnGroup_.image().getHeight();
     int hf = (h1 > h2) ? h1 : h2;
+    */
+
+    /*
     submenuImage_.createEmptySprite(
-        terrainDimensionsRadioBtnGroup.image().getWidth() +
-                        worldsRadioBtnGroup.image().getWidth(),
+        terrainDimensionsRadioBtnGroup_.image().getWidth() +
+                        worldsRadioBtnGroup_.image().getWidth(),
         hf,
         MENU_COLOR
     );
     submenuImage_.insertFromSprite(
         0,
         0,
-        worldsRadioBtnGroup.image()
+        worldsRadioBtnGroup_.image()
     );
-    submenuImage_.insertFromSprite(
-        worldsRadioBtnGroup.image().getWidth(),
-        0,
-        terrainDimensionsRadioBtnGroup.image()
-    );
-    submenuCoords_ =
-        Rect( 0,0,submenuImage_.getWidth() - 1,submenuImage_.getHeight() - 1 );
+    */
 
+    //terrainDimensionsRadioBtnGroup_.moveTo( worldsRadioBtnGroup_.image().getWidth(),0 );
+    /*
+    submenuImage_.insertFromSprite(
+        terrainDimensionsRadioBtnGroup_.getDimensions().xOrig(),
+        terrainDimensionsRadioBtnGroup_.getDimensions().yOrig(),
+        terrainDimensionsRadioBtnGroup_.image()
+    );
+    */
+
+    /*
+    int x1 = (Graphics::ScreenWidth  - submenuImage_.getWidth()) / 2;
+    int y1 = (Graphics::ScreenHeight - submenuImage_.getHeight()) / 2;
+    submenuCoords_ = Rect( 
+        x1,
+        y1,
+        x1 + submenuImage_.getWidth() - 1,
+        y1 + submenuImage_.getHeight() - 1 
+    );
+    */
+    
+    winElementBar_.clear();
+    winElementBar_.addWinElement( worldsRadioBtnGroup_ );
+    winElementBar_.addWinElement( terrainDimensionsRadioBtnGroup_ );
+    /*
+    submenuImage_.createEmptySprite(
+        winElementBar_.getDimensions().width(),
+        winElementBar_.getDimensions().height(),
+        MENU_COLOR
+    );
+    */
+    winElementBar_.moveTo(
+        (Graphics::ScreenWidth - winElementBar_.getDimensions().width()) / 2,
+        (Graphics::ScreenHeight - winElementBar_.getDimensions().height()) / 2
+    );    
 }
 
 void CampaignEditor::menuFileNewHandleInput( int mX,int mY )
 {
-
     /*
-    1) get nr of worlds
-    2) get nr of dimensions
-    drawRadioButton(char **choiceListPTR )
+    int relMouseX = mX - submenuCoords_.x1;
+    int relMouseY = mY - submenuCoords_.y1;
+    if ( relMouseX >= worldsRadioBtnGroup_.getDimensions().width() )
+        terrainDimensionsRadioBtnGroup_.handleInput( relMouseX,relMouseY );
+    else worldsRadioBtnGroup_.handleInput( relMouseX,relMouseY );
+
+    submenuImage_.insertFromSprite(
+        0,
+        0,
+        worldsRadioBtnGroup_.image()
+    );
+    submenuImage_.insertFromSprite(
+        worldsRadioBtnGroup_.getDimensions().width(),
+        0,
+        terrainDimensionsRadioBtnGroup_.image()
+    );
     */
+    winElementBar_.handleInput( mX,mY );
+
 }
 
 void CampaignEditor::drawTerrain()

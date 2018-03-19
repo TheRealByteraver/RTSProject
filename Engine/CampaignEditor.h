@@ -143,7 +143,7 @@ public:
 class CampaignEditor
 {
 public:
-    CampaignEditor( ) {}
+    CampaignEditor() {}
     void    init( 
         MainWindow& wndRef,
         Graphics& gfxRef,
@@ -208,7 +208,27 @@ private:
     GameScreens     gameScreens_;
     World           world_;
     Terrain         terrain_;
+
+
+    // This section contains al kinds of variables for the menu system
+    // and the windows as well as their input handling:
+    // Menu title list and coordinate handling:
     Menu            fileMenu_;
+    // keeping track what window or menu is visible (active):
+    bool            menuFileVisible_ = false;
+    bool            submenuVisible_ = false;
+
+    //Sprite          submenuImage_;
+    //Rect            submenuCoords_;
+
+    // contains the file list of all the worlds
+    std::vector<std::string> worldsList_;
+
+    //WinDim          fileNewMenuDim_; // temp
+    WinElementBar   winElementBar_;
+
+    VerticalRadiobuttonGroup terrainDimensionsRadioBtnGroup_;
+    VerticalRadiobuttonGroup worldsRadioBtnGroup_;
 
     // the two palettes and a pointer to the currently active palette:
     Palette        basicTerrainPalette_;
@@ -217,16 +237,6 @@ private:
     // tells which palette is currently selected in the editor:
     int             activePalette_ = BASIC_TERRAIN_PALETTE;
     bool            scrollDownLock_; // whether we reached the end of the palette
-
-    // For the menu: if the menu is shown or not
-    bool            menuFileVisible_ = false;
-    bool            submenuVisible_ = false;
-    Sprite          submenuImage_;
-    Rect            submenuCoords_;
-
-    // contains the file list of all the worlds
-    std::vector<std::string> worldsList_;
-
 
     // specific variables for the terrain editor:
     // the type of terrain we are drawing with now:
