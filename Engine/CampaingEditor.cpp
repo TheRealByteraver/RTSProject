@@ -18,7 +18,50 @@ const char *terraindimensions[] =
     "192x192",
     "256x256",
 
-  //  "Custom:  256  -+ x  256  -+",
+    /*   
+    "64x64",
+    "96x96",
+    "128x128",
+    "192x192",
+    "256x256",
+    "64x64",
+    "96x96",
+    "128x128",
+    "192x192",
+    "256x256",
+    "64x64",
+    "96x96",
+    "128x128",
+    "192x192",
+    "256x256",
+    "64x64",
+    "96x96",
+    "128x128",
+    "192x192",
+    "256x256",
+    "64x64",
+    "96x96",
+    "128x128",
+    "192x192",
+    "256x256",
+    "64x64",
+    "96x96",
+    "128x128",
+    "192x192",
+    "256x256",
+    "64x64",
+    "96x96",
+    "128x128",
+    "192x192",
+    "256x256",
+    "64x64",
+    "96x96",
+    "128x128",
+    "192x192",
+    "256x256",
+    */
+
+    //  "Custom:  256  -+ x  256  -+",
   //    "Custom:                    ", // not for now
     nullptr
 };
@@ -104,16 +147,23 @@ void CampaignEditor::init(
     isInitialized_ = true;
 
     // debug: load test terrain
-    error = loadTerrain( "default.ini" );
+    //error = loadTerrain( "default.ini" );
 }
-
-void CampaignEditor::populateWorldsList()
+/*
+  This function will create a list of filenames of a given extension from a 
+  given path. The path should not start with a driveletter or backslash, as
+  it will be appended to the default Game directory which should be ".\" by
+  default. The path should not end with a backslash either. The extension 
+  should be just that, including the dot though, for example ".ini".
+*/
+void CampaignEditor::populateFileList( const std::string path,const std::string extension )
 {
-    worldsList_.clear();
+    fileList_.clear();
     std::wstring searchPath;
     for ( char c : std::string( GAME_FOLDER ) ) searchPath += c;
-    for ( char c : defaults.worldsFolder() ) searchPath += c;
-    searchPath.append( L"\\*.ini" );
+    for ( char c : path ) searchPath += c;
+    searchPath.append( L"\\*" );
+    for ( char c : extension ) searchPath += c;
     WIN32_FIND_DATA findData;
     HANDLE hFind = ::FindFirstFile( searchPath.c_str(),&findData );
     if ( hFind != INVALID_HANDLE_VALUE )
@@ -125,7 +175,7 @@ void CampaignEditor::populateWorldsList()
             {
                 std::string worldName;
                 for ( WCHAR *c = findData.cFileName; *c != NULL; c++ ) worldName += (char)*c;
-                worldsList_.push_back( worldName );
+                fileList_.push_back( worldName );
             }
         } while ( ::FindNextFile( hFind,&findData ) );
         ::FindClose( hFind );
@@ -237,36 +287,68 @@ void CampaignEditor::draw()
         }
     } else if ( submenuVisible_ ) 
     {
-        /*
-        gfx.paintSprite(
-            submenuCoords_.x1,
-            submenuCoords_.y1,
-            submenuImage_
-        );
-        */
+
         gfx.setFrameColor( MENU_COLOR );
+        /*
+        // will cause range error (drawing off the screen) / big windows
         gfx.drawNiceBlock( Rect(
             winElementBar_.getDimensions().rect().x1 - FRAME_WIDTH, 
             winElementBar_.getDimensions().rect().y1 - FRAME_WIDTH,
             winElementBar_.getDimensions().rect().x2 + FRAME_WIDTH,
             winElementBar_.getDimensions().rect().y2 + FRAME_WIDTH )
         );
+        */
+        /*
+        gfx.drawBlock( 
+            winElementBar_.getDimensions().rect().x1,
+            winElementBar_.getDimensions().rect().y1,
+            winElementBar_.getDimensions().rect().x2,
+            winElementBar_.getDimensions().rect().y2,
+            MENU_COLOR
+        );
         int x = winElementBar_.getDimensions().xOrig();
         int y = winElementBar_.getDimensions().yOrig();
         for ( auto& s : winElementBar_.winElementList() )
         {
-            gfx.paintSprite(
-                x,
-                y,
-                s->image()
-            );
+            gfx.paintSprite( x,y,s->image() );
             x += s->getDimensions().width();
         }
+        */
+        gfx.drawBlock(
+            winElementBarList_.getDimensions().rect().x1,
+            winElementBarList_.getDimensions().rect().y1,
+            winElementBarList_.getDimensions().rect().x2,
+            winElementBarList_.getDimensions().rect().y2,
+            MENU_COLOR
+        );
+
+        int y = winElementBarList_.getDimensions().yOrig();
+        for ( auto& barElem : winElementBarList_.winElementBarList() )
+        {
+            int x = winElementBarList_.getDimensions().xOrig();
+            for ( auto& s : barElem->winElementList() )
+            {
+                gfx.paintSprite( x,y,s->image() );
+                x += s->getDimensions().width();
+            }
+            y += barElem->getDimensions().height();
+        }
+
+
+
+        
+
+
+
+
+
+
+
+
     } else {
         if ( doodadMouseCursor_ ) drawDoodadCursorAtLocation();
         else drawTerrainCursor();
     }
-
     /*
     ScrollBar scrollBar( WinDim(
         0,600,600,60 ) 
@@ -280,18 +362,15 @@ void CampaignEditor::draw()
     scrollBar2.init( 18,600,SCROLL_BAR_VERTICAL );
     gfx.paintSprite( 620,60,scrollBar2.image() );
     */
-
 }
 
 void CampaignEditor::handleInput()
 {
-    //Graphics& gfx = *gfx_;
     Mouse& mouse = *mouse_;
     int mX = mouse.GetPosX();
     int mY = mouse.GetPosY();
-    if ( mouseLeftClickDelay_ ) mouseLeftClickDelay_--;
-    // cancel delay if left mouse released:
-    if ( !mouse.LeftIsPressed() )
+    if ( mouseLeftClickDelay_ ) mouseLeftClickDelay_--;    
+    if ( !mouse.LeftIsPressed() ) // cancel click delay if left mouse released
     {
         mouseWaitForLeftButtonReleased_ = false;
         mouseLeftClickDelay_ = MOUSE_NO_DELAY;
@@ -304,12 +383,14 @@ void CampaignEditor::handleInput()
             menuFileVisible_ = false;
         }
     }
+    /*
     if ( submenuVisible_ )
     {
         //submenuHandleInput();
         //menuFileNewHandleInput( mX,mY ); // temp
         //return;
     }
+    */
     if ( mouse.RightIsPressed() )
     {
         doodadMouseCursor_ = false; // right-click cancels doodad cursor
@@ -323,30 +404,27 @@ void CampaignEditor::handleInput()
         {
             menuFileHandleInput( mY );
             mouseWaitForLeftButtonReleased_ = true;
+        // handle whatever submenu that needs to be handled:
         } else if ( submenuVisible_ )
         {
-            //if ( mouse.isInArea( submenuCoords_ ) )
-            if ( mouse.isInArea( winElementBar_.getDimensions().rect() ) )
+            //if ( mouse.isInArea( winElementBar_.getDimensions().rect() ) )
+            if ( mouse.isInArea( winElementBarList_.getDimensions().rect() ) )                
+            {
                 menuFileNewHandleInput( mX,mY );
-            mouseWaitForLeftButtonReleased_ = true;
+                mouseWaitForLeftButtonReleased_ = true;
+            }
+        // terrain drawing functions:
         } else if ( mouse.isInArea( gameScreens_.map_coords ) )
         {
-            /*
-            if ( menuFileVisible_ )
+            if ( doodadMouseCursor_ )
             {
-                menuFileHandleInput( mY );
-                mouseWaitForLeftButtonReleased_ = true;
-            } else {*/
-                if ( doodadMouseCursor_ )
-                {
-                    if (!mouseWaitForLeftButtonReleased_ ) 
-                        tryDrawDoodad( mX,mY );
-                } else
-                {
-                    if ( !mouseWaitForLeftButtonReleased_ ) 
-                        drawBasicTerrain( mX,mY );
-                }
-            //}
+                if ( !mouseWaitForLeftButtonReleased_ ) 
+                    tryDrawDoodad( mX,mY );
+            } else
+            {
+                if ( !mouseWaitForLeftButtonReleased_ ) 
+                    drawBasicTerrain( mX,mY );
+            }
         // switch to the next palette:
         } else if ( mouse.isInArea( gameScreens_.paletteSelector ) )
         {
@@ -584,7 +662,7 @@ void CampaignEditor::submenuHandleInput()
 
 void CampaignEditor::menuFileNewDrawSubmenu()
 {
-    // half the screen width should be enough for the dimensions:
+    // half the screen width should be enough for the dimensions radiobutton list:
     WinDim dimConstraint( 
         0,
         0,
@@ -597,9 +675,8 @@ void CampaignEditor::menuFileNewDrawSubmenu()
         std::string( " Choose the size: " ),
         terraindimensions 
     );
-
-    // Get the list with the available worlds .ini files:
-    populateWorldsList();
+    // Get a list with the available worlds .ini files:
+    populateFileList( defaults.worldsFolder(),".ini" );
     // reset the maximum size constraint for the new radio button group:
     dimConstraint.init(
         0,
@@ -609,86 +686,45 @@ void CampaignEditor::menuFileNewDrawSubmenu()
     );
     worldsRadioBtnGroup_.setDimConstraint( dimConstraint );
     worldsRadioBtnGroup_.setFont( font_ );
-    worldsRadioBtnGroup_.init( std::string( " Choose the world: " ),worldsList_ );
+    worldsRadioBtnGroup_.init( std::string( " Choose the world: " ),fileList_ );
 
-    /*
-    int h1 = terrainDimensionsRadioBtnGroup_.image().getHeight();
-    int h2 = worldsRadioBtnGroup_.image().getHeight();
-    int hf = (h1 > h2) ? h1 : h2;
-    */
-
-    /*
-    submenuImage_.createEmptySprite(
-        terrainDimensionsRadioBtnGroup_.image().getWidth() +
-                        worldsRadioBtnGroup_.image().getWidth(),
-        hf,
-        MENU_COLOR
-    );
-    submenuImage_.insertFromSprite(
-        0,
-        0,
-        worldsRadioBtnGroup_.image()
-    );
-    */
-
-    //terrainDimensionsRadioBtnGroup_.moveTo( worldsRadioBtnGroup_.image().getWidth(),0 );
-    /*
-    submenuImage_.insertFromSprite(
-        terrainDimensionsRadioBtnGroup_.getDimensions().xOrig(),
-        terrainDimensionsRadioBtnGroup_.getDimensions().yOrig(),
-        terrainDimensionsRadioBtnGroup_.image()
-    );
-    */
-
-    /*
-    int x1 = (Graphics::ScreenWidth  - submenuImage_.getWidth()) / 2;
-    int y1 = (Graphics::ScreenHeight - submenuImage_.getHeight()) / 2;
-    submenuCoords_ = Rect( 
-        x1,
-        y1,
-        x1 + submenuImage_.getWidth() - 1,
-        y1 + submenuImage_.getHeight() - 1 
-    );
-    */
-    
+    // create a horizontal bar with both win elements we just created:
     winElementBar_.clear();
     winElementBar_.addWinElement( worldsRadioBtnGroup_ );
     winElementBar_.addWinElement( terrainDimensionsRadioBtnGroup_ );
-    /*
-    submenuImage_.createEmptySprite(
-        winElementBar_.getDimensions().width(),
-        winElementBar_.getDimensions().height(),
-        MENU_COLOR
+
+    
+    // testing testing testing
+    populateFileList( defaults.terrainsFolder(),".ini" );
+    dimConstraint.init(
+        0,
+        0,
+        Graphics::ScreenWidth / 3,
+        Graphics::ScreenHeight / 2
     );
-    */
-    winElementBar_.moveTo(
-        (Graphics::ScreenWidth - winElementBar_.getDimensions().width()) / 2,
-        (Graphics::ScreenHeight - winElementBar_.getDimensions().height()) / 2
-    );    
+    test_.setDimConstraint( dimConstraint );
+    test_.setFont( font_ );
+    test_.init( std::string( " List: " ),fileList_ );
+    winElementBar2_.clear();
+    winElementBar2_.addWinElement( test_ );
+    
+
+
+
+    // create the final window:
+    winElementBarList_.clear();
+    winElementBarList_.addWinElementBar( winElementBar_ );
+    winElementBarList_.addWinElementBar( winElementBar2_ );  // testing
+
+    winElementBarList_.moveTo(
+        (Graphics::ScreenWidth - winElementBarList_.getDimensions().width()) / 2,
+        (Graphics::ScreenHeight - winElementBarList_.getDimensions().height()) / 2
+    );
 }
 
 void CampaignEditor::menuFileNewHandleInput( int mX,int mY )
 {
-    /*
-    int relMouseX = mX - submenuCoords_.x1;
-    int relMouseY = mY - submenuCoords_.y1;
-    if ( relMouseX >= worldsRadioBtnGroup_.getDimensions().width() )
-        terrainDimensionsRadioBtnGroup_.handleInput( relMouseX,relMouseY );
-    else worldsRadioBtnGroup_.handleInput( relMouseX,relMouseY );
-
-    submenuImage_.insertFromSprite(
-        0,
-        0,
-        worldsRadioBtnGroup_.image()
-    );
-    submenuImage_.insertFromSprite(
-        worldsRadioBtnGroup_.getDimensions().width(),
-        0,
-        terrainDimensionsRadioBtnGroup_.image()
-    );
-    */
-    winElementBar_.handleInput( mX,mY );
-
+    winElementBarList_.handleInput( mX,mY );
 }
 
 void CampaignEditor::drawTerrain()

@@ -160,7 +160,7 @@ public:
     void            handleInput();
     bool            isInitialized() const { return isInitialized_; }
 private:
-    void            populateWorldsList();
+    void            populateFileList( const std::string path,const std::string extension );
     void            handleMapScrollingFunction();
     void            handlePaletteScrollingFunction();
     void            switchToNextPalette();
@@ -218,17 +218,19 @@ private:
     bool            menuFileVisible_ = false;
     bool            submenuVisible_ = false;
 
-    //Sprite          submenuImage_;
-    //Rect            submenuCoords_;
+    // this variable contains a list of filenames, used by menu functions
+    std::vector<std::string> fileList_;
 
-    // contains the file list of all the worlds
-    std::vector<std::string> worldsList_;
+    VerticalRadiobuttonGroup    terrainDimensionsRadioBtnGroup_;
+    VerticalRadiobuttonGroup    worldsRadioBtnGroup_;
+    VerticalRadiobuttonGroup    test_;
 
-    //WinDim          fileNewMenuDim_; // temp
-    WinElementBar   winElementBar_;
+    WinElementBar               winElementBar_; 
+    WinElementBar               winElementBar2_;
+    WinElementBarList           winElementBarList_;
 
-    VerticalRadiobuttonGroup terrainDimensionsRadioBtnGroup_;
-    VerticalRadiobuttonGroup worldsRadioBtnGroup_;
+
+
 
     // the two palettes and a pointer to the currently active palette:
     Palette        basicTerrainPalette_;
