@@ -61,6 +61,11 @@ public:
         ) {}
     Sprite( const char *bmpFileName );
     Sprite( const std::string& bmpFileName ) : Sprite( bmpFileName.c_str() ) {}
+    Sprite( int width,int height,const Color fillColor )
+    {
+        pixelData_ = nullptr;
+        createEmptySprite( width,height,fillColor );
+    }
     ~Sprite();
     Sprite& operator=( const Sprite& sourceSprite );
     int     getWidth() const { return width_; }

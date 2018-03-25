@@ -66,6 +66,14 @@ const char *terraindimensions[] =
     nullptr
 };
 
+const char *buttonsokcancel[] =
+{
+    "OK",
+    "Cancel",
+//    "All right this is a very big button now, like way too big and stuff",
+    nullptr
+};
+
 const char* palettetitles[] = { 
     "<   Terrain    >",
     "<   Doodads    >",
@@ -333,10 +341,6 @@ void CampaignEditor::draw()
             }
             y += barElem->getDimensions().height();
         }
-
-
-
-        
 
 
 
@@ -693,7 +697,9 @@ void CampaignEditor::menuFileNewDrawSubmenu()
     winElementBar_.addWinElement( worldsRadioBtnGroup_ );
     winElementBar_.addWinElement( terrainDimensionsRadioBtnGroup_ );
 
-    
+    // create a second bar with the ok+cancel button list win element:
+    winElementBar2_.clear();
+    /*
     // testing testing testing
     populateFileList( defaults.terrainsFolder(),".ini" );
     dimConstraint.init(
@@ -705,11 +711,12 @@ void CampaignEditor::menuFileNewDrawSubmenu()
     test_.setDimConstraint( dimConstraint );
     test_.setFont( font_ );
     test_.init( std::string( " List: " ),fileList_ );
-    winElementBar2_.clear();
     winElementBar2_.addWinElement( test_ );
-    
-
-
+    */
+    buttonList_.setDimConstraint( dimConstraint );
+    buttonList_.setFont( font_ );    
+    buttonList_.init( buttonsokcancel );
+    winElementBar2_.addWinElement( buttonList_ );
 
     // create the final window:
     winElementBarList_.clear();

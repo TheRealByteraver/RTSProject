@@ -221,9 +221,12 @@ private:
     // this variable contains a list of filenames, used by menu functions
     std::vector<std::string> fileList_;
 
+    // these variables are modules that can be grouped together in a bar / barlist
+    // as declared below
     VerticalRadiobuttonGroup    terrainDimensionsRadioBtnGroup_;
     VerticalRadiobuttonGroup    worldsRadioBtnGroup_;
     VerticalRadiobuttonGroup    test_;
+    ButtonList                  buttonList_;
 
     WinElementBar               winElementBar_; 
     WinElementBar               winElementBar2_;
