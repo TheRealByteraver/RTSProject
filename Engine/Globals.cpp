@@ -124,26 +124,26 @@ Defaults::Defaults()
     recreate = false;
     if ( !fileExists( desertWorldSpriteLib ) )
     {
-        debugLogFile << "Can't open default terrain file " << desertWorldSpriteLib
+        debugLogFile << "Can't open default world file " << desertWorldSpriteLib
             << ", recreating world " << DESERT_WORLD_NAME << "." << std::endl;
         recreate = true;
     }
     if ( !fileExists( desertWorldIni ) )
     {
-        debugLogFile << "Can't open default terrain file " << desertWorldIni
+        debugLogFile << "Can't open default world file " << desertWorldIni
             << ", recreating world " << DESERT_WORLD_NAME << "." << std::endl;
         recreate = true;
     }
     //recreate = true; // debug !!!
     if ( recreate ) CreateDefaultSprites().createDesertWorld();
 
-    // load default terrain name and check if the terrain exists:
+    // load default world name and check if the world exists:
     error = masterIniFile_.getKeyValue( "Main","DefaultWorld",defaultWorld_ );
     if ( (error != 0) || (defaultWorld_.length() == 0) )
     {
         defaultWorld_ = GREENPRAIRIE_WORLD_NAME;
-    } else
-    {
+    } else {
+        /*
         std::string defWorldSpriteLib( GAME_FOLDER );
         defWorldSpriteLib.append( worldsFolder_ );
         defWorldSpriteLib.append( "\\" );
@@ -156,15 +156,41 @@ Defaults::Defaults()
         defWorldIni.append( ".ini" );
         if ( !fileExists( defWorldSpriteLib ) )
         {
-            debugLogFile << "Can't open default terrain file " << defWorldSpriteLib
-                << ", recreating world " << defaultWorld_ << "." << std::endl;
+            debugLogFile << "Can't open default world file " << defWorldSpriteLib
+                << ", loading world " << defaultWorld_ << " instead." << std::endl;
             defaultWorld_ = GREENPRAIRIE_WORLD_NAME;
         }
         if ( !fileExists( defWorldIni ) )
         {
-            debugLogFile << "Can't open default terrain file " << defWorldIni
-                << ", recreating world " << defaultWorld_ << "." << std::endl;
+            debugLogFile << "Can't open default world file " << defWorldIni
+                << ", loading world " << defaultWorld_ << " instead." << std::endl;
             defaultWorld_ = GREENPRAIRIE_WORLD_NAME;
+        }
+        */
+        std::string defWorldIni( GAME_FOLDER );
+        defWorldIni.append( worldsFolder_ );
+        defWorldIni.append( "\\" );
+        defWorldIni.append( defaultWorld_ );
+        defWorldIni.append( ".ini" );
+        if ( !fileExists( defWorldIni ) )
+        {
+            debugLogFile << "Can't open default world file " << defWorldIni
+                << ", loading world " << defaultWorld_ << " instead." << std::endl;
+            defaultWorld_ = GREENPRAIRIE_WORLD_NAME;
+        } else {
+            IniFile defaultWorld( defWorldIni );
+            std::string defaultWorldBmp;
+            error = defaultWorld.getKeyValue( "Main","SourceFile",defaultWorldBmp );
+            std::string defaultWorldBmpFullPath( GAME_FOLDER );
+            defaultWorldBmpFullPath.append( worldsFolder_ );
+            defaultWorldBmpFullPath.append( "\\" );
+            defaultWorldBmpFullPath.append( defaultWorldBmp );
+            if ( (error != 0) || (!fileExists( defaultWorldBmpFullPath )) )
+            {
+                debugLogFile << "Can't open default world file " << defWorldSpriteLib
+                    << ", loading world " << defaultWorld_ << " instead." << std::endl;
+                defaultWorld_ = GREENPRAIRIE_WORLD_NAME;
+            }
         }
     }
 }

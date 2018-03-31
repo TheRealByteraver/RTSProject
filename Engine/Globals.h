@@ -20,6 +20,9 @@
 #define DESERT_WORLD_NAME           "desert"
 #define DOODAD_SUFFIX               "ddd"
 
+#define WORLD_MAJOR_FILE_REVISION   1
+#define WORLD_MINOR_FILE_REVISION   0
+
 // map dimension constants
 #define MIN_TERRAIN_WIDTH           64
 #define MIN_TERRAIN_HEIGHT          64

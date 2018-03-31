@@ -10,6 +10,11 @@ const char *menufiletitles[] =
     nullptr
 };
 
+#define DIMENSION_64x64             0
+#define DIMENSION_96x96             1
+#define DIMENSION_128x128           2
+#define DIMENSION_192x192           3
+#define DIMENSION_256x256           4
 const char *terraindimensions[] =
 { 
     "64x64",
@@ -66,11 +71,21 @@ const char *terraindimensions[] =
     nullptr
 };
 
+#define BUTTON_OK                   0
+#define BUTTON_CANCEL               1
 const char *buttonsokcancel[] =
 {
+    "  Ok  ",
+    "Cancel",
+    /*
+    "All right this is a very big button now, like way too big and stuff",
     "OK",
     "Cancel",
-//    "All right this is a very big button now, like way too big and stuff",
+    "All right this is a very big button now, like way too big and stuff",
+    "OK",
+    "Cancel",
+    "All right this is a very big button now, like way too big and stuff",
+    */
     nullptr
 };
 
@@ -295,49 +310,24 @@ void CampaignEditor::draw()
         }
     } else if ( submenuVisible_ ) 
     {
-
         gfx.setFrameColor( MENU_COLOR );
-        /*
-        // will cause range error (drawing off the screen) / big windows
         gfx.drawNiceBlock( Rect(
-            winElementBar_.getDimensions().rect().x1 - FRAME_WIDTH, 
-            winElementBar_.getDimensions().rect().y1 - FRAME_WIDTH,
-            winElementBar_.getDimensions().rect().x2 + FRAME_WIDTH,
-            winElementBar_.getDimensions().rect().y2 + FRAME_WIDTH )
+            winElementBarList0_.getDimensions().rect().x1 - FRAME_WIDTH,
+            winElementBarList0_.getDimensions().rect().y1 - FRAME_WIDTH,
+            winElementBarList0_.getDimensions().rect().x2 + FRAME_WIDTH,
+            winElementBarList0_.getDimensions().rect().y2 + FRAME_WIDTH )
         );
-        */
-        /*
-        gfx.drawBlock( 
-            winElementBar_.getDimensions().rect().x1,
-            winElementBar_.getDimensions().rect().y1,
-            winElementBar_.getDimensions().rect().x2,
-            winElementBar_.getDimensions().rect().y2,
-            MENU_COLOR
-        );
-        int x = winElementBar_.getDimensions().xOrig();
-        int y = winElementBar_.getDimensions().yOrig();
-        for ( auto& s : winElementBar_.winElementList() )
+        int y = winElementBarList0_.getDimensions().yOrig();
+        for ( auto& barElem : winElementBarList0_.winElementBarList() )
         {
-            gfx.paintSprite( x,y,s->image() );
-            x += s->getDimensions().width();
-        }
-        */
-        gfx.drawBlock(
-            winElementBarList_.getDimensions().rect().x1,
-            winElementBarList_.getDimensions().rect().y1,
-            winElementBarList_.getDimensions().rect().x2,
-            winElementBarList_.getDimensions().rect().y2,
-            MENU_COLOR
-        );
-
-        int y = winElementBarList_.getDimensions().yOrig();
-        for ( auto& barElem : winElementBarList_.winElementBarList() )
-        {
-            int x = winElementBarList_.getDimensions().xOrig();
+            int x = winElementBarList0_.getDimensions().xOrig();
             for ( auto& s : barElem->winElementList() )
             {
-                gfx.paintSprite( x,y,s->image() );
-                x += s->getDimensions().width();
+                gfx.paintSprite( 
+                    x + s->getDimensions().xOrig(),
+                    y + s->getDimensions().yOrig(),
+                    s->image() 
+                );
             }
             y += barElem->getDimensions().height();
         }
@@ -411,8 +401,7 @@ void CampaignEditor::handleInput()
         // handle whatever submenu that needs to be handled:
         } else if ( submenuVisible_ )
         {
-            //if ( mouse.isInArea( winElementBar_.getDimensions().rect() ) )
-            if ( mouse.isInArea( winElementBarList_.getDimensions().rect() ) )                
+            if ( mouse.isInArea( winElementBarList0_.getDimensions().rect() ) )                
             {
                 menuFileNewHandleInput( mX,mY );
                 mouseWaitForLeftButtonReleased_ = true;
@@ -671,67 +660,158 @@ void CampaignEditor::menuFileNewDrawSubmenu()
         0,
         0,
         Graphics::ScreenWidth / 2,
-        Graphics::ScreenHeight
+        Graphics::ScreenHeight - FRAME_WIDTH * 2
     );
-    terrainDimensionsRadioBtnGroup_.setDimConstraint( dimConstraint );
-    terrainDimensionsRadioBtnGroup_.setFont( font_ );
-    terrainDimensionsRadioBtnGroup_.init( 
+    radiobuttonGroup0_.setDimConstraint( dimConstraint );
+    radiobuttonGroup0_.setFont( font_ );
+    radiobuttonGroup0_.init(
         std::string( " Choose the size: " ),
         terraindimensions 
     );
     // Get a list with the available worlds .ini files:
     populateFileList( defaults.worldsFolder(),".ini" );
     // reset the maximum size constraint for the new radio button group:
-    dimConstraint.init(
-        0,
-        0,
-        Graphics::ScreenWidth - terrainDimensionsRadioBtnGroup_.getDimensions().width(),
-        Graphics::ScreenHeight
+    dimConstraint.reSize(
+        Graphics::ScreenWidth - FRAME_WIDTH * 2
+        - radiobuttonGroup0_.getDimensions().width(),
+        Graphics::ScreenHeight - FRAME_WIDTH * 2
     );
-    worldsRadioBtnGroup_.setDimConstraint( dimConstraint );
-    worldsRadioBtnGroup_.setFont( font_ );
-    worldsRadioBtnGroup_.init( std::string( " Choose the world: " ),fileList_ );
+    radiobuttonGroup1_.setDimConstraint( dimConstraint );
+    radiobuttonGroup1_.setFont( font_ );
+    radiobuttonGroup1_.init( std::string( " Choose the world: " ),fileList_ );
 
-    // create a horizontal bar with both win elements we just created:
-    winElementBar_.clear();
-    winElementBar_.addWinElement( worldsRadioBtnGroup_ );
-    winElementBar_.addWinElement( terrainDimensionsRadioBtnGroup_ );
+    // create the OK-Cancel button window element:
+    buttonList0_.setDimConstraint( dimConstraint );
+    buttonList0_.setFont( font_ );
+    buttonList0_.init( buttonsokcancel );
 
-    // create a second bar with the ok+cancel button list win element:
-    winElementBar2_.clear();
-    /*
-    // testing testing testing
-    populateFileList( defaults.terrainsFolder(),".ini" );
-    dimConstraint.init(
-        0,
-        0,
-        Graphics::ScreenWidth / 3,
-        Graphics::ScreenHeight / 2
-    );
-    test_.setDimConstraint( dimConstraint );
-    test_.setFont( font_ );
-    test_.init( std::string( " List: " ),fileList_ );
-    winElementBar2_.addWinElement( test_ );
-    */
-    buttonList_.setDimConstraint( dimConstraint );
-    buttonList_.setFont( font_ );    
-    buttonList_.init( buttonsokcancel );
-    winElementBar2_.addWinElement( buttonList_ );
+    // create a 1st horizontal bar with both radio button win elements we just created:
+    winElementBar0_.clear();
+    winElementBar0_.addWinElement( radiobuttonGroup1_ );
+    winElementBar0_.addWinElement( radiobuttonGroup0_ );
 
-    // create the final window:
-    winElementBarList_.clear();
-    winElementBarList_.addWinElementBar( winElementBar_ );
-    winElementBarList_.addWinElementBar( winElementBar2_ );  // testing
+    // create a 2nd bar with the ok+cancel button list win element:
+    winElementBar1_.clear();
 
-    winElementBarList_.moveTo(
-        (Graphics::ScreenWidth - winElementBarList_.getDimensions().width()) / 2,
-        (Graphics::ScreenHeight - winElementBarList_.getDimensions().height()) / 2
+    // center the buttons to make it a bit more appealing visually:
+    int xBtnOfs = winElementBar0_.getDimensions().width() -
+                    buttonList0_.getDimensions().width();
+    if ( xBtnOfs < 0 ) xBtnOfs = 0;
+    buttonList0_.moveTo( xBtnOfs / 2,0 );
+
+    winElementBar1_.addWinElement( buttonList0_ );
+
+    // create the final window, meaning a vertical stack of winElementBar's:
+    winElementBarList0_.clear();
+    winElementBarList0_.addWinElementBar( winElementBar0_ );
+    winElementBarList0_.addWinElementBar( winElementBar1_ );
+
+    // center the final window itself on the screen:
+    winElementBarList0_.moveTo(
+        (Graphics::ScreenWidth - winElementBarList0_.getDimensions().width()) / 2,
+        (Graphics::ScreenHeight - winElementBarList0_.getDimensions().height()) / 2
     );
 }
 
 void CampaignEditor::menuFileNewHandleInput( int mX,int mY )
 {
-    winElementBarList_.handleInput( mX,mY );
+    winElementBarList0_.handleInput( mX,mY );
+    if( buttonList0_.hasValidInput() )
+    {
+        
+        if ( buttonList0_.getInput() == BUTTON_OK )
+        {
+            if ( radiobuttonGroup0_.hasValidInput() &&
+                radiobuttonGroup1_.hasValidInput() )
+            {
+                submenuVisible_ = false;
+                // new terrain logic here
+                int dimensionChoice = radiobuttonGroup0_.getInput();
+                int terrainChoice = radiobuttonGroup1_.getInput();
+                int newTerrainWidth = 0;
+                int newTerrainHeight = 0;
+                switch ( dimensionChoice )
+                {
+                    case DIMENSION_64x64:
+                    {
+                        newTerrainWidth = 64;
+                        newTerrainHeight = 64;
+                        break;
+                    }
+                    case DIMENSION_96x96:
+                    {
+                        newTerrainWidth = 96;
+                        newTerrainHeight = 96;
+                        break;
+                    }
+                    case DIMENSION_128x128:
+                    {
+                        newTerrainWidth = 128;
+                        newTerrainHeight = 128;
+                        break;
+                    }
+                    case DIMENSION_192x192:
+                    {
+                        newTerrainWidth = 192;
+                        newTerrainHeight = 192;
+                        break;
+                    }
+                    case DIMENSION_256x256:
+                    {
+                        newTerrainWidth = 256;
+                        newTerrainHeight = 256;
+                        break;
+                    }
+                }
+
+
+
+
+                // create empty terrain:
+                terrain_.init(
+                    newTerrainWidth,
+                    newTerrainHeight );
+
+                std::string terrainChoiceName( fileList_[terrainChoice] );
+                terrainChoiceName.resize( terrainChoiceName.length() - 4 ); // cut extension
+
+                // load world:
+                int error = world_.load( terrainChoiceName );
+                if ( error != 0 )
+                {
+                    defaults.debugLogFile
+                        << "Unable to load world " << terrainChoiceName << std::endl;
+                    //showErrorAndQuit( defaults.defaultWorld() );
+                    std::wstring errMsg( L"Unable to open world gfx data file " );
+                    for ( char c : terrainChoiceName ) errMsg += c;
+                    errMsg += L".bmp, using current world instead.";
+                    //wnd.ShowMessageBox( L"Error",errMsg,MB_OK );
+                    //PostQuitMessage( 0 );
+                }
+                // init the boolean map containing the doodad locations
+                initDoodadLocationMap();
+
+                // initialize the coordinates for terrain drawing:
+                initMapCoords();
+
+                // create the drawing palettes:
+                createBasicTerrainPalette();
+                createDoodadPalette();
+
+                // initialize the pointers to the current palette:
+                initPalettePointers();
+
+                // draw the currently active palette:
+                redrawPalette();
+
+                // Draw the minimap:
+                redrawMiniMap();
+
+            }                
+        } else { // cancel button pressed            
+            submenuVisible_ = false;
+        }        
+    }
 }
 
 void CampaignEditor::drawTerrain()
@@ -1135,6 +1215,10 @@ void CampaignEditor::initMapCoords()
     visibleTilesY_ = gameScreens_.map_coords.height() / tileHeight_;
     if ( visibleTilesX_ > terrain_.getColumns() ) visibleTilesX_ = terrain_.getColumns();
     if ( visibleTilesY_ > terrain_.getRows() ) visibleTilesY_ = terrain_.getRows();
+
+    // go to top left corner of the screen:
+    TerrainDrawXOrig_ = 0;
+    TerrainDrawYOrig_ = 0;
 }
 
 /*

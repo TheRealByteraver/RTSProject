@@ -342,18 +342,21 @@ private:
         std::string path( GAME_FOLDER );
         path.append( defaults.worldsFolder() );
         path.append( "\\" );
-        path.append( worldName_ );
-        IniFile defWorldIni( path + ".ini",defaults.debugLogFile );
+        //path.append( worldName_ );
+        IniFile defWorldIni( path + worldName_ + ".ini",defaults.debugLogFile );
         if ( !defWorldIni.isLoaded() ) return -1;
         int separator,offset,nrOfTiles,error = 0;
+        std::string bmpSourceFileName;
         error += defWorldIni.getKeyValue( "Tiles","Width",tileWidth_ );
         error += defWorldIni.getKeyValue( "Tiles","Height",tileHeight_ );
         error += defWorldIni.getKeyValue( "Tiles","Separator",separator );
         error += defWorldIni.getKeyValue( "Tiles","Offset",offset );
         error += defWorldIni.getKeyValue( "Tiles","NrOfTiles",nrOfTiles );
+        error += defWorldIni.getKeyValue( "Main","SourceFile",bmpSourceFileName );
         if ( error != 0 ) return -1;
         // and now the tile library bitmap:
-        Sprite spriteLib( path + ".bmp" );
+        //Sprite spriteLib( path + ".bmp" );
+        Sprite spriteLib( path + bmpSourceFileName );
         int libWidth = spriteLib.getWidth();
         int libHeight = spriteLib.getHeight();
         if ( nrOfTiles != NR_OF_TILES ) return -1;

@@ -221,19 +221,18 @@ private:
     // this variable contains a list of filenames, used by menu functions
     std::vector<std::string> fileList_;
 
-    // these variables are modules that can be grouped together in a bar / barlist
-    // as declared below
-    VerticalRadiobuttonGroup    terrainDimensionsRadioBtnGroup_;
-    VerticalRadiobuttonGroup    worldsRadioBtnGroup_;
-    VerticalRadiobuttonGroup    test_;
-    ButtonList                  buttonList_;
-
-    WinElementBar               winElementBar_; 
+    // these variables are winElements that can be grouped together in a 
+    // horizontal WinElementBar object
+    VerticalRadiobuttonGroup    radiobuttonGroup0_;
+    VerticalRadiobuttonGroup    radiobuttonGroup1_;
+    ButtonList                  buttonList0_;
+    // a Win Element Bar is a horizontal strip of win Elements such as the ones 
+    // declared above
+    WinElementBar               winElementBar0_; 
+    WinElementBar               winElementBar1_;
     WinElementBar               winElementBar2_;
-    WinElementBarList           winElementBarList_;
-
-
-
+    // a Win Element Bar List is a vertical list of Win Element Bar's
+    WinElementBarList           winElementBarList0_;
 
     // the two palettes and a pointer to the currently active palette:
     Palette        basicTerrainPalette_;
@@ -255,8 +254,8 @@ private:
     // tile has a doodad on top of it or not:
     bool           *doodadLocationMap_ = nullptr;
     // these coordinates keep track of our location (in tiles) on the map:
-    int             TerrainDrawXOrig_ = 0;
-    int             TerrainDrawYOrig_ = 0;
+    int             TerrainDrawXOrig_;
+    int             TerrainDrawYOrig_;
     // nr of visible tiles in Horizontal and vertical direction:
     int             visibleTilesX_;
     int             visibleTilesY_;

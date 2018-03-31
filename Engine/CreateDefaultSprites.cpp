@@ -26,8 +26,18 @@ void CreateDefaultSprites::createGreenPrairieWorld()
     std::ofstream greenPrairieWorldIni( path + GREENPRAIRIE_WORLD_NAME ".ini" );
     greenPrairieWorldIni << "; This describes the " << GREENPRAIRIE_WORLD_NAME
         << " world spritesheet." << std::endl
-        << "; If this file is corrupt then delete it, the game will"
+        << "; If a default world file is corrupt then delete it, the game will"
         << " recreate it." << std::endl
+        << ";" << std::endl
+        << "; In the [Main] section we define which default tileset we use, as "
+        << "well as the" << std::endl
+        << "; name of the world" << std::endl
+        << "[Main]" << std::endl
+        << "MajorFileRevision = " << WORLD_MAJOR_FILE_REVISION 
+        << "      ; file version" << std::endl
+        << "MinorFileRevision = " << WORLD_MINOR_FILE_REVISION << std::endl
+        << "name = GreenPrairie" << std::endl
+        << "SourceFile = GreenPrairie.bmp" << std::endl
         << ";" << std::endl
         << "[Tiles]" << std::endl
         << "Width=" << WORLD_TILE_DEFAULT_WIDTH << std::endl
@@ -42,9 +52,6 @@ void CreateDefaultSprites::createGreenPrairieWorld()
         << "; The Terrain mask is a bit more tricky. It describes what kind of terrain" << std::endl
         << "; the doodad can be placed upon. Each letter corresponds to a particular" << std::endl
         << "; type of basic terrain: low water, high water, low ground, transition tiles, etc." << std::endl
-        << ";" << std::endl
-        << "[Main]" << std::endl
-        << "world=desert" << std::endl
         << ";" << std::endl
         << "[Doodad000]" << std::endl
         << "name=RampRightwards" << std::endl
@@ -334,8 +341,18 @@ void CreateDefaultSprites::createDesertWorld()
     std::ofstream desertWorldIni( path + DESERT_WORLD_NAME ".ini" );
     desertWorldIni << "; This describes the " << DESERT_WORLD_NAME 
         << " world spritesheet." << std::endl
-        << "; If this file is corrupt then delete it, the game will"
+        << "; If a default world file is corrupt then delete it, the game will"
         << " recreate it." << std::endl
+        << ";" << std::endl
+        << "; In the [Main] section we define which default tileset we use, as "
+        << "well as the" << std::endl
+        << "; name of the world" << std::endl
+        << "[Main]" << std::endl
+        << "MajorFileRevision = " << WORLD_MAJOR_FILE_REVISION
+        << "      ; file version" << std::endl
+        << "MinorFileRevision = " << WORLD_MINOR_FILE_REVISION << std::endl
+        << "name = Desert" << std::endl
+        << "SourceFile = Desert.bmp" << std::endl
         << ";" << std::endl
         << "[Tiles]" << std::endl
         << "Width=" << WORLD_TILE_DEFAULT_WIDTH << std::endl
@@ -350,9 +367,6 @@ void CreateDefaultSprites::createDesertWorld()
         << "; The Terrain mask is a bit more tricky. It describes what kind of terrain" << std::endl
         << "; the doodad can be placed upon. Each letter corresponds to a particular" << std::endl
         << "; type of basic terrain: low water, high water, low ground, transition tiles, etc." << std::endl
-        << ";" << std::endl
-        << "[Main]" << std::endl
-        << "world=desert" << std::endl
         << ";" << std::endl
         << "[Doodad000]" << std::endl
         << "name=RampRightwards" << std::endl
