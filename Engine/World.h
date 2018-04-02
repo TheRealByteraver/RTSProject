@@ -21,7 +21,8 @@ class Doodad
 public:
     Doodad()
     {
-        //width_ = 0;
+        avgColors_ = nullptr;
+        avgColors_2x2_ = nullptr;
         //height_ = 0;
         for ( int i = 0; i < DOODAD_MAX_WIDTH * DOODAD_MAX_HEIGHT; i++ )
         {
@@ -36,21 +37,24 @@ public:
     }
     Doodad( const Doodad &source )  // copy constructor
     {
-        name_ = source.name_;
-        width_ = source.width_;
-        height_ = source.height_;
-        image_ = source.image_;
-        int nrOfTiles = width_ * height_;
-        avgColors_ = new Color[nrOfTiles];
-        avgColors_2x2_ = new Color[nrOfTiles * 2 * 2];
-        for ( int i = 0; i < nrOfTiles; i++ )
-            avgColors_[i] = source.avgColors_[i];
-        for ( int i = 0; i < nrOfTiles * 2 * 2; i++ )
-            avgColors_2x2_[i] = source.avgColors_2x2_[i];
-        for ( int i = 0; i < DOODAD_MAX_WIDTH * DOODAD_MAX_HEIGHT; i++ )
+        if ( this != &source )
         {
-            walkAbleMask_[i] = source.walkAbleMask_[i];
-            terrainMask_[i] = source.terrainMask_[i];
+            name_ = source.name_;
+            width_ = source.width_;
+            height_ = source.height_;
+            image_ = source.image_;
+            int nrOfTiles = width_ * height_;
+            avgColors_ = new Color[nrOfTiles];
+            avgColors_2x2_ = new Color[nrOfTiles * 2 * 2];
+            for ( int i = 0; i < nrOfTiles; i++ )
+                avgColors_[i] = source.avgColors_[i];
+            for ( int i = 0; i < nrOfTiles * 2 * 2; i++ )
+                avgColors_2x2_[i] = source.avgColors_2x2_[i];
+            for ( int i = 0; i < DOODAD_MAX_WIDTH * DOODAD_MAX_HEIGHT; i++ )
+            {
+                walkAbleMask_[i] = source.walkAbleMask_[i];
+                terrainMask_[i] = source.terrainMask_[i];
+            }
         }
     }
     int     width() const { return width_; }
@@ -160,14 +164,19 @@ public:
             }
         }
         // now load the bitmap of the Doodad:
-        error = image_.loadFromBMP( 
-            spriteFilePath.c_str(),
-            Rect(   spriteX,
-                    spriteY,
-                    spriteX + width_  * tileWidth  - 1,
-                    spriteY + height_ * tileHeight - 1 )
+        Rect    bmpSection(
+            spriteX,
+            spriteY,
+            spriteX + width_  * tileWidth - 1,
+            spriteY + height_ * tileHeight - 1 
         );
-        if ( error != 0 )
+        error = image_.loadFromBMP(
+            spriteFilePath.c_str(),
+            bmpSection
+        );
+        if ( (error != 0) || 
+            (bmpSection.width() != image_.getWidth()) ||
+            (bmpSection.height() != image_.getHeight()) )
         {
             defaults.debugLogFile << "Error whilst loading the sprite of Doodad nr "
                 << doodadNr << " in " << iniFile.getFilename()
@@ -279,9 +288,38 @@ class World
 {
 public:
     World() {}
-    int load( const std::string& worldName )
+    //World( const World &source )  // copy constructor
+    World& operator=( const World& source )
     {
-        assert( worldName.length() != 0 );
+        if ( this != &source )
+        {
+            worldName_ = source.worldName_;
+            tileWidth_ = source.tileWidth_;     
+            tileHeight_ = source.tileHeight_; 
+            int t2 = 0;
+            for ( int t = 0; t < NR_OF_TILES; t++ )
+            {
+                tileLibrary_[t] = source.tileLibrary_[t];
+                AvgColors_[t] = source.AvgColors_[t];
+                AvgColors_2x2[t2] = source.AvgColors_2x2[t2]; t2++;
+                AvgColors_2x2[t2] = source.AvgColors_2x2[t2]; t2++;
+                AvgColors_2x2[t2] = source.AvgColors_2x2[t2]; t2++;
+                AvgColors_2x2[t2] = source.AvgColors_2x2[t2]; t2++;
+            }
+            doodads_.clear();
+            for ( int d = 0; d < (int)source.doodads_.size(); d++ )
+                doodads_.push_back( source.doodads_[d] );
+        }
+        return *this;
+    }
+    int             load( const std::string& worldName )
+    {
+        if ( worldName.length() == 0 )
+        {
+            defaults.debugLogFile << "Error: world.load() function called "
+                << "without parameter, stopping loading this world." << std::endl;
+            return -1;
+        }
         worldName_ = worldName;
         int error = loadTiles();
         if ( error != 0 )
@@ -327,6 +365,7 @@ public:
     int             tileWidth() const { return tileWidth_; }
     int             tileHeight() const { return tileHeight_; }
     int             nrOfDoodads() const { return (int)doodads_.size(); }
+    const std::string& name() { return worldName_; }
 private:
     /*
     This function takes the world name as a parameter as defined in any
@@ -408,7 +447,6 @@ private:
                     for ( int j = 0; j < halfHeight; j++ )
                         for ( int i = 0; i < halfWidth; i++ )
                         {
-                            //Color c = data[(y + j) * tileHeight_ + x + i];
                             Color c = data[(y + j) * tileWidth_ + x + i];
                             r += c.GetR();
                             g += c.GetG();

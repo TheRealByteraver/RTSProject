@@ -100,12 +100,16 @@ void Game::ComposeFrame()
         }
         case    menustate:
         {
+            PostQuitMessage( 0 ); // temp
             break;
         }
         case    terraineditorstate:
         {
+            campaignEditor.bootCampaignEditor(); // only needed once whengoing to the campaignEditor actually 
             campaignEditor.draw();
             campaignEditor.handleInput();
+            if ( campaignEditor.campaignEditorIsReadyForShutdown() )
+                gameState = menustate;
             break;
         }
         case    pausestate:

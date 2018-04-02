@@ -210,6 +210,11 @@ public:
         //assert( name.length() > 0 );
         name_ = name;
     }
+    void    setWorld( const std::string& world )
+    {
+        assert( world.length() > 0 );
+        world_ = world;
+    }
     void    setCursorDrawWidth( int drawWidth )
     {
         assert( drawWidth >= T_MIN_CURSORWIDTH );

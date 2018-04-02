@@ -71,6 +71,32 @@ const char *terraindimensions[] =
     nullptr
 };
 
+const char *filemenunewtext[] =
+{
+    "Please choose a world (environment) and the dimensions of the ",
+    "new terrain. Careful, make sure you saved your work so far, as",
+    "the program will not ask you to do so (yet)!",
+    "Press cancel if you want to save your current work first.",
+    nullptr
+};
+
+const char *filemenuopentext[] =
+{
+    "Please choose a terrain to load by clicking on it, or click",
+    "cancel to return to the editor.",
+    "the program will not ask you to save your current work (yet)!",
+    "Press cancel if you want to save your current work first.",
+    nullptr
+};
+
+const char *filemenuexittext[] =
+{
+    "Are you sure you want to exit the Campaign Editor?",
+    "the program will not ask you to save your current work (yet)!",
+    "Press cancel if you want to save your current work first.",
+    nullptr
+};
+
 #define BUTTON_OK                   0
 #define BUTTON_CANCEL               1
 const char *buttonsokcancel[] =
@@ -287,7 +313,6 @@ void CampaignEditor::draw()
     drawMiniMap();
     drawMiniMapCursor();
     redrawPalette(); // temp, should be moved to side bar drawing function
-
     if ( menuFileVisible_ )
     {
         gfx.paintSprite(
@@ -331,14 +356,6 @@ void CampaignEditor::draw()
             }
             y += barElem->getDimensions().height();
         }
-
-
-
-
-
-
-
-
     } else {
         if ( doodadMouseCursor_ ) drawDoodadCursorAtLocation();
         else drawTerrainCursor();
@@ -376,6 +393,9 @@ void CampaignEditor::handleInput()
         {
             menuFileVisible_ = false;
         }
+    } else if ( !submenuVisible_ ) {
+        handleMapScrollingFunction();
+        handlePaletteScrollingFunction();
     }
     /*
     if ( submenuVisible_ )
@@ -389,8 +409,6 @@ void CampaignEditor::handleInput()
     {
         doodadMouseCursor_ = false; // right-click cancels doodad cursor
     }
-    handleMapScrollingFunction();
-    handlePaletteScrollingFunction();
     // mouse left click functions:
     if ( mouse.LeftIsPressed() )
     {
@@ -403,7 +421,7 @@ void CampaignEditor::handleInput()
         {
             if ( mouse.isInArea( winElementBarList0_.getDimensions().rect() ) )                
             {
-                menuFileNewHandleInput( mX,mY );
+                submenuHandleInput( mX,mY );
                 mouseWaitForLeftButtonReleased_ = true;
             }
         // terrain drawing functions:
@@ -613,24 +631,26 @@ void CampaignEditor::tryDrawDoodad( int mX,int mY )
 
 void CampaignEditor::menuFileHandleInput( int mY )
 {
-    const int menuNr = fileMenu_.getSelectedSubMenu( mY );
-    switch ( menuNr )
+    activeMenuID_ = fileMenu_.getSelectedSubMenu( mY );
+    switch ( activeMenuID_ )
     {
         case MENU_FILE_NEW:
         {
             menuFileVisible_ = false;
             submenuVisible_ = true;
             menuFileNewDrawSubmenu();
-            //menuFileNewHandleInput( 0,mY );
             break;
         }
         case MENU_FILE_OPEN:
         {
             menuFileVisible_ = false;
+            submenuVisible_ = true;
+            menuFileOpenDrawSubmenu();
             break;
         }
         case MENU_FILE_SAVE:
         {
+            terrain_.setWorld( world_.name() );
             terrain_.saveTerrain( GAME_FOLDER "terrains\\savetest.ini" );
             menuFileVisible_ = false;
             break;
@@ -643,14 +663,33 @@ void CampaignEditor::menuFileHandleInput( int mY )
         case MENU_FILE_EXIT:
         {
             menuFileVisible_ = false;
+            submenuVisible_ = true;
+            menuFileExitDrawSubmenu();
             break;
         }
     }
 }
 
-void CampaignEditor::submenuHandleInput()
+void CampaignEditor::submenuHandleInput( int mX,int mY )
 {
-
+    switch ( activeMenuID_ )
+    {
+        case MENU_FILE_NEW:
+        {
+            menuFileNewHandleInput( mX,mY );
+            break;
+        }
+        case MENU_FILE_OPEN:
+        {
+            menuFileOpenHandleInput( mX,mY );
+            break;
+        }
+        case MENU_FILE_EXIT:
+        {
+            menuFileExitHandleInput( mX,mY );
+            break;
+        }
+    }
 }
 
 void CampaignEditor::menuFileNewDrawSubmenu()
@@ -681,9 +720,18 @@ void CampaignEditor::menuFileNewDrawSubmenu()
     radiobuttonGroup1_.init( std::string( " Choose the world: " ),fileList_ );
 
     // create the OK-Cancel button window element:
-    buttonList0_.setDimConstraint( dimConstraint );
+    buttonList0_.setDimConstraint( dimConstraint ); // will be at least half the screen
     buttonList0_.setFont( font_ );
     buttonList0_.init( buttonsokcancel );
+
+    // create the text panel on top:
+    dimConstraint.reSize(
+        Graphics::ScreenWidth - FRAME_WIDTH * 2,
+        Graphics::ScreenHeight - FRAME_WIDTH * 2
+    );
+    textPanel0_.setDimConstraint( dimConstraint );
+    textPanel0_.setFont( font_ );
+    textPanel0_.init( filemenunewtext );
 
     // create a 1st horizontal bar with both radio button win elements we just created:
     winElementBar0_.clear();
@@ -692,17 +740,20 @@ void CampaignEditor::menuFileNewDrawSubmenu()
 
     // create a 2nd bar with the ok+cancel button list win element:
     winElementBar1_.clear();
-
     // center the buttons to make it a bit more appealing visually:
     int xBtnOfs = winElementBar0_.getDimensions().width() -
                     buttonList0_.getDimensions().width();
     if ( xBtnOfs < 0 ) xBtnOfs = 0;
     buttonList0_.moveTo( xBtnOfs / 2,0 );
-
     winElementBar1_.addWinElement( buttonList0_ );
+
+    // create a 3rd bar with the text panel win element:
+    winElementBar2_.clear();
+    winElementBar2_.addWinElement( textPanel0_ );
 
     // create the final window, meaning a vertical stack of winElementBar's:
     winElementBarList0_.clear();
+    winElementBarList0_.addWinElementBar( winElementBar2_ );
     winElementBarList0_.addWinElementBar( winElementBar0_ );
     winElementBarList0_.addWinElementBar( winElementBar1_ );
 
@@ -721,9 +772,11 @@ void CampaignEditor::menuFileNewHandleInput( int mX,int mY )
         
         if ( buttonList0_.getInput() == BUTTON_OK )
         {
-            if ( radiobuttonGroup0_.hasValidInput() &&
-                radiobuttonGroup1_.hasValidInput() )
+            if ( !(radiobuttonGroup0_.hasValidInput() &&
+                radiobuttonGroup1_.hasValidInput()) )
             {
+                buttonList0_.invalidateInput();
+            } else {
                 submenuVisible_ = false;
                 // new terrain logic here
                 int dimensionChoice = radiobuttonGroup0_.getInput();
@@ -763,19 +816,14 @@ void CampaignEditor::menuFileNewHandleInput( int mX,int mY )
                         break;
                     }
                 }
-
-
-
-
                 // create empty terrain:
-                terrain_.init(
-                    newTerrainWidth,
-                    newTerrainHeight );
+                terrain_.init( newTerrainWidth,newTerrainHeight );
 
                 std::string terrainChoiceName( fileList_[terrainChoice] );
                 terrainChoiceName.resize( terrainChoiceName.length() - 4 ); // cut extension
 
                 // load world:
+                World oldWorld = world_;
                 int error = world_.load( terrainChoiceName );
                 if ( error != 0 )
                 {
@@ -785,8 +833,7 @@ void CampaignEditor::menuFileNewHandleInput( int mX,int mY )
                     std::wstring errMsg( L"Unable to open world gfx data file " );
                     for ( char c : terrainChoiceName ) errMsg += c;
                     errMsg += L".bmp, using current world instead.";
-                    //wnd.ShowMessageBox( L"Error",errMsg,MB_OK );
-                    //PostQuitMessage( 0 );
+                    world_ = oldWorld;
                 }
                 // init the boolean map containing the doodad locations
                 initDoodadLocationMap();
@@ -811,6 +858,132 @@ void CampaignEditor::menuFileNewHandleInput( int mX,int mY )
         } else { // cancel button pressed            
             submenuVisible_ = false;
         }        
+    }
+}
+
+void CampaignEditor::menuFileOpenDrawSubmenu()
+{
+    WinDim dimConstraint(
+        0,
+        0,
+        Graphics::ScreenWidth - FRAME_WIDTH * 2,
+        (Graphics::ScreenHeight - FRAME_WIDTH * 2) / 4
+    );
+
+    textPanel0_.setDimConstraint( dimConstraint );
+    textPanel0_.setFont( font_ );
+    textPanel0_.init( filemenuopentext );
+    
+    // take as much space as possible:
+    dimConstraint.reSize(
+        //Graphics::ScreenWidth - FRAME_WIDTH * 2,
+        textPanel0_.getDimensions().width(),
+        Graphics::ScreenHeight - FRAME_WIDTH * 2 -
+        textPanel0_.getDimensions().height()
+    );
+
+    // Get a list with the available terrain .ini files:
+    populateFileList( defaults.terrainsFolder(),".ini" );
+    fileList_.push_back( "Cancel" );
+
+    // create a list of buttons with terrain .ini files and the cancel button:
+    buttonList0_.setDimConstraint( dimConstraint ); 
+    buttonList0_.setFont( font_ );
+    buttonList0_.init( fileList_ );
+
+    // create a 1st horizontal bar with the informative text:
+    winElementBar0_.clear();
+    winElementBar0_.addWinElement( textPanel0_ );
+
+    // create a 2nd bar with the filename buttons:
+    winElementBar1_.clear();
+    winElementBar1_.addWinElement( buttonList0_ );
+
+    // create the final window, meaning a vertical stack of winElementBar's:
+    winElementBarList0_.clear();
+    winElementBarList0_.addWinElementBar( winElementBar0_ );
+    winElementBarList0_.addWinElementBar( winElementBar1_ );
+
+    // center the final window itself on the screen:
+    winElementBarList0_.moveTo(
+        (Graphics::ScreenWidth - winElementBarList0_.getDimensions().width()) / 2,
+        (Graphics::ScreenHeight - winElementBarList0_.getDimensions().height()) / 2
+    );
+}
+
+void CampaignEditor::menuFileOpenHandleInput( int mX,int mY )
+{
+    winElementBarList0_.handleInput( mX,mY );
+    const int cancelButton = (int)fileList_.size() - 1;
+    if ( buttonList0_.hasValidInput() )
+    {
+        submenuVisible_ = false;
+        if ( buttonList0_.getInput() != cancelButton )
+        {            
+            int terrainChoice = buttonList0_.getInput();
+            loadTerrain( fileList_[terrainChoice] );
+        }
+    }
+}
+
+void CampaignEditor::menuFileExitDrawSubmenu()
+{
+    WinDim dimConstraint(
+        0,
+        0,
+        Graphics::ScreenWidth - FRAME_WIDTH * 2,
+        (Graphics::ScreenHeight - FRAME_WIDTH * 2)
+    );
+
+    textPanel0_.setDimConstraint( dimConstraint );
+    textPanel0_.setFont( font_ );
+    textPanel0_.init( filemenuexittext );
+
+    dimConstraint.reSize(
+        textPanel0_.getDimensions().width(),
+        textPanel0_.getDimensions().height()
+    );
+
+    // create the OK-Cancel button window element:
+    buttonList0_.setDimConstraint( dimConstraint ); // will be at least half the screen
+    buttonList0_.setFont( font_ );
+    buttonList0_.init( buttonsokcancel );
+
+    // create a 1st horizontal bar with the text panel we just created:
+    winElementBar0_.clear();
+    winElementBar0_.addWinElement( textPanel0_ );
+
+    // create a 2nd bar with the ok+cancel button list win element:
+    winElementBar1_.clear();
+    // center the buttons to make it a bit more appealing visually:
+    int xBtnOfs = winElementBar0_.getDimensions().width() -
+        buttonList0_.getDimensions().width();
+    if ( xBtnOfs < 0 ) xBtnOfs = 0;
+    buttonList0_.moveTo( xBtnOfs / 2,0 );
+    winElementBar1_.addWinElement( buttonList0_ );
+
+    // create the final window, meaning a vertical stack of winElementBar's:
+    winElementBarList0_.clear();
+    winElementBarList0_.addWinElementBar( winElementBar0_ );
+    winElementBarList0_.addWinElementBar( winElementBar1_ );
+
+    // center the final window itself on the screen:
+    winElementBarList0_.moveTo(
+        (Graphics::ScreenWidth - winElementBarList0_.getDimensions().width()) / 2,
+        (Graphics::ScreenHeight - winElementBarList0_.getDimensions().height()) / 2
+    );
+}
+
+void CampaignEditor::menuFileExitHandleInput( int mX,int mY )
+{
+    winElementBarList0_.handleInput( mX,mY );
+    if ( buttonList0_.hasValidInput() )
+    {
+        submenuVisible_ = false;
+        if ( buttonList0_.getInput() == BUTTON_OK )
+        {
+            shutdownCampaignEditor();
+        }
     }
 }
 
@@ -1219,6 +1392,15 @@ void CampaignEditor::initMapCoords()
     // go to top left corner of the screen:
     TerrainDrawXOrig_ = 0;
     TerrainDrawYOrig_ = 0;
+
+    // reset default drawing data:
+    terrainType_ = T_DEFAULT;
+    doodadNr_ = 0; // which doodad the user selected
+    doodadMouseCursor_ = false; // whether the active doodad is shown on the mouse cursor location
+
+    // go to the top of the palette list indices:
+    basicTerrainPalette_.listIndex = 0;
+    doodadPalette_.listIndex = 0;
 }
 
 /*
@@ -1337,6 +1519,9 @@ Makes a vertical list of icons of the available doodads.
 Design: list of doodad's on black background, separated by a black line
 */
 void CampaignEditor::createDoodadPalette()
+/*
+    Needs failsafe in case of wrong doodad sprites!!
+*/
 {
     doodadPalette_.image.setFont( font_ );
     doodadPalette_.yValues.clear();
@@ -1391,7 +1576,7 @@ void CampaignEditor::createDoodadPalette()
                 {
                     for ( int i = 0; i < zoomDiv; i++ )
                     {
-                        Color c = world_.getDoodad( iDoodad ).image().getPixel(
+                        Color c = world_.getDoodad( iDoodad ).image().getPixel(  // causes assertion
                             x + i,y + j
                         );
                         r += c.GetR();

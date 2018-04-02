@@ -108,6 +108,7 @@ int Terrain::loadTerrain( std::string filename )
 
 int Terrain::saveTerrain( std::string filename ) const
 {
+    assert( world_.length() > 0 );
     std::ofstream terrainFile( filename.c_str() );
     if ( !terrainFile.is_open() ) return -1;
     terrainFile << "; terrain saved by editor" << std::endl;

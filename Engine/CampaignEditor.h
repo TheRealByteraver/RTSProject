@@ -159,6 +159,14 @@ public:
     void            draw();
     void            handleInput();
     bool            isInitialized() const { return isInitialized_; }
+    void            bootCampaignEditor()
+    {
+        campaignEditorReadyForShutdown_ = false;
+    }
+    bool            campaignEditorIsReadyForShutdown()
+    {
+        return campaignEditorReadyForShutdown_;
+    }
 private:
     void            populateFileList( const std::string path,const std::string extension );
     void            handleMapScrollingFunction();
@@ -168,9 +176,13 @@ private:
     void            drawBasicTerrain( int tileX,int tileY );
     void            tryDrawDoodad( int tileX,int tileY );
     void            menuFileHandleInput( int mY );
-    void            submenuHandleInput();
-    void            menuFileNewHandleInput( int mX,int mY );
+    void            submenuHandleInput( int mX,int mY );
     void            menuFileNewDrawSubmenu();
+    void            menuFileNewHandleInput( int mX,int mY );
+    void            menuFileOpenDrawSubmenu();
+    void            menuFileOpenHandleInput( int mX,int mY );
+    void            menuFileExitDrawSubmenu();
+    void            menuFileExitHandleInput( int mX,int mY );
     int             loadTerrain( const std::string& terrainName );
     bool            canPlaceDoodadAtLocation( int x,int y,const Doodad& doodad ) const;
     void            initDoodadLocationMap();
@@ -188,7 +200,12 @@ private:
     void            drawMiniMap();
     void            redrawMiniMap();
     void            drawMiniMapCursor();
+    void            shutdownCampaignEditor()
+    {
+        campaignEditorReadyForShutdown_ = true;
+    }
 private:
+    bool            campaignEditorReadyForShutdown_;
     bool            isInitialized_ = false;
     // main system components we got from the constructor in the Game class:
     MainWindow*     wnd_;
@@ -226,6 +243,8 @@ private:
     VerticalRadiobuttonGroup    radiobuttonGroup0_;
     VerticalRadiobuttonGroup    radiobuttonGroup1_;
     ButtonList                  buttonList0_;
+    ButtonList                  buttonList1_;
+    TextPanel                   textPanel0_;
     // a Win Element Bar is a horizontal strip of win Elements such as the ones 
     // declared above
     WinElementBar               winElementBar0_; 
@@ -233,6 +252,7 @@ private:
     WinElementBar               winElementBar2_;
     // a Win Element Bar List is a vertical list of Win Element Bar's
     WinElementBarList           winElementBarList0_;
+    int                         activeMenuID_;
 
     // the two palettes and a pointer to the currently active palette:
     Palette        basicTerrainPalette_;
@@ -246,7 +266,7 @@ private:
     // the type of terrain we are drawing with now:
     char            terrainType_ = T_DEFAULT;
     int             doodadNr_ = 0; // which doodad the user selected
-    bool            doodadMouseCursor_ = false; // whether the active doodad is shown on the mouse cursor location
+    bool            doodadMouseCursor_; // whether the active doodad is shown on the mouse cursor location
     Sprite          doodadCursorSprite_; // the original-sized doodad without the compatibility overlay
     bool            isGridVisible_ = true;
     bool            isTerrainSaved_ = false;
