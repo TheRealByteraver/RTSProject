@@ -1719,8 +1719,8 @@ void CampaignEditor::drawDoodadCursorAtLocation()
                         Rect(
                             xTileOffset,
                             yTileOffset,
-                            xTileOffset + tileWidth_,
-                            yTileOffset + tileHeight_
+                            xTileOffset + tileWidth_ - 1,
+                            yTileOffset + tileHeight_ - 1
                         ),
                         doodadCursorSprite_
                     );
