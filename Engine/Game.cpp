@@ -31,7 +31,7 @@ Game::Game( MainWindow& wnd )
     gfx( wnd )
 {
     // set the current status of the game:
-    //gameState = terraineditorstate; // debug, should be "introstate", set in game.h
+    gameState = terraineditorstate; // debug, should be "introstate", set in game.h
     gameState = introstate; // temp
     // load the bare minimum:
     std::string path( GAME_FOLDER );
@@ -88,9 +88,11 @@ void Game::UpdateModel()
 {
 }
 
-double sinc( double x ) {
-    const double pi = 3.141592653;
-    if ( abs(x) < 0.0000001 ) return 1;
+typedef float FPT;
+
+FPT sinc( FPT x ) {
+    const FPT pi = 3.141592653;
+    if ( abs(x) < 0.0001 ) return 1;
     return sin( pi * x ) / (x * pi);
 }
 /*
@@ -122,8 +124,8 @@ void Game::ComposeFrame()
             const int wdwHeight = gfx.ScreenHeight - 20;
 
             // test parameters:
-            const int sampleInterval = wdwWidth / 6;
-            const double stretcher = wdwWidth / 1;
+            const int sampleInterval = wdwWidth / 24;
+            const FPT stretcher = FPT(wdwWidth / 0.4);
 
             // colors:
             const Color frameColor = Colors::White;
@@ -131,12 +133,14 @@ void Game::ComposeFrame()
             const Color sampleDotsColor = Colors::Magenta;
             const Color linearInterPolationColor = Colors::MakeRGB( 0xFF,0x30,0x30 );
             const Color cubicInterPolationColor = Colors::MakeRGB( 0xD0,0xA0,0x40 );
+
+            // some windows coordinates
             const int xStart = (gfx.ScreenWidth - wdwWidth) / 2;
             const int yStart = (gfx.ScreenHeight - wdwHeight) / 2;
             const int xEnd = xStart + wdwWidth - 1;
             const int yEnd = yStart + wdwHeight - 1;
             const int yMiddle = yStart + wdwHeight / 2 - 1;
-            const double pi = 3.141592653;
+            const FPT pi = 3.141592653;
             gfx.drawBox(
                 xStart - 1,
                 yStart - 1,
@@ -149,14 +153,19 @@ void Game::ComposeFrame()
             std::vector<int> samplePoints;
             samplePoints.reserve( nrOfSamplePoints );          
             const int maxAmp = 2;
-            const int amp = (wdwHeight / 2) / maxAmp;
-            double lastY = 0;
+            const int amp = (wdwHeight / 4) / maxAmp;
+            FPT lastY = 0;
             // draw original function
             for ( int t = 0; t < wdwWidth; t++ )
             {
-                double y = sin( 2.0 * pi * (double)t / stretcher ) + cos( 3.0 * pi * (double)t / stretcher );
+                FPT y = (FPT)(
+                    sin( 50 * pi * (FPT)t / stretcher ) 
+                    + cos( 3.0 * pi * (FPT)t / stretcher )
+                    + cos( 1.37 * pi * (FPT)(t / 5.7) / stretcher )
+                    + sin( 17.9 * pi * (FPT)(t / 0.7) / stretcher )
+                    );
                 //double y = sin( 2.0 * pi * (double)t / stretcher );
-                y = -y * (double)amp;
+                y = -y * (FPT)amp;
                 gfx.drawLine(
                     xStart + t - 1,
                     yMiddle + (int)lastY,
@@ -198,20 +207,20 @@ void Game::ComposeFrame()
             // draw cubic interpolation:
             for ( int t = 0; t < nrOfSamplePoints - 1; t++ )
             {                
-                double p0 = (t == 0) ? 0.0 : samplePoints[t - 1];
-                double p1 = samplePoints[t];
-                double p2 = samplePoints[t + 1];
-                double p3 = samplePoints[t + 2];
+                FPT p0 = (FPT)((t == 0) ? 0.0 : samplePoints[t - 1]);
+                FPT p1 = (FPT)samplePoints[t];
+                FPT p2 = (FPT)samplePoints[t + 1];
+                FPT p3 = (FPT)samplePoints[t + 2];
 
                 int lastY = (int)p1;
                 for ( int t2 = 1; t2 < sampleInterval; t2++ )
                 {
-                    double fract = (double)t2 / (double)sampleInterval;
-                    double k = p1 - p2;
-                    double a = ((k * 2) + k - p0 + p3)  / 2;
-                    double b = (p2 * 2) + p0 - (((p1 * 4) + p1 + p3) / 2);
-                    double c = (p2 - p0) / 2;
-                    double f2 = ((((a * fract) + b) * fract) + c) * fract + p1;
+                    FPT fract = (FPT)t2 / (FPT)sampleInterval;
+                    FPT k = p1 - p2;
+                    FPT a = ((k * 2) + k - p0 + p3)  / 2;
+                    FPT b = (p2 * 2) + p0 - (((p1 * 4) + p1 + p3) / 2);
+                    FPT c = (p2 - p0) / 2;
+                    FPT f2 = ((((a * fract) + b) * fract) + c) * fract + p1;
 
                     gfx.drawLine(
                         xStart + t * sampleInterval + t2 - 1,
@@ -227,8 +236,8 @@ void Game::ComposeFrame()
 
             // sinc interpolation  
             
-            int buf[1600];
-            memset( buf,0,sizeof( int ) * 1600 );
+            FPT buf[1600];
+            memset( buf,0,sizeof( FPT ) * 1600 );
 
             for ( int s = 0; s < nrOfSamplePoints; s++ ) 
             { 
@@ -243,8 +252,8 @@ void Game::ComposeFrame()
                 for ( int x = 0; x < wdwWidth; x++ )
                 {
 
-                    double realX = (double)(x - s * sampleInterval) / (double)(sampleInterval);// / pi);
-                    double f2 = sinc( realX ) * (double)samplePoints[s];
+                    FPT realX = (FPT)(x - s * sampleInterval) / (FPT)(sampleInterval);// / pi);
+                    FPT f2 = sinc( realX ) * (FPT)samplePoints[s];
                     /*
                     if ( f2 < -wdwHeight / 2 ) f2 = -wdwHeight / 2;
                     if ( f2 >= wdwHeight / 2 ) f2 = wdwHeight / 2 - 1;
@@ -256,7 +265,7 @@ void Game::ComposeFrame()
                         c
                     );
                     */
-                    buf[x] += (int)f2;
+                    buf[x] += f2;
                     /*
                     gfx.drawLine(
                         xStart + x - 1,
@@ -267,7 +276,7 @@ void Game::ComposeFrame()
                     );
                     */
 
-                    lastY = (int)f2;
+                    lastY = (FPT)f2;
 
                 }
             }
@@ -278,7 +287,7 @@ void Game::ComposeFrame()
                 int y1 = yMiddle + (int)lastY;
                 if ( y1 < 0 ) y1 = 0;
                 if ( y1 >= gfx.ScreenHeight ) y1 = gfx.ScreenHeight - 1;
-                int y2 = yMiddle + buf[x];
+                int y2 = yMiddle + (int)buf[x];
                 if ( y2 < 0 ) y2 = 0;
                 if ( y2 >= gfx.ScreenHeight ) y2 = gfx.ScreenHeight - 1;
 
