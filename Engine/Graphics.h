@@ -22,10 +22,12 @@
 #include "ChiliWin.h"
 #include <d3d11.h>
 #include <wrl.h>
+#include <stack>
 #include "ChiliException.h"
 #include "Colors.h"
 #include "EvoConsole.h"
 #include "Font.h"
+
 
 // added to the original file:
 struct Rect
@@ -107,6 +109,7 @@ public:
 		PutPixel( x,y,{ unsigned char( r ),unsigned char( g ),unsigned char( b ) } );
 	}
 	void PutPixel( int x,int y,Color c );
+    Color getPixel( int x,int y );
 	~Graphics();
 private:
 	Microsoft::WRL::ComPtr<IDXGISwapChain>				pSwapChain;
@@ -153,6 +156,8 @@ public:
     void    drawMathLine( int x,int y,float m,int length,Color color );
     void    drawCircle( int cx,int cy,int radius,Color color );
     void    drawDisc( int cx,int cy,int r,Color color );
+    void    floodFill( int x,int y,Color borderColor,Color fillColor );
+    void floodFill2( int x,int y,Color borderColor,Color fillColor );
     void    drawBox( const Rect& coords,Color color );
     void    drawBox( int x1,int y1,int x2,int y2,Color color );
     void    drawBoxClipped( Rect coords,Rect clippedArea,Color color );
@@ -188,6 +193,4 @@ private:
     int     frameWidth_ = 3;
     Color   frameColor_ = Colors::LightGray;
     Font    *font;
-
-
 };

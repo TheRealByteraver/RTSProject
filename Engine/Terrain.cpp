@@ -143,7 +143,7 @@ int Terrain::saveTerrain( std::string filename ) const
         << "; Now follows a list of doodad's that are present on the terrain:"
         << std::endl;
     int doodadNr = 0;
-    for ( int index = 0; index < doodadList_.size(); index++ )
+    for ( int index = 0; index < (int)doodadList_.size(); index++ )
     {
         if ( !doodadList_[index].isUsed ) continue;
         std::string doodadNrSection( "[Doodad" );

@@ -378,14 +378,14 @@ private:
             if ( maxStrLength > 7 )
             {
                 for ( auto& listItem : optionsList_ )
-                    if ( listItem.name.length() > maxStrLength )
+                    if ( (int)listItem.name.length() > maxStrLength )
                     {
                         listItem.name.resize( maxStrLength - 3 );
                         listItem.name.append( "..." );
                     }
             } else { 
                 for ( auto& listItem : optionsList_ )
-                    if ( listItem.name.length() > maxStrLength )
+                    if ( (int)listItem.name.length() > maxStrLength )
                         listItem.name.resize( maxStrLength );
             }
             wdwDesiredWidth = windowFat + maxStrLength * font.width();

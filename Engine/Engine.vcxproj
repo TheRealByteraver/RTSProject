@@ -162,7 +162,7 @@
     <ClInclude Include="World.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CampaingEditor.cpp" />
+    <ClCompile Include="CampaignEditor.cpp" />
     <ClCompile Include="COMInitializer.cpp" />
     <ClCompile Include="CreateDefaultSprites.cpp" />
     <ClCompile Include="DXErr.cpp" />

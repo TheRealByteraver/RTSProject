@@ -73,9 +73,10 @@ private:
     //Terrain                 terrain;
     //World                   world;
 
-
+    /*
     //for the intro:
     int                     xSineBlock;
     int                     ySineBlock;
     int                     ampSineBlock;
+    */
 };

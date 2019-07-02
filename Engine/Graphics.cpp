@@ -271,7 +271,7 @@ void Graphics::EndFrame()
 	const size_t srcPitch = Graphics::ScreenWidth;
 	const size_t rowBytes = srcPitch * sizeof( Color );
 	// perform the copy line-by-line
-	for( size_t y = 0u; y < Graphics::ScreenHeight; y++ )
+	for( size_t y = 0u; y < (unsigned)Graphics::ScreenHeight; y++ )
 	{
 		memcpy( &pDst[ y * dstPitch ],&pSysBuffer[y * srcPitch],rowBytes );
 	}
@@ -319,6 +319,14 @@ void Graphics::PutPixel( int x,int y,Color c )
 	pSysBuffer[Graphics::ScreenWidth * y + x] = c;
 }
 
+Color Graphics::getPixel( int x,int y )
+{
+    assert( x >= 0 );
+    assert( x < int( Graphics::ScreenWidth ) );
+    assert( y >= 0 );
+    assert( y < int( Graphics::ScreenHeight ) );
+    return pSysBuffer[Graphics::ScreenWidth * y + x];
+}
 
 //////////////////////////////////////////////////
 //           Graphics Exception
@@ -537,6 +545,190 @@ template <class V> inline void swap( V &a,V &b )
     V temp = a;
     a = b;
     b = temp;
+}
+
+void Graphics::floodFill2( int x,int y,Color borderColor, Color fillColor ) 
+{
+    /*
+    //void floodFillScanlineStack( int x,int y,int newColor,int oldColor )
+    //if ( oldColor == newColor ) return;
+
+    int x1;
+    bool spanAbove,spanBelow;
+
+    //std::vector<int> stack;
+    //std::push( stack,x,y );
+
+
+    std::stack <Line> pointList;
+    int stackCount = 0;
+
+
+
+    while ( pop( stack,x,y ) )
+    {
+        x1 = x;
+        while ( x1 >= 0 && screenBuffer[y * w + x1] == oldColor ) x1--;
+        x1++;
+        spanAbove = spanBelow = false;
+        while ( x1 < w && screenBuffer[y * w + x1] == oldColor )
+        {
+            screenBuffer[y * w + x1] = newColor;
+            if ( !spanAbove && y > 0 && screenBuffer[(y - 1) * w + x1] == oldColor )
+            {
+                push( stack,x1,y - 1 );
+                spanAbove = 1;
+            } else if ( spanAbove && y > 0 && screenBuffer[(y - 1) * w + x1] != oldColor )
+            {
+                spanAbove = 0;
+            }
+            if ( !spanBelow && y < h - 1 && screenBuffer[(y + 1) * w + x1] == oldColor )
+            {
+                push( stack,x1,y + 1 );
+                spanBelow = 1;
+            } else if ( spanBelow && y < h - 1 && screenBuffer[(y + 1) * w + x1] != oldColor )
+            {
+                spanBelow = 0;
+            }
+            x1++;
+        }
+    }
+    */
+
+
+
+    /*
+        1) draw segment and check the line above it.
+
+
+
+
+
+        We compress the line coordinates in a struct.        
+    */
+    struct Line {
+        short int y,x1,x2;
+        short int length;
+    };
+
+
+
+
+
+
+    /*
+    for ( ;;) {
+        PutPixel( x,y,fillColor ); // fill this pixel!
+        // Now check the surrounding pixels:
+        // test left:
+        if ( x > 0 ) {
+            Color pxl = getPixel( x - 1,y );
+            if ( (pxl != borderColor) && (pxl != fillColor) ) {
+                pointList.push( y << 16 | (x & 0xFFFF) );
+                stackCount++;
+                x--;
+                continue;
+            }
+        }
+        // test right:
+        if ( x + 1 < int( Graphics::ScreenWidth ) ) {
+            Color pxl = getPixel( x + 1,y );
+            if ( (pxl != borderColor) && (pxl != fillColor) ) {
+                pointList.push( y << 16 | (x & 0xFFFF) );
+                stackCount++;
+                x++;
+                continue;
+            }
+        }
+        // test above:
+        if ( y > 0 ) {
+            Color pxl = getPixel( x,y - 1 );
+            if ( (pxl != borderColor) && (pxl != fillColor) ) {
+                pointList.push( y << 16 | (x & 0xFFFF) );
+                stackCount++;
+                y--;
+                continue;
+            }
+        }
+        // test below:
+        if ( y + 1 < int( Graphics::ScreenHeight ) ) {
+            Color pxl = getPixel( x,y + 1 );
+            if ( (pxl != borderColor) && (pxl != fillColor) ) {
+                pointList.push( y << 16 | (x & 0xFFFF) );
+                stackCount++;
+                y++;
+                continue;
+            }
+        }
+        if ( stackCount <= 0 ) break; // we are done
+        y = pointList.top();
+        pointList.pop();
+        stackCount--;
+        x = y & 0xFFFF;
+        y >>= 16;
+    }
+    */
+}
+
+void Graphics::floodFill( int x,int y,Color borderColor,Color fillColor )
+{
+    /*
+    We compress the x,y coordinates in one integer.
+    The y coordinate sits in the upper 16 bits, the
+    x coordinate in the lower 16 bits.
+    */
+    std::stack <int> pointList;
+    int stackCount = 0;
+    for ( ;;) {
+        PutPixel( x,y,fillColor ); // fill this pixel!
+                                   // Now check the surrounding pixels:
+                                   // test left:
+        if ( x > 0 ) {
+            Color pxl = getPixel( x - 1,y );
+            if ( (pxl != borderColor) && (pxl != fillColor) ) {
+                pointList.push( y << 16 | (x & 0xFFFF) );
+                stackCount++;
+                x--;
+                continue;
+            }
+        }
+        // test right:
+        if ( x + 1 < int( Graphics::ScreenWidth ) ) {
+            Color pxl = getPixel( x + 1,y );
+            if ( (pxl != borderColor) && (pxl != fillColor) ) {
+                pointList.push( y << 16 | (x & 0xFFFF) );
+                stackCount++;
+                x++;
+                continue;
+            }
+        }
+        // test above:
+        if ( y > 0 ) {
+            Color pxl = getPixel( x,y - 1 );
+            if ( (pxl != borderColor) && (pxl != fillColor) ) {
+                pointList.push( y << 16 | (x & 0xFFFF) );
+                stackCount++;
+                y--;
+                continue;
+            }
+        }
+        // test below:
+        if ( y + 1 < int( Graphics::ScreenHeight ) ) {
+            Color pxl = getPixel( x,y + 1 );
+            if ( (pxl != borderColor) && (pxl != fillColor) ) {
+                pointList.push( y << 16 | (x & 0xFFFF) );
+                stackCount++;
+                y++;
+                continue;
+            }
+        }
+        if ( stackCount <= 0 ) break; // we are done
+        y = pointList.top();
+        pointList.pop();
+        stackCount--;
+        x = y & 0xFFFF;
+        y >>= 16;
+    }
 }
 
 void Graphics::drawBox( const Rect& coords,Color color )

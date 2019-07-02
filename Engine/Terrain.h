@@ -225,7 +225,7 @@ public:
     Tile    decode( const char terrainElement )
     {
         int c;
-        for ( c = 0; c < strlen( encodestr_ ); c++ )
+        for ( c = 0; c < (int)strlen( encodestr_ ); c++ )
         {
             if ( terrainElement == encodestr_[c] ) break;
         }        
@@ -258,13 +258,13 @@ public:
     void    removeDoodad( int doodAdNr )
     {
         assert( doodAdNr >= 0 );
-        assert( doodAdNr < doodadList_.size() );
+        assert( doodAdNr < (int)doodadList_.size() );
         doodadList_[doodAdNr].isUsed = false;
     }
     void    removeUnavailableDoodads( int highestDoodad )
     {
         // remove illegal doodad's:
-        for ( int iDoodad = 0; iDoodad < doodadList_.size();iDoodad++ )
+        for ( int iDoodad = 0; iDoodad < (int)doodadList_.size();iDoodad++ )
             if ( doodadList_[iDoodad].doodadNr >= highestDoodad )
                 removeDoodad( iDoodad );
     }
@@ -276,7 +276,7 @@ public:
         assert( doodadLocation.y < rows_ );
         doodadLocation.isUsed = true;
         bool foundUnsedSlot = false;
-        for ( int iDoodad = 0; iDoodad < doodadList_.size(); iDoodad++ )
+        for ( int iDoodad = 0; iDoodad < (int)doodadList_.size(); iDoodad++ )
             if ( !doodadList_[iDoodad].isUsed )
             {
                 foundUnsedSlot = true;

@@ -48,7 +48,7 @@ Defaults::Defaults()
         (screenHeight_ > maxScreenHeight_) || (error != 0) )
     {
         debugLogFile 
-            << "Error reading screen resolution from .ini file, exiting." 
+            << "Error reading window resolution from .ini file, exiting." 
             << std::endl;
         debugLogFile.close();
         exit( -1 );
@@ -56,7 +56,7 @@ Defaults::Defaults()
     }
     Graphics::ScreenWidth = screenWidth_;
     Graphics::ScreenHeight = screenHeight_;
-    debugLogFile << "Preparing to set screen resolution to "
+    debugLogFile << "Preparing to set window resolution to "
         << screenWidth_ << "x" << screenHeight_ << "." << std::endl;
     // initialize default terrain dimensions:
     error = masterIniFile_.getKeyValue( "Main","DefaultTerrainWidth",defaultTerrainWidth_ );
@@ -110,6 +110,7 @@ Defaults::Defaults()
         recreate = true;
     }     
     if ( recreate ) CreateDefaultSprites().createGreenPrairieWorld();
+
     // check if the DesertWorld world is present and create it if not:
     std::string desertWorldSpriteLib( GAME_FOLDER );
     desertWorldSpriteLib.append( worldsFolder_ );

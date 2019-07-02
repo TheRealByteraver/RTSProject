@@ -563,7 +563,7 @@ void CampaignEditor::paletteHandleInput( int mY )
         int yDelta = palette.yValues[palette.listIndex];
         if ( palette.image.getHeight() - yDelta < y ) return; // below lowest icon
         int index;
-        for ( index = palette.listIndex; index < palette.yValues.size(); index++ )
+        for ( index = palette.listIndex; index < (int)palette.yValues.size(); index++ )
         {
             if ( palette.yValues[index] - yDelta > y ) break;
         }
@@ -1059,7 +1059,7 @@ void CampaignEditor::drawTerrain()
     int maxX = minX + visibleTilesX_;
     int maxY = minY + visibleTilesY_;
     const std::vector<DoodadLocation>& doodadList = terrain_.getDoodadList();
-    for ( int doodadNr = 0; doodadNr < doodadList.size(); doodadNr++ )
+    for ( int doodadNr = 0; doodadNr < (int)doodadList.size(); doodadNr++ )
     {
         const DoodadLocation doodadLocation = doodadList[doodadNr];
         if ( !doodadLocation.isUsed ) continue; // skip invalid data
@@ -1197,7 +1197,7 @@ void CampaignEditor::redrawMiniMap()
                         world_.getAvgColor( terrain_.getElement( t++ ) ) );
             // and now the doodads:
             const std::vector<DoodadLocation>& doodadList = terrain_.getDoodadList();
-            for ( int iDoodad = 0; iDoodad < doodadList.size(); iDoodad++ )
+            for ( int iDoodad = 0; iDoodad < (int)doodadList.size(); iDoodad++ )
             {
                 const DoodadLocation& doodadLocation = doodadList[iDoodad];
                 if ( doodadLocation.isUsed )
@@ -1248,7 +1248,7 @@ void CampaignEditor::redrawMiniMap()
                     );
             // and now the doodads:
             const std::vector<DoodadLocation>& doodadList = terrain_.getDoodadList();
-            for ( int iDoodad = 0; iDoodad < doodadList.size(); iDoodad++ )
+            for ( int iDoodad = 0; iDoodad < (int)doodadList.size(); iDoodad++ )
             {
                 const DoodadLocation& doodadLocation = doodadList[iDoodad];
                 if ( doodadLocation.isUsed )
@@ -1285,7 +1285,7 @@ void CampaignEditor::redrawMiniMap()
             }
             // and now the doodads:
             const std::vector<DoodadLocation>& doodadList = terrain_.getDoodadList();
-            for ( int iDoodad = 0; iDoodad < doodadList.size(); iDoodad++ )
+            for ( int iDoodad = 0; iDoodad < (int)doodadList.size(); iDoodad++ )
             {
                 const DoodadLocation& doodadLocation = doodadList[iDoodad];
                 if ( doodadLocation.isUsed )
@@ -1770,7 +1770,7 @@ void CampaignEditor::initDoodadLocationMap()
     for ( int i = 0; i < size; i++ ) doodadLocationMap_[i] = false;
     // now put the doodads in there:
     const std::vector<DoodadLocation>& doodadList = terrain_.getDoodadList();
-    for ( int iDoodad = 0; iDoodad < doodadList.size(); iDoodad++ )
+    for ( int iDoodad = 0; iDoodad < (int)doodadList.size(); iDoodad++ )
     {
         const DoodadLocation& doodadLocation = doodadList[iDoodad];
         if ( !doodadLocation.isUsed ) continue;
@@ -1804,7 +1804,7 @@ doodad if it can not be placed anymore there were it used to be.
 void CampaignEditor::checkDoodads()
 {
     const std::vector<DoodadLocation>& doodadList = terrain_.getDoodadList();
-    for ( int iDoodad = 0; iDoodad < doodadList.size(); iDoodad++ )
+    for ( int iDoodad = 0; iDoodad < (int)doodadList.size(); iDoodad++ )
     {
         const DoodadLocation& doodadLocation = doodadList[iDoodad];
         if ( !doodadLocation.isUsed ) continue;
