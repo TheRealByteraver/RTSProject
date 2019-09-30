@@ -90,6 +90,9 @@
     <ClInclude Include="WindowSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="intro.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DXErr.cpp">

@@ -42,9 +42,9 @@ MainWindow::MainWindow( HINSTANCE hInst,wchar_t * pArgs )
 
 	// create window & get hWnd
 	RECT wr;
-	wr.left = 350;
+	wr.left = 16;
 	wr.right = Graphics::ScreenWidth + wr.left;
-	wr.top = 100;
+	wr.top = 32;
 	wr.bottom = Graphics::ScreenHeight + wr.top;
 	AdjustWindowRect( &wr,WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU,FALSE );
 	hWnd = CreateWindow( wndClassName,L"Chili DirectX Framework",

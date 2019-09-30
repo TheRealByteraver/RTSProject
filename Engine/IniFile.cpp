@@ -269,10 +269,12 @@ char *IniFile::deleteWhiteSpace( char *buf ) const
 {
     char *d = buf;
     char *s = buf;
-    for ( ; *s != NULL; )
+    for ( ; *s != '\0'; )
     {
-        if ( (*s != ' ') && (*s != '\t') ) *d++ = *s++;
-        else s++;
+        if ( (*s != ' ') && (*s != '\t') ) 
+            *d++ = *s++;
+        else 
+            s++;
     }
     *d = '\0';
      return buf;

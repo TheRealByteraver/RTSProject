@@ -150,6 +150,7 @@
     <ClInclude Include="Globals.h" />
     <ClInclude Include="Graphics.h" />
     <ClInclude Include="IniFile.h" />
+    <ClInclude Include="intro.h" />
     <ClInclude Include="Keyboard.h" />
     <ClInclude Include="sprite.h" />
     <ClInclude Include="MainWindow.h" />

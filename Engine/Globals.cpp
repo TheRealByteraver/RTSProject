@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "Globals.h"
 
 // declare a global variable of this class, for it must have its constructor called
@@ -6,6 +7,9 @@ Defaults defaults;
 
 Defaults::Defaults()
 {
+    /* initialize random seed: */
+    srand( (unsigned)time( NULL ) );
+
     if ( !masterIniFile_.isLoaded() )
     {
         MessageBox(

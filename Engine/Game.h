@@ -31,6 +31,7 @@
 #include "Terrain.h"
 #include "World.h"
 #include "CampaignEditor.h"
+#include "intro.h"
 
 
 extern class Defaults defaults;
@@ -70,11 +71,13 @@ private:
     Font                    neuropolXBMP;
     GameScreens             gameScreens;
     CampaignEditor          campaignEditor;
+    Intro                   intro;
     //Terrain                 terrain;
     //World                   world;
 
-    /*
     //for the intro:
+    int                     sineIndex = 0;
+    /*
     int                     xSineBlock;
     int                     ySineBlock;
     int                     ampSineBlock;

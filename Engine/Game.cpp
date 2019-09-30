@@ -25,6 +25,7 @@
 
 
 
+
 #include <stdlib.h>  
 #include <stdio.h>  
 #include <time.h>
@@ -109,22 +110,24 @@ double sinc( double x ) {
 }
 */
 
-void    sincInterpolationDemo( Graphics& gfx )
+void sincInterpolationDemo( Graphics& gfx )
 {
     const int wdwWidth = gfx.ScreenWidth - 200;
     const int wdwHeight = gfx.ScreenHeight - 20;
 
     // test parameters:
-    const int sampleInterval = wdwWidth / 16;
+    const int nrOfSamples = 64;
+    const int sampleInterval = wdwWidth / nrOfSamples;
     const FPT stretcher = FPT( wdwWidth / 2 );
-    const int N = 1; // nr of sinc sample ref points left & right
+    const int N = 4; // nr of sinc sample ref points left & right
 
-                     // colors:
+    // some color constants
     const Color frameColor = Colors::White;
-    const Color origCurveColor = Colors::Green;
+    const Color origCurveColor = Colors::White;
     const Color sampleDotsColor = Colors::Magenta;
-    const Color linearInterPolationColor = Colors::MakeRGB( 0xFF,0x30,0x30 );
-    const Color cubicInterPolationColor = Colors::MakeRGB( 0xD0,0xA0,0x40 );
+    const Color linearInterPolationColor = Colors::MakeRGB( 0xFF,0x20,0x20 );
+    const Color cubicInterPolationColor = Colors::MakeRGB( 0xC0,0xA0,0x40 );
+    const Color sincInterPolationColor = Colors::MakeRGB( 0x20,0xFF,0x20 );
 
     // some windows coordinates
     const int xStart = (gfx.ScreenWidth - wdwWidth) / 2;
@@ -144,22 +147,18 @@ void    sincInterpolationDemo( Graphics& gfx )
     const int nrOfSamplePoints = wdwWidth / sampleInterval + 1;
     std::vector<int> samplePoints;
     samplePoints.reserve( nrOfSamplePoints );
-    const int maxAmp = 2;
-    const int amp = (wdwHeight / 1) / maxAmp;
+    const int maxAmp = 4;
+    const int amp = (wdwHeight / 2) / maxAmp;
     FPT lastY = 0;
     // draw original function
     for ( int t = 0; t < wdwWidth; t++ )
     {
         FPT y = (FPT)(
-            /*
-            sin( 50 * pi * (FPT)t / stretcher )
-            + cos( 3.0 * pi * (FPT)t / stretcher )
+              sin( 10.3 * pi * (FPT)t / stretcher ) +
+            + cos( 7.12 * pi * (FPT)t / stretcher )
             + cos( 1.37 * pi * (FPT)(t / 5.7) / stretcher )
-            + sin( 17.9 * pi * (FPT)(t / 0.7) / stretcher )
-            */
-            sin( (FPT)2.0 * pi * (FPT)t / (FPT)stretcher )
+            + sin( 1.92 * pi * (FPT)(t / 0.7) / stretcher )
             );
-        //double y = sin( 2.0 * pi * (double)t / stretcher );
         y = -y * (FPT)amp;
         gfx.drawLine(
             xStart + t - 1,
@@ -174,7 +173,8 @@ void    sincInterpolationDemo( Graphics& gfx )
     samplePoints.push_back( (int)lastY );
     samplePoints.push_back( (int)lastY ); // debug
     samplePoints.push_back( (int)lastY ); // debug
-                                          // draw dots on sample points
+
+    // draw dots on sample points
     for ( int t = 0; t < nrOfSamplePoints; t++ )
     {
         gfx.drawDisc(
@@ -184,22 +184,7 @@ void    sincInterpolationDemo( Graphics& gfx )
             sampleDotsColor
         );
     }
-    /*
-    // draw linear interpolation:
-    lastY = samplePoints[0];
-    for ( int t = 1; t < nrOfSamplePoints; t++ )
-    {
-    gfx.drawLine(
-    xStart + (t - 1) * sampleInterval,
-    yMiddle + (int)lastY,
-    xStart + t * sampleInterval,
-    yMiddle + samplePoints[t],
-    linearInterPolationColor
-    );
-    lastY = samplePoints[t];
-    }
-    */
-    // draw cubic interpolation:
+    // draw cubic interpolation:    
     for ( int t = 0; t < nrOfSamplePoints - 1; t++ )
     {
         FPT p0 = (FPT)((t == 0) ? 0.0 : samplePoints[t - 1]);
@@ -227,93 +212,79 @@ void    sincInterpolationDemo( Graphics& gfx )
             lastY = (int)f2;
         }
     }
-    // sinc interpolation              
+    
+    // sinc interpolation: prepare buffer
     FPT *buf = new FPT[wdwWidth];
     memset( buf,0,sizeof( FPT ) * wdwWidth );
 
-    /*
-    for ( int s = 0; s < nrOfSamplePoints; s++ )
-    {
-    for ( int x = 0; x < wdwWidth; x++ )
-    {
-    FPT realX = (FPT)(x - s * sampleInterval) / (FPT)(sampleInterval);
-    FPT f2 = sinc( realX ) * (FPT)samplePoints[s];
-    buf[x] += f2;
-    }
-    }
-    */
-    for ( int s = N; s < nrOfSamplePoints - N; s++ )
-    {
-
-        //for ( int x = 0; x < wdwWidth; x++ )
-        for ( int x = (s - N) * sampleInterval;
-            x < (s + N) * sampleInterval; x++ )
-        {
+    for ( int s = 0; s < nrOfSamplePoints; s++ ) {
+        for ( int x = (s - N) * sampleInterval; x < (s + N) * sampleInterval; x++ ) {
             FPT realX = (FPT)(x - s * sampleInterval) / (FPT)(sampleInterval);
-            FPT f2 = sinc( realX ) * (FPT)samplePoints[s];
-            buf[x] += f2;
+            FPT f2;
+            if ( s >= 0 && s < nrOfSamplePoints )
+                f2 = sinc( realX ) * (FPT)samplePoints[s];
+            else 
+                f2 = 0;
+            if ( (x >= 0) && (x < wdwWidth) )
+                buf[x] += f2;
         }
-
     }
-
-    // draw buffer contents:
+    // draw buffer contents (sinc interpolation):
     lastY = 0;
-    for ( int x = 0; x < wdwWidth; x++ )
-    {
+    for ( int x = 0; x < wdwWidth; x++ ) {
         int y1 = yMiddle + (int)lastY;
-        if ( y1 < 0 ) y1 = 0;
-        if ( y1 >= gfx.ScreenHeight ) y1 = gfx.ScreenHeight - 1;
+        if ( y1 < 0 ) 
+            y1 = 0;
+        if ( y1 >= gfx.ScreenHeight ) 
+            y1 = gfx.ScreenHeight - 1;
         int y2 = yMiddle + (int)buf[x];
-        if ( y2 < 0 ) y2 = 0;
-        if ( y2 >= gfx.ScreenHeight ) y2 = gfx.ScreenHeight - 1;
+        if ( y2 < 0 ) 
+            y2 = 0;
+        if ( y2 >= gfx.ScreenHeight ) 
+            y2 = gfx.ScreenHeight - 1;
 
         gfx.drawLine(
             xStart + x - 1,
             y1,
             xStart + x,
             y2,
-            Colors::White
+            sincInterPolationColor
         );
         lastY = buf[x];
     }
     delete buf;
-}
+    // draw history:
+    const int legendElemWidth = 30;
+    const int legendX = xStart + legendElemWidth + 16;
+    const int fontHeight = gfx.getFont()->height();
+    int legendY = yEnd - fontHeight * 8;
 
-void    doIntro( Graphics& gfx,int frameNr )
-{
-    // intro code:
-    int blockWidth = 2;
-    int blockHeight = 80;
-    int ampSineBlock = 200;
-    float s = (float)sin( frameNr * 3.1415 * 2.0 / 360.0 );
-    int xOffset = (int)((s * (float)ampSineBlock) * 1);
-    int xSineBlock = (Graphics::ScreenWidth - blockWidth) / 2 + xOffset;
+    gfx.drawDisc( xStart + 8 + legendElemWidth / 2,legendY + fontHeight / 2,3,sampleDotsColor );
+    gfx.printXY( legendX,legendY,"Sample points" );
+    legendY += fontHeight;
 
+    gfx.drawHorLine( xStart + 8,legendY + fontHeight / 2,legendX - 8,origCurveColor );
+    gfx.printXY( legendX,legendY,"Original waveform" );
+    legendY += fontHeight;
 
+    gfx.drawHorLine( xStart + 8,legendY + fontHeight / 2,legendX - 8,cubicInterPolationColor );
+    gfx.printXY( legendX,legendY,"Cubic interpolation" );
 
-    int ySineBlock = (Graphics::ScreenHeight - blockHeight) / 2;
-    gfx.setFrameColor( 0xA06090 );
-    gfx.drawBlock( Rect(
-        xSineBlock,
-        ySineBlock,
-        xSineBlock + blockWidth - 1,
-        ySineBlock + blockHeight - 1 ),
-        0xA06090
-    );
-    gfx.drawButton( Rect(
-        xSineBlock,
-        ySineBlock,
-        xSineBlock + blockWidth - 1,
-        ySineBlock + blockHeight - 1 )
-    );
+    legendY += fontHeight;
+    gfx.drawHorLine( xStart + 8,legendY + fontHeight / 2,legendX - 8,sincInterPolationColor );
+    gfx.printXY( legendX,legendY,"Sinc interpolation" );
 
-    gfx.drawBox( Rect(
-        (Graphics::ScreenWidth - blockWidth) / 2 - 1,
-        (Graphics::ScreenHeight - blockHeight) / 2 - 1,
-        (Graphics::ScreenWidth - blockWidth) / 2 + blockWidth - 1 + 1,
-        (Graphics::ScreenHeight - blockHeight) / 2 + blockHeight - 1 + 1 ),
-        0xFFFFFF
-    );
+    legendY += fontHeight;
+
+    std::string tmpStr( "Nr of sample points = " );
+    tmpStr += std::to_string( nrOfSamples );
+    legendY += fontHeight;
+    gfx.printXY( xStart + 8,legendY,tmpStr.c_str() );
+
+    tmpStr = "Nr of reference points (left + right) = ";
+    tmpStr += std::to_string( N * 2 );
+    legendY += fontHeight;
+    gfx.printXY( xStart + 8,legendY,tmpStr.c_str() );
 }
 
 void    doFloodFillTest( Graphics& gfx )
@@ -343,7 +314,7 @@ void    doCubicBezier( Graphics& gfx )
     } p0,p1,p2,p3;
 
     // make sure we don't draw off the screen
-    const int border = 20;
+    const int border = 40;
     p0.x = border + rand() % (Graphics::ScreenWidth - (border * 2));
     p1.x = border + rand() % (Graphics::ScreenWidth - (border * 2));
     p2.x = border + rand() % (Graphics::ScreenWidth - (border * 2));
@@ -369,9 +340,17 @@ void    doCubicBezier( Graphics& gfx )
     gfx.printXY( p2.x - 16,p2.y - 16,"P2" );
     gfx.printXY( p3.x - 16,p3.y - 16,"P3" );
 
-    const int nrPoints = 1000;
-    int xprev = p0.x;
-    int yprev = p0.y;
+    const int nrPoints = 50;
+    float m = 0;
+    float mprev = 0;
+    float xprev = (float)p0.x;
+    float yprev = (float)p0.y;
+
+    float x1prev = (float)p0.x;
+    float x2prev = (float)p0.x;
+    float y1prev = (float)p0.y;
+    float y2prev = (float)p0.y;
+
     for ( int t = 0; t <= nrPoints; t++ ) {
         // calculate t == t2:
         float t2 = (float)t / (float)nrPoints;
@@ -381,9 +360,72 @@ void    doCubicBezier( Graphics& gfx )
         //int x = (int)(t1 * t1 * p0.x + t1 * 2 * t2 * p1.x + t2 * t2 * p2.x);
         //int y = (int)(t1 * t1 * p0.y + t1 * 2 * t2 * p1.y + t2 * t2 * p2.y);
         // calculate coordinates of t (cubic):
-        int x = (int)(t1 * t1 * t1 * p0.x + t1 * t1 * 3 * t2 * p1.x + t1 * 3 * t2 * t2 * p2.x + t2 * t2 * t2 * p3.x);
-        int y = (int)(t1 * t1 * t1 * p0.y + t1 * t1 * 3 * t2 * p1.y + t1 * 3 * t2 * t2 * p2.y + t2 * t2 * t2 * p3.y);
-        gfx.drawLine( xprev,yprev,x,y,Colors::Green );
+        float x = (t1 * t1 * t1 * p0.x + t1 * t1 * 3 * t2 * p1.x + t1 * 3 * t2 * t2 * p2.x + t2 * t2 * t2 * p3.x);
+        float y = (t1 * t1 * t1 * p0.y + t1 * t1 * 3 * t2 * p1.y + t1 * 3 * t2 * t2 * p2.y + t2 * t2 * t2 * p3.y);
+        //gfx.drawLine( (int)xprev,(int)yprev,(int)x,(int)y,Colors::Green );
+
+        // draw perpendicular line:  
+        float thickness = 20; // in pixels, should be less than border
+
+        // get crossing point of two lines:
+        float xc = xprev + (x - xprev) / 2;
+        float yc = yprev + (y - yprev) / 2;
+
+        float yD = y - yprev;
+        float xD = x - xprev;
+
+        float alfa;
+
+        mprev = m;
+        m = (-xD / yD) ;
+
+        alfa = atan( m );
+
+        /*
+        if ( alfa > (3.14159265359 / 2.0) )
+            alfa = alfa - (3.14159265359 / 2.0);
+        */
+
+        float xd = (thickness / 2) * cos( alfa );
+        float yd = (thickness / 2) * sin( alfa );
+
+        if ( m * mprev < 0 ) {
+            float tmp = y1prev;
+            y1prev = y2prev;
+            y2prev = tmp;
+            yd = -yd;
+            /*
+            xd = -xd;
+            tmp = x1prev;
+            x1prev = x2prev;
+            x2prev = tmp;
+            */
+        }
+
+        float x1 = xc - xd;
+        float y1 = yc - yd;
+        float x2 = xc + xd;
+        float y2 = yc + yd;
+
+
+        gfx.drawLine( (int)x1prev,(int)y1prev,(int)x1,(int)y1,Colors::Magenta );
+        gfx.drawLine( (int)x2prev,(int)y2prev,(int)x2,(int)y2,Colors::Magenta );
+        x1prev = x1;
+        x2prev = x2;
+        y1prev = y1;
+        y2prev = y2;
+
+        /*
+        // perpendicular line:
+        float x1 = xc - (thickness / 2) * cos( alfa );
+        float y1 = yc - (thickness / 2) * sin( alfa );
+        float x2 = xc + (thickness / 2) * cos( alfa );
+        float y2 = yc + (thickness / 2) * sin( alfa );
+        gfx.drawLine( (int)x1,(int)y1,(int)x2,(int)y2,Colors::Magenta );
+        */
+
+        gfx.drawLine( (int)xprev,(int)yprev,(int)x,(int)y,Colors::Green );
+
         xprev = x;
         yprev = y;
     }
@@ -403,9 +445,9 @@ void Game::ComposeFrame()
         case    introstate:
         {          
             //sincInterpolationDemo( gfx );
-            //doIntro( gfx,frameNr );
+            intro.updateFrame( gfx );
             //doFloodFillTest( gfx );
-            doCubicBezier( gfx );
+            //doCubicBezier( gfx );
             
             break;
         }
