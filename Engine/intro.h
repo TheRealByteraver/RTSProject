@@ -8,40 +8,57 @@
 
 #define TNTLOGOFILENAME         "sprites\\tntlogo.bmp"
 
-#define COLORBAR_MIN_SPEED      0.6f
+#define COLORBAR_BORDER_TOP     100
+#define COLORBAR_BORDER_BOTTOM  120
+#define COLORBAR_MIN_SPEED      1.6f
 #define COLORBAR_MAX_SPEED      1.6f
-#define COLORBAR_NR             8
-#define COLORBAR_DARKEST_COLOR  0x20
+#define COLORBAR_NR             5
+#define COLORBAR_DARKEST_COLOR  0x40
 #define COLORBAR_MIN_HEIGHT     30
 #define COLORBAR_MAX_HEIGHT     30 
+
+#define SCROLLER_TEXT   "Hello and welcome to this charmingly oldschool" \
+" sine scroller. I hacked it together in a few evenings to see how hard it would be to do." \
+" Apparently it is quite doable ;) The speed and size of the color bars can be randomized " \
+"and I can put just as well 50 of them on the screen by changing a few constants, but it " \
+"just does not look all that good . . .    Also it is probably not a good idea either to " \
+"use random colors. The colors add up, so they act like lamps if you will. To think that " \
+"crackers could make similar intro's on limited machines such as the ATARI ST and the " \
+"Commodore Amiga just goes to show how talented they were, and how lazy modern computers " \
+"with their ultra fast processors make us . . .     The music you are hearing is called " \
+" \"Global Trash v3\" and was made by " \
+"Jesper Kyd from the Silents Amiga demo group (they later appeared in the PC scene as well" \
+") and dates back to the early nineties I believe. I kinda like its dark vibe so I decided" \
+" to use it here for your pleasure. I hope you like it, if not, you can replace it with " \
+"another .mod file of your liking (find more on https://modarchive.org/)"
+
+
 
 // The bar is always twice the height of the "height" value
 class ColorBar {
 public:
     ColorBar()
     {
-        speed = (float)
-            (COLORBAR_MIN_SPEED +
-                (rand() % (int)
-                    ((COLORBAR_MAX_SPEED - COLORBAR_MIN_SPEED) * 100.0f))             
+        speed = COLORBAR_MIN_SPEED;
+        if ( COLORBAR_MIN_SPEED != COLORBAR_MAX_SPEED )
+        speed += (float)(rand() % (int)
+                    ((COLORBAR_MAX_SPEED - COLORBAR_MIN_SPEED) * 100.0f)
                 / 100.0f);
         height = COLORBAR_MIN_HEIGHT; 
         if ( (COLORBAR_MAX_HEIGHT - COLORBAR_MIN_HEIGHT) != 0 )
             height += rand() % (COLORBAR_MAX_HEIGHT - COLORBAR_MIN_HEIGHT);
-        minY = height - 1;
-        maxY = Graphics::ScreenHeight - height - 1;
+        minY = COLORBAR_BORDER_TOP + height - 1;
+        maxY = Graphics::ScreenHeight - height - 1 - COLORBAR_BORDER_BOTTOM;
         y = (float)(minY + rand() % (maxY - minY));
 
         const int colMin = COLORBAR_DARKEST_COLOR;
         const int colVar = 0xFF - colMin;
-
         color = Color(
             colMin + rand() % colVar,
             colMin + rand() % colVar,
             colMin + rand() % colVar
             );
         colors.resize( height );
-        //for ( int c = height - 1; c >= 0; c-- )
         for ( int c = 0; c < height; c++ )
             colors[c] = Color(
                 ((int)color.GetR() * c) / height, 
@@ -108,9 +125,13 @@ public:
             Offsets[i] = (int)(sin( ((float)i * 2.0 * 3.14159265359) / (float)nrSteps )
                 * (float)maxDeviation );
         }
+
+        // start the scroller at the right edge of the screen:
+        scrollerStartX = Graphics::ScreenWidth;  
+        scrollerTextLength = (int)strlen( SCROLLER_TEXT );
     }
 
-    void updateFrame( Graphics & gfx )
+    void updateFrame( Graphics & gfx,Font& font )
     {
         // draw ColorBars
         /*
@@ -161,14 +182,12 @@ public:
                 gfx.drawHorLine( 0,(int)y,Graphics::ScreenWidth - 1,color );
             }
         }
-        
-
         // now move the color bars:
         for ( int iBar = 0; iBar < COLORBAR_NR; iBar++ )
             colorBars[iBar].updateFrame();
-        
 
         //gfx.drawBlock( 0,0,Graphics::ScreenWidth - 1,Graphics::ScreenHeight - 1,Colors::Gray );
+        
         // draw center TNT Sinus logo:
         Color *logoLines = lineData;
         for ( int i = 0; i < blockHeight; i++ ) {
@@ -205,6 +224,26 @@ public:
         sineIndex++;
         if ( sineIndex >= nrSteps )
             sineIndex = 0;
+
+        // Draw bottom scroller:
+        int startX = scrollerStartX;
+        scrollerStartX -= 8;
+        // restart scroll after a while:
+        if ( -scrollerStartX > scrollerTextLength * 40 )
+            scrollerStartX = Graphics::ScreenWidth * 2;
+
+        int y = Graphics::ScreenHeight - font.height() * 2;
+        
+        for ( int i = 0; i < scrollerTextLength; i++ ) {
+            Sprite& charSprite = *((Sprite *)(font.getBmpData( SCROLLER_TEXT[i] )));
+            gfx.paintBMPClearType( 
+                startX,
+                y + Offsets[(startX + sineIndex)  % nrSteps] / 4,
+                charSprite,
+                Colors::Black,
+                0x20 );
+            startX += charSprite.getWidth();
+        }
     }
 
 private:
@@ -222,4 +261,6 @@ private:
     const int           nrSteps = 400; // 60 steps == 1 second
     std::vector<int>    Offsets;
     std::array<ColorBar,COLORBAR_NR> colorBars;
+    int                 scrollerStartX;
+    int                 scrollerTextLength;
 };

@@ -68,7 +68,7 @@ Game::Game( MainWindow& wnd )
     campaignEditor.init( wnd,gfx,font,mouse,wnd.kbd );
     //int i; masterIniFile.getKeyValue( "unknownSection","unknownkey",i );  // debug test
 
-    srand( (unsigned)time( NULL ) );
+    //srand( (unsigned)time( NULL ) ); // done in Globals class
     frameNr = 0;
 }
 
@@ -445,7 +445,7 @@ void Game::ComposeFrame()
         case    introstate:
         {          
             //sincInterpolationDemo( gfx );
-            intro.updateFrame( gfx );
+            intro.updateFrame( gfx,neuropolXBMP );
             //doFloodFillTest( gfx );
             //doCubicBezier( gfx );
             
