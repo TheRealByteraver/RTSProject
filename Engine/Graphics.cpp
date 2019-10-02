@@ -992,7 +992,7 @@ void Graphics::paintSpriteSection( int x,int y,Rect area,const Sprite &sprite )
     }
 }
 
-void Graphics::paintSpriteKeyed( int x,int y,const Sprite &sprite,Color keyColor )  // not tested
+void Graphics::paintSpriteKeyed( int x,int y,const Sprite &sprite,Color keyColor )
 {
     if ( !sprite.isImagePresent() ) return;
     if ( (x >= ScreenWidth) || (y >= ScreenHeight) ) return;
@@ -1014,9 +1014,9 @@ void Graphics::paintSpriteKeyed( int x,int y,const Sprite &sprite,Color keyColor
     {
         for ( int i = xStart; i < xEnd; i++ )
         {
-            Color c = *s++;
-            if ( c != keyColor ) *data = c;
-            data++;
+            Color c = *data++;
+            if ( c != keyColor ) *s = c;
+            s++;
         }
         data += dataNextLine;
         s += sNextLine;
@@ -1122,6 +1122,68 @@ void Graphics::paintBMPClearType( int x,int y,const Sprite &sprite,Color keyColo
         dest += destNextLine;
     }
 }
+
+// specialized function for the little intro :)
+void Graphics::paintBMPClearTypeColor( int x,int y,int startY,int endY,const Sprite &sprite,Color keyColor,int opacity )
+{
+    if ( !sprite.isImagePresent() ) return;
+    if ( (x >= ScreenWidth) || (y >= ScreenHeight) ) return;
+    int xStart,yStart;
+    int xEnd,yEnd;
+    int xOffset,yOffset;
+    if ( x < 0 ) { xStart = 0; xOffset = -x; } else { xStart = x; xOffset = 0; }
+    if ( y < 0 ) { yStart = 0; yOffset = -y; } else { yStart = y; yOffset = 0; }
+    xEnd = x + sprite.getWidth();
+    yEnd = y + sprite.getHeight();
+    if ( (xEnd < 0) || (yEnd < 0) ) return;
+    int colorDelta = abs( endY - startY + 1 );
+    if ( xEnd > ScreenWidth ) xEnd = ScreenWidth;
+    if ( yEnd > ScreenHeight ) yEnd = ScreenHeight;
+    Color *bmpData = sprite.getPixelData() + yOffset * sprite.getWidth() + xOffset;
+    Color *dest = (Color*)pSysBuffer + ScreenWidth * yStart + xStart;
+    int destNextLine = ScreenWidth - (xEnd - xStart);
+    int bmpDataNextLine = sprite.getWidth() - (xEnd - xStart);
+    for ( int j = yStart; j < yEnd; j++ )
+    {
+        int pixelCnt = xOffset;
+        for ( int i = xStart; i < xEnd; i++ )
+        {
+            Color c = *bmpData++;
+            if ( c != keyColor )
+            {
+                int startc = j - startY;
+                c = Color(
+                    (startc * 0xFF) / colorDelta,
+                    0xFF - (startc * 0xFF) / colorDelta,
+                    0xFF//0xFF - (startc * 0xFF) / colorDelta
+                    
+                );
+                Color s = *dest;  // video memory read == slow!
+                int sr = s.GetR();
+                int sg = s.GetG();
+                int sb = s.GetB();
+                int dr = c.GetR();
+                int dg = c.GetG();
+                int db = c.GetB();
+                if ( c != Color( 0xFFFFFF ) ) {
+                    // recycle MS cleartype technology a little ;)
+                    dr = sr + dr; if ( dr > 255 ) dr = 255;
+                    dg = sg + dg; if ( dg > 255 ) dg = 255;
+                    db = sb + db; if ( db > 255 ) db = 255;
+                }
+                // blend it with the background based on the opacity
+                *dest = (((dr << 16) + ((opacity  * (sr - dr)) << 8)) & 0xFF0000)
+                    | (dg << 8) + ((opacity  * (sg - dg)) & 0xFF00)
+                    | (db + ((opacity  * (sb - db)) >> 8));
+            }
+            dest++;
+        }
+        bmpData += bmpDataNextLine;
+        dest += destNextLine;
+    }
+}
+
+
 
 /*
 Specialized drawing functions for interface

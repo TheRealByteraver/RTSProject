@@ -183,6 +183,7 @@ public:
     void    paintSpriteKeyed( int x,int y,const Sprite &sprite,Color keyColor );
     void    paintBMPClearType( int x,int y,const Sprite &sprite,Color keyColor );
     void    paintBMPClearType( int x,int y,const Sprite &sprite,Color keyColor,int opacity );
+    void    paintBMPClearTypeColor( int x,int y,int startY,int endY,const Sprite & sprite,Color keyColor,int opacity );
     void    drawNiceBlock( Rect r );
     void    drawNiceBlockInv( Rect r );
     void    drawButton( Rect r );

@@ -7,8 +7,11 @@
 #include "Sprite.h"
 
 #define TNTLOGOFILENAME         "sprites\\tntlogo.bmp"
+#define CHILILOGOFILENAME       "sprites\\chililogo.bmp"
 
-#define COLORBAR_BORDER_TOP     100
+#define CHILI_SPEED             8
+
+#define COLORBAR_BORDER_TOP     0
 #define COLORBAR_BORDER_BOTTOM  120
 #define COLORBAR_MIN_SPEED      1.6f
 #define COLORBAR_MAX_SPEED      1.6f
@@ -17,20 +20,31 @@
 #define COLORBAR_MIN_HEIGHT     30
 #define COLORBAR_MAX_HEIGHT     30 
 
-#define SCROLLER_TEXT   "Hello and welcome to this charmingly oldschool" \
+#define SCROLLER_TEXT "SOOOOO you thought I was dead and buried and over but you were wrong." \
+" From the man who brought you the AMAZING (ahem) but shameless Arkanoid ripoff two years " \
+"ago, please put your hands together for the awesome crap that is currently gracing your " \
+"screen. And destroying your ears, probably, but you'll have to blame Jesper Kyd for that. " \
+"So a warm hello and welcome to this charmingly oldschool" \
 " sine scroller. I hacked it together in a few evenings to see how hard it would be to do." \
 " Apparently it is quite doable ;) The speed and size of the color bars can be randomized " \
-"and I can put just as well 50 of them on the screen by changing a few constants, but it " \
+"and I can put just as well 70 of them on the screen by changing a few constants, but it " \
 "just does not look all that good . . .    Also it is probably not a good idea either to " \
 "use random colors. The colors add up, so they act like lamps if you will. To think that " \
 "crackers could make similar intro's on limited machines such as the ATARI ST and the " \
 "Commodore Amiga just goes to show how talented they were, and how lazy modern computers " \
 "with their ultra fast processors make us . . .     The music you are hearing is called " \
-" \"Global Trash v3\" and was made by " \
+" \"Global Trash 3 v2.0\" and was made by " \
 "Jesper Kyd from the Silents Amiga demo group (they later appeared in the PC scene as well" \
 ") and dates back to the early nineties I believe. I kinda like its dark vibe so I decided" \
 " to use it here for your pleasure. I hope you like it, if not, you can replace it with " \
-"another .mod file of your liking (find more on https://modarchive.org/)"
+"another .mod file of your liking (find more on https://modarchive.org/). It is reproduced " \
+"here using my own replay routines of which I'm very proud. Cubic interpolation and volume" \
+" ramping give you a sound that is - hopefully - smoother than a baby's ass and clickfree. " \
+"It can play other variants as .S3M, .IT and .XM as well, although volume and panning " \
+"envelopes have yet to be implemented. So .IT and .XM will sound awkward and just plain bad." \
+" Also, since I have not yet implemented double buffered replay, this intro requires about " \
+"halve a gigabyte of RAM or so :D. Yeah, huge amounts of RAM makes us lazy too. Or rather, " \
+"it makes ME lazy. It takes one second to precalculate 16' of music on my core i5 by the way." 
 
 
 
@@ -104,6 +118,7 @@ public:
     Intro() 
     {
         tntLogo.loadBitmap( GAME_FOLDER TNTLOGOFILENAME );
+        chiliLogo.loadBitmap( GAME_FOLDER CHILILOGOFILENAME );
         lineData = tntLogo.getPixelData();
         blockWidth = tntLogo.getWidth();
         blockHeight = tntLogo.getHeight();
@@ -115,6 +130,9 @@ public:
 
         assert( x1 > 0 );
         assert( y1 > 0 );
+
+        chiliX = 0;
+        chiliGoingRight = true;
 
         // div by 2 at minimum
         maxDeviation = (Graphics::ScreenWidth - blockWidth) / 4; 
@@ -134,20 +152,11 @@ public:
     void updateFrame( Graphics & gfx,Font& font )
     {
         // draw ColorBars
-        /*
-        for ( int j = 0; j < COLORBAR_NR; j++ ) {
-            for ( int i = 0; i < colorBars[j].height; i++ ) {
-                gfx.drawHorLine( 0,j * 40 + i,Graphics::ScreenWidth - 1,colorBars[j].colors[i] );
-            }
-        }
-        */
-        
         for ( int y = 0; y < Graphics::ScreenHeight; y++ ) {
             unsigned r = 0;
             unsigned g = 0;
             unsigned b = 0;
             unsigned cnt = 0;
-            Color color = 0;
             for ( int iBar = 0; iBar < COLORBAR_NR; iBar++ ) {
                 ColorBar& colorBar = colorBars[iBar];
                 int deltaY = abs( y - (int)colorBar.y );
@@ -166,28 +175,30 @@ public:
                     g = 0xFF;
                 if ( b > 0xFF )
                     b = 0xFF;
-                color = Color(
-                    r,
-                    g,
-                    b
-                );
-
-                /*
-                color = Color(
-                    r / cnt,
-                    g / cnt,
-                    b / cnt
-                );
-                */
-                gfx.drawHorLine( 0,(int)y,Graphics::ScreenWidth - 1,color );
+                gfx.drawHorLine( 0,(int)y,Graphics::ScreenWidth - 1,Color( r,g,b ) );
             }
         }
         // now move the color bars:
         for ( int iBar = 0; iBar < COLORBAR_NR; iBar++ )
             colorBars[iBar].updateFrame();
 
-        //gfx.drawBlock( 0,0,Graphics::ScreenWidth - 1,Graphics::ScreenHeight - 1,Colors::Gray );
-        
+        // draw top Chili logo:
+        gfx.paintSpriteKeyed( chiliX,10,chiliLogo,0 );
+        if ( chiliGoingRight ) {
+            chiliX += CHILI_SPEED;
+            if ( chiliX >= Graphics::ScreenWidth - chiliLogo.getWidth() ) {
+                chiliGoingRight = false;
+                chiliX -= CHILI_SPEED;
+            }
+        } 
+        else { 
+            chiliX -= CHILI_SPEED;
+            if ( chiliX <= 0 ) { 
+                chiliGoingRight = true;
+                chiliX += CHILI_SPEED;
+            }
+        }
+
         // draw center TNT Sinus logo:
         Color *logoLines = lineData;
         for ( int i = 0; i < blockHeight; i++ ) {
@@ -196,19 +207,17 @@ public:
             if ( ofs2 >= nrSteps )
                 ofs2 %= nrSteps;
 
-
             if ( i & 0x1 ) {// draw odd lines
                 int X = x1 + Offsets[ofs2];
                 int Y = y1 + i;
                 for ( int x = X; x < X + blockWidth; x++ ) {
                     if ( *logoLines != Colors::Black )
-                        gfx.PutPixel( x,Y,*logoLines ); //Color( 0xFFFFFF - (*logoLines).dword ) );
+                        gfx.PutPixel( x,Y,*logoLines ); 
                     logoLines++;
                 }
             }
             else {         // draw even lines               
                 ofs2 += nrSteps / 3;
-                //ofs2 = maxDeviation / 2;//(i * nrSteps / 4) / blockHeight;
                 if ( ofs2 >= nrSteps )
                     ofs2 %= nrSteps;
                     
@@ -227,18 +236,20 @@ public:
 
         // Draw bottom scroller:
         int startX = scrollerStartX;
-        scrollerStartX -= 8;
+        scrollerStartX -= 8; // 8 == scrolling speed
         // restart scroll after a while:
-        if ( -scrollerStartX > scrollerTextLength * 40 )
+        if ( -scrollerStartX > scrollerTextLength * 45 )
             scrollerStartX = Graphics::ScreenWidth * 2;
 
-        int y = Graphics::ScreenHeight - font.height() * 2;
+        int y = Graphics::ScreenHeight - 1 - font.height() - maxDeviation / 4;
         
         for ( int i = 0; i < scrollerTextLength; i++ ) {
             Sprite& charSprite = *((Sprite *)(font.getBmpData( SCROLLER_TEXT[i] )));
-            gfx.paintBMPClearType( 
+            gfx.paintBMPClearTypeColor( 
                 startX,
                 y + Offsets[(startX + sineIndex)  % nrSteps] / 4,
+                y - maxDeviation / 4,
+                y + font.height() + maxDeviation / 4,
                 charSprite,
                 Colors::Black,
                 0x20 );
@@ -248,6 +259,8 @@ public:
 
 private:
     Sprite              tntLogo;
+    Sprite              chiliLogo;
+    bool                chiliGoingRight;
     Color              *lineData;
     int                 sineIndex = 0;
     int                 blockWidth;
@@ -257,6 +270,7 @@ private:
     int                 x1;
     int                 x2;
     int                 y1;
+    int                 chiliX;
     int                 maxDeviation;
     const int           nrSteps = 400; // 60 steps == 1 second
     std::vector<int>    Offsets;
