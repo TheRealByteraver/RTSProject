@@ -1153,10 +1153,15 @@ void Graphics::paintBMPClearTypeColor( int x,int y,int startY,int endY,const Spr
             {
                 int startc = j - startY;
                 c = Color(
+                    0xFF,
+                    0xFF - (startc * 0xFF) / colorDelta,
+                    (startc * 0xFF) / colorDelta
+                    /* cyan to magenta
                     (startc * 0xFF) / colorDelta,
                     0xFF - (startc * 0xFF) / colorDelta,
-                    0xFF//0xFF - (startc * 0xFF) / colorDelta
-                    
+                    0xFF
+                    */
+
                 );
                 Color s = *dest;  // video memory read == slow!
                 int sr = s.GetR();
@@ -1165,16 +1170,20 @@ void Graphics::paintBMPClearTypeColor( int x,int y,int startY,int endY,const Spr
                 int dr = c.GetR();
                 int dg = c.GetG();
                 int db = c.GetB();
+                
                 if ( c != Color( 0xFFFFFF ) ) {
+                    // comment out to remove transparency
                     // recycle MS cleartype technology a little ;)
                     dr = sr + dr; if ( dr > 255 ) dr = 255;
                     dg = sg + dg; if ( dg > 255 ) dg = 255;
                     db = sb + db; if ( db > 255 ) db = 255;
-                }
+                } 
                 // blend it with the background based on the opacity
-                *dest = (((dr << 16) + ((opacity  * (sr - dr)) << 8)) & 0xFF0000)
-                    | (dg << 8) + ((opacity  * (sg - dg)) & 0xFF00)
-                    | (db + ((opacity  * (sb - db)) >> 8));
+                *dest = Color(
+                    ((dr << 8) + opacity * (sr - dr)) >> 8,
+                    ((dg << 8) + opacity * (sg - dg)) >> 8,
+                    ((db << 8) + opacity * (sb - db)) >> 8
+                 );
             }
             dest++;
         }

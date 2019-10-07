@@ -11,14 +11,15 @@
 
 #define CHILI_SPEED             8
 
-#define COLORBAR_BORDER_TOP     0
-#define COLORBAR_BORDER_BOTTOM  120
-#define COLORBAR_MIN_SPEED      1.6f
-#define COLORBAR_MAX_SPEED      1.6f
-#define COLORBAR_NR             5
+#define COLORBAR_BORDER_TOP     200
+#define COLORBAR_BORDER_BOTTOM  200
+#define COLORBAR_MIN_SPEED      0.6f
+#define COLORBAR_MAX_SPEED      0.6f
+#define COLORBAR_NR             8
 #define COLORBAR_DARKEST_COLOR  0x40
-#define COLORBAR_MIN_HEIGHT     30
-#define COLORBAR_MAX_HEIGHT     30 
+#define COLORBAR_MIN_HEIGHT     10
+#define COLORBAR_MAX_HEIGHT     10 
+#define COLORBAR_SPACER         20
 
 #define SCROLLER_TEXT "SOOOOO you thought I was dead and buried and over but you were wrong." \
 " From the man who brought you the AMAZING (ahem) but shameless Arkanoid ripoff two years " \
@@ -55,7 +56,7 @@ public:
     {
         speed = COLORBAR_MIN_SPEED;
         if ( COLORBAR_MIN_SPEED != COLORBAR_MAX_SPEED )
-        speed += (float)(rand() % (int)
+            speed += (float)(rand() % (int)
                     ((COLORBAR_MAX_SPEED - COLORBAR_MIN_SPEED) * 100.0f)
                 / 100.0f);
         height = COLORBAR_MIN_HEIGHT; 
@@ -67,11 +68,21 @@ public:
 
         const int colMin = COLORBAR_DARKEST_COLOR;
         const int colVar = 0xFF - colMin;
+
+        color = Color(
+            0x2F,
+            0x20,
+            0xFF
+            
+        );
+
+        /*
         color = Color(
             colMin + rand() % colVar,
             colMin + rand() % colVar,
             colMin + rand() % colVar
             );
+        */
         colors.resize( height );
         for ( int c = 0; c < height; c++ )
             colors[c] = Color(
@@ -83,28 +94,41 @@ public:
     void updateFrame()
     {
         if ( movingUp ) { 
-            y += speed;
-            if ( (int)y >= maxY ) {
-                y = (float)maxY;
+            y -= speed;
+            if ( (int)y <= minY ) {
+                y = (float)minY + 1;
                 movingUp = false;
             }
         }
         else {
-            y -= speed;
-            if ( (int)y <= minY ) {
-                y = (float)minY;
+            y += speed;
+            if ( (int)y >= maxY ) {
+                y = (float)maxY - 1;
                 movingUp = true;
             }
         }
     }
+    /*
+    void setHeight( int yValue )
+    {
+        assert( yValue >= height );
+        assert( yValue < Graphics::ScreenHeight - height );
+        y = yValue;
+    }
+    void setWidth( int width )
+    {
+        assert( width < Graphics::ScreenHeight / 2 );
+        height = width / 2;
+    }
+    */
 
 private:
-    bool    movingUp = true;
     int     minY;
     int     maxY;
     Color   color;
 
 public:
+    bool    movingUp = true;
     float   speed;
     float   y;
     int     height;
@@ -139,10 +163,19 @@ public:
 
         // precalculate sinus table with deviations included
         Offsets.resize( nrSteps );
+        assert( Offsets.size() >= (unsigned)nrSteps );
+
         for ( unsigned i = 0; i < Offsets.size(); i++ ) {
             Offsets[i] = (int)(sin( ((float)i * 2.0 * 3.14159265359) / (float)nrSteps )
                 * (float)maxDeviation );
         }
+
+        // prepare the color bars:
+        for ( unsigned i = 0; i < colorBars.size(); i++ ) {
+            colorBars[i].y = COLORBAR_BORDER_TOP +
+                ((colorBars[i].height * 2 + COLORBAR_SPACER) * i);
+        }
+
 
         // start the scroller at the right edge of the screen:
         scrollerStartX = Graphics::ScreenWidth;  
@@ -151,7 +184,7 @@ public:
 
     void updateFrame( Graphics & gfx,Font& font )
     {
-        // draw ColorBars
+        // draw ColorBars and background
         for ( int y = 0; y < Graphics::ScreenHeight; y++ ) {
             unsigned r = 0;
             unsigned g = 0;
@@ -159,16 +192,43 @@ public:
             unsigned cnt = 0;
             for ( int iBar = 0; iBar < COLORBAR_NR; iBar++ ) {
                 ColorBar& colorBar = colorBars[iBar];
+
+
+
+                int heightDelta = Graphics::ScreenHeight - 
+                    (COLORBAR_BORDER_TOP + COLORBAR_BORDER_BOTTOM);
+
+
+                float deviation = sin(
+                    (colorBar.y - COLORBAR_BORDER_TOP) * 3.14159265359 / heightDelta ) * 10.0;
+
+                colorBar.speed = 1.5 + deviation / 3.0;
+
+                if ( colorBar.movingUp ) {
+                    colorBar.height = (int)(16.0 - deviation);
+                }
+                else {
+                    colorBar.height = 16 + deviation;
+                }
+
+
+
                 int deltaY = abs( y - (int)colorBar.y );
                 if ( deltaY < colorBar.height ) {
                     deltaY = colorBar.height - 1 - deltaY;
                     cnt++;
+                    r += (0x80 * deltaY) / colorBar.height;
+                    g += (0x20 * deltaY) / colorBar.height;
+                    b += (0xA0 * deltaY) / colorBar.height;
+                    /*
                     r += colorBar.colors[deltaY].GetR();
                     g += colorBar.colors[deltaY].GetG();
                     b += colorBar.colors[deltaY].GetB();
+                    */
                 }
             }
-            if ( cnt > 0 ) {
+            //if ( false ) {
+            if ( cnt > 0 ) { // original code
                 if ( r > 0xFF )
                     r = 0xFF;
                 if ( g > 0xFF )
@@ -177,6 +237,43 @@ public:
                     b = 0xFF;
                 gfx.drawHorLine( 0,(int)y,Graphics::ScreenWidth - 1,Color( r,g,b ) );
             }
+            // draw checkerboard background
+            else { 
+                const int squareSize = 64;//8 + abs( Offsets[sineIndex] );//(y / 2 + 1); // power of two please :D
+                const int yCol = y & (0xFFFF - (squareSize - 1));
+                const Color colorA = Color( 
+                    (0x30 * (Graphics::ScreenHeight - yCol)) / Graphics::ScreenHeight,
+                    (0xE0 * (Graphics::ScreenHeight - yCol)) / Graphics::ScreenHeight,
+                    (0xE0 * (Graphics::ScreenHeight - yCol)) / Graphics::ScreenHeight);
+                const Color colorB = Color( 
+                    (0xA0 * (yCol)) / Graphics::ScreenHeight,
+                    (0x10 * (yCol)) / Graphics::ScreenHeight,
+                    (0xA0 * (yCol)) / Graphics::ScreenHeight );
+                Color col1,col2;
+                int nrBlocks = Graphics::ScreenWidth / squareSize;
+                if ( (y / squareSize) & 0x1 ) {
+                //if ( y & squareSize ) {
+                    col1 = colorB;
+                    col2 = colorA;
+                }
+                else { 
+                    col1 = colorA;
+                    col2 = colorB;
+                }
+                int ofs = 0;
+                for ( int i = 0; i < nrBlocks; i++ ) {
+                    if ( i & 0x1 )
+                        gfx.drawHorLine( ofs,y,ofs + squareSize - 1,col2 );
+                    else
+                        gfx.drawHorLine( ofs,y,ofs + squareSize - 1,col1 );
+                    ofs += squareSize;
+                }
+                if ( nrBlocks & 0x1 )
+                    gfx.drawHorLine( ofs,y,Graphics::ScreenWidth - 1,col2 );
+                else
+                    gfx.drawHorLine( ofs,y,Graphics::ScreenWidth - 1,col1 );
+            }
+            // finished with drawing checkerboard
         }
         // now move the color bars:
         for ( int iBar = 0; iBar < COLORBAR_NR; iBar++ )
@@ -216,7 +313,7 @@ public:
                     logoLines++;
                 }
             }
-            else {         // draw even lines               
+            else {          // draw even lines               
                 ofs2 += nrSteps / 3;
                 if ( ofs2 >= nrSteps )
                     ofs2 %= nrSteps;
@@ -234,27 +331,51 @@ public:
         if ( sineIndex >= nrSteps )
             sineIndex = 0;
 
+        /* // debug
+        for ( int s = 0; s < Graphics::ScreenWidth; s++ ) {
+            gfx.drawDisc(
+                s,
+                Graphics::ScreenHeight / 2 + Offsets[(s * nrSteps) / Graphics::ScreenWidth],
+                4,
+                Colors::White
+            );
+        } 
+        */
+
         // Draw bottom scroller:
+        const int ampDivide = 4;
         int startX = scrollerStartX;
-        scrollerStartX -= 8; // 8 == scrolling speed
+        scrollerStartX -= 6; // 8 == scrolling speed
         // restart scroll after a while:
         if ( -scrollerStartX > scrollerTextLength * 45 )
             scrollerStartX = Graphics::ScreenWidth * 2;
 
-        int y = Graphics::ScreenHeight - 1 - font.height() - maxDeviation / 4;
-        
+        int y = Graphics::ScreenHeight - 1 - font.height() - maxDeviation / ampDivide;
         for ( int i = 0; i < scrollerTextLength; i++ ) {
             Sprite& charSprite = *((Sprite *)(font.getBmpData( SCROLLER_TEXT[i] )));
-            gfx.paintBMPClearTypeColor( 
-                startX,
-                y + Offsets[(startX + sineIndex)  % nrSteps] / 4,
-                y - maxDeviation / 4,
-                y + font.height() + maxDeviation / 4,
-                charSprite,
-                Colors::Black,
-                0x20 );
+
+            int Y = startX % nrSteps;
+            if ( Y > -50 )
+            {
+                if ( Y < 0 )
+                    Y = 0;
+                Y = Offsets[Y] / ampDivide;
+
+                gfx.paintBMPClearTypeColor(
+                    startX,
+                    y + Y,
+                    y - maxDeviation / ampDivide,
+                    y + font.height() + maxDeviation / ampDivide,
+                    charSprite,
+                    Colors::Black,
+                    0x0 );
+            }
             startX += charSprite.getWidth();
         }
+        /*
+        gfx.drawHorLine( 0,y - maxDeviation / ampDivide,Graphics::ScreenWidth - 1,Colors::White );
+        gfx.drawHorLine( 0,y + font.height() + maxDeviation / ampDivide,Graphics::ScreenWidth - 1,Colors::White );
+        */
     }
 
 private:
