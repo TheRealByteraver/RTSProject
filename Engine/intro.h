@@ -21,31 +21,78 @@
 #define COLORBAR_MAX_HEIGHT     10 
 #define COLORBAR_SPACER         20
 
-#define SCROLLER_TEXT "SOOOOO you thought I was dead and buried and over but you were wrong." \
-" From the man who brought you the AMAZING (ahem) but shameless Arkanoid ripoff two years " \
-"ago, please put your hands together for the awesome crap that is currently gracing your " \
-"screen. And destroying your ears, probably, but you'll have to blame Jesper Kyd for that. " \
+#define SCROLLER_TEXT "" \
+"SOOOOO you thought I was dead and buried and over but you were wrong." \
+" From the man who brought you the AMAZING (ahem) but shameless Arkanoid " \
+"ripoff two years ago, please put your hands together for the awesome crap " \
+"that is currently gracing your " \
+"screen. And destroying your ears, probably, but you'll have to blame " \
+"Jesper Kyd for that. " \
 "So a warm hello and welcome to this charmingly oldschool" \
-" sine scroller. I hacked it together in a few evenings to see how hard it would be to do." \
-" Apparently it is quite doable ;) The speed and size of the color bars can be randomized " \
-"and I can put just as well 70 of them on the screen by changing a few constants, but it " \
-"just does not look all that good . . .    Also it is probably not a good idea either to " \
-"use random colors. The colors add up, so they act like lamps if you will. To think that " \
-"crackers could make similar intro's on limited machines such as the ATARI ST and the " \
-"Commodore Amiga just goes to show how talented they were, and how lazy modern computers " \
-"with their ultra fast processors make us . . .     The music you are hearing is called " \
-" \"Global Trash 3 v2.0\" and was made by " \
-"Jesper Kyd from the Silents Amiga demo group (they later appeared in the PC scene as well" \
-") and dates back to the early nineties I believe. I kinda like its dark vibe so I decided" \
-" to use it here for your pleasure. I hope you like it, if not, you can replace it with " \
-"another .mod file of your liking (find more on https://modarchive.org/). It is reproduced " \
-"here using my own replay routines of which I'm very proud. Cubic interpolation and volume" \
-" ramping give you a sound that is - hopefully - smoother than a baby's ass and clickfree. " \
-"It can play other variants as .S3M, .IT and .XM as well, although volume and panning " \
-"envelopes have yet to be implemented. So .IT and .XM will sound awkward and just plain bad." \
-" Also, since I have not yet implemented double buffered replay, this intro requires about " \
-"halve a gigabyte of RAM or so :D. Yeah, huge amounts of RAM makes us lazy too. Or rather, " \
-"it makes ME lazy. It takes one second to precalculate 16' of music on my core i5 by the way." 
+" sine scroller. I hacked it together in a few evenings to see how hard it " \
+"would be to make my own little cracktro." \
+" Apparently it is quite doable ;) What is more difficult is to make it look" \
+" aesthetic. I'm not really satisfied with the rolling bars but I decided " \
+"I spent enough time fucking around with it. " \
+"To think that " \
+"crackers could make similar intro's on limited machines such as the " \
+"ATARI ST and the Commodore Amiga just goes to show how talented they were" \
+", and how lazy modern computers " \
+"with their ultra fast processors make us . . .     The music you are " \
+"hearing is called \"Global Trash 3 v2.0\" and was made by " \
+"Jesper Kyd from the Silents Amiga demo group (they later appeared in the " \
+"PC scene as well) and dates back to october 1991. I kinda " \
+"like its dark vibe so I decided" \
+" to use it here for your pleasure. I hope you like it, if not, you can " \
+"replace it with " \
+"another .mod file of your liking (find more on https://modarchive.org/)." \
+" Due to hardware limitations on the Commodore Amiga you'll never hear " \
+"more than 4 instruments at once. " \
+" It is reproduced " \
+"here using my own replay routines of which I'm very proud. Cubic " \
+"interpolation and volume" \
+" ramping give you a sound that is - hopefully - smoother than a baby's " \
+"ass and clickfree. " \
+"It can play other variants as .S3M, .IT and .XM as well, although volume " \
+"and panning " \
+"envelopes have yet to be implemented. So .IT and .XM will sound awkward " \
+"and just plain bad." \
+" Also, since I have not yet implemented double buffered replay, this intro " \
+"requires about " \
+"halve a gigabyte of RAM or so :D. Take that Google Chrome lol. Yeah, huge " \
+"amounts of RAM makes us lazy too. Or rather, " \
+"it makes ME lazy. It takes one second to precalculate 16' of music on my " \
+"core i5. As you now know, the little intro is just called by " \
+"the music replay program if it gets started without parameters. If you " \
+"want to test it with your own mods, just drop them onto the \"modplay.exe\"" \
+" file from Windows explorer and off you go. It is a listen-only affair for" \
+" now though, it will not show anything except for some debug info. . .    " \
+"        If you are wondering what this thing really is, search on youtube " \
+"for \"demoscene\" or \"cracktro\". It should be a fullfilling experience !!" \
+" Since nobody was asking what I was up to I thought I'd bore you with it " \
+"anyway. Between my work schedule and my friend who tries to turn me into " \
+"a web developer (yuck) there has not been much time to devote to c++ " \
+"programming. I still managed to do a few things: I kind of got into .svg " \
+"(scalable vector graphics) files as I discovered these are basically " \
+"text files with instructions on how to draw the vector art, in .xml " \
+"format. So I made an .xml parser, because I love a little challenge, " \
+"especially if I can reinvent the wheel while doing it. I guess I'm curious " \
+"\"if I could do that as well\". Must be a familiar feeling around here, " \
+"that is how we learn right? So to be able to draw vector art I needed a " \
+"few graphic routines, so far I made a function that draws square & cubic" \
+" Bezier curves, and a lame floodfill algorithm. I'm now trying to figure " \
+"out how to draw thick bezier curves, I guess I'll need to make a " \
+"rasterizer (\"triangle draw machine\" ;) for that. . .          " \
+"I thought it would be cool to be able to use vector graphics in the RTS " \
+"game that I am making / dreaming about (pick one), so I can do some 2D " \
+"zoom or something.      So that is where we stand today! It is basically " \
+"time to wave goodbye at this point. So keep up the good work, and till " \
+"next time. At this rate my stuff will be finished around 2035 or something" \
+". Don't get your hopes up though. . .                  Source is as always " \
+" on github, so have a look at github.com/TheRealByteraver ... if your " \
+"stomach can handle it.                          Peace out"
+
+
 
 
 

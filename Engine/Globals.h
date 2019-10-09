@@ -11,8 +11,8 @@
 #include <fstream>
 
 // folders:
-#define GAME_FOLDER                 "c:\\RTSMedia\\" // debug, should be ".\\"
-//#define GAME_FOLDER                 ".\\"
+//#define GAME_FOLDER                 "c:\\RTSMedia\\" // debug, should be ".\\"
+#define GAME_FOLDER                 ".\\"
 
 // files:
 #define MASTER_INIFILE_FILENAME     "RTSProject.ini"
