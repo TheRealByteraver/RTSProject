@@ -786,31 +786,44 @@ void Graphics::drawBlock( int x1,int y1,int x2,int y2,Color color )
             PutPixel( x,y,color );
 }
 
-void Graphics::printXY( int x,int y,const char *s )
+int Graphics::getStrLen( const char* s,Font* font )
+{
+    if ( s == nullptr ) return 0;
+    int width = font->width();
+    int slen = (int)strlen( s );
+    if ( font->isBitmap() == false ) return slen * width;
+    else {
+        width = 0;
+        for ( int i = 0; i < slen; i++ )
+            //width += ((Sprite*)font->getBmpData( s[i] ))->getWidth();
+            width += font->getBmpData( s[i] ).getWidth();
+        return width;
+    }
+}
+
+void Graphics::printXY( int x,int y,const char* s )
 {
     if ( s == nullptr ) return;
     int slen = (int)strlen( s );
     int height = font->height();
-    if ( !font->isBitmap() )
-    {
+    if ( !font->isBitmap() ) {
         int width = font->width();
         int stringWidth = width * slen;
 
         assert( (x + stringWidth) < ScreenWidth );
         assert( (y + height) < ScreenHeight );
 
-        Color *s1 = (Color *)pSysBuffer;
+        Color* s1 = (Color*)pSysBuffer;
         s1 += x + ScreenWidth * y;
-        for ( int iChar = 0; iChar < slen; iChar++ )
-        {
-            Color    *s2 = s1;
-            char *iData = font->getCharData( s[iChar] );
-            for ( int j = 0; j < height; j++ )
-            {
+        for ( int iChar = 0; iChar < slen; iChar++ ) {
+            Color* s2 = s1;
+            //const char* iData = font->getCharData( s[iChar] );
+            std::vector<char>::const_iterator iData = font->getCharData( s[iChar] ).cbegin();
+            for ( int j = 0; j < height; j++ ) {
                 int iByte;
-                for ( int i = 0; i < width; i++ )
-                {
-                    iByte = i % 8;
+                for ( int i = 0; i < width; i++ ) {
+                    //iByte = i % 8;
+                    iByte = i & 0x7;
                     if ( (iByte == 0) && (i > 0) ) iData++;
                     if ( ((*iData) & (1 << (7 - iByte))) != 0 )
                         *s2 = textColor;
@@ -821,23 +834,25 @@ void Graphics::printXY( int x,int y,const char *s )
             }
             s1 += width;
         }
-    } else {
+    }
+    else {
         int startX = x;
-        for ( int i = 0; i < slen; i++ )
-        {
-            paintBMPClearType( startX,y,*((Sprite *)(font->getBmpData( s[i] ))),0 );
-            startX += ((Sprite *)(font->getBmpData( s[i] )))->getWidth();
+        for ( int i = 0; i < slen; i++ ) {
+            //paintBMPClearType( startX,y,*((Sprite*)(font->getBmpData( s[i] ))),0 );
+            //startX += ((Sprite*)(font->getBmpData( s[i] )))->getWidth();
+            paintBMPClearType( startX,y,font->getBmpData( s[i] ),0 );
+            startX += font->getBmpData( s[i] ).getWidth();
         }
     }
 }
 
-void Graphics::printXY( int x,int y,const char *s,int opacity )
+void Graphics::printXY( int x,int y,const char* s,int opacity )
 {
-    if ( s == nullptr ) return;
+    if ( s == nullptr ) 
+        return;
     int slen = (int)strlen( s );
     int height = font->height();
-    if ( font->isBitmap() == false )
-    {
+    if ( font->isBitmap() == false ) {
         int width = font->width();
         int stringWidth = width * slen;
         int destNextLine = ScreenWidth - width;
@@ -845,18 +860,16 @@ void Graphics::printXY( int x,int y,const char *s,int opacity )
         assert( (x + stringWidth) < ScreenWidth );
         assert( (y + height) < ScreenHeight );
 
-        Color *s1 = (Color *)pSysBuffer;
+        Color* s1 = (Color*)pSysBuffer;
         s1 += x + ScreenWidth * y;
-        for ( int iChar = 0; iChar < slen; iChar++ )
-        {
-            Color    *s2 = s1;
-            char *iData = font->getCharData( s[iChar] );
-            for ( int j = 0; j < height; j++ )
-            {
-                int iByte;
-                for ( int i = 0; i < width; i++ )
-                {
-                    iByte = i % 8;
+        for ( int iChar = 0; iChar < slen; iChar++ ) {
+            Color* s2 = s1;
+            //const char* iData = font->getCharData( s[iChar] );
+            std::vector<char>::const_iterator iData = font->getCharData( s[iChar] ).cbegin();
+            for ( int j = 0; j < height; j++ ) {
+                int iByte = 0;
+                for ( int i = 0; i < width; i++ ) {
+                    iByte = i & 0x7;
                     if ( (iByte == 0) && (i > 0) ) iData++;
                     if ( ((*iData) & (1 << (7 - iByte))) != 0 )
                         *s2 = textColor;
@@ -867,27 +880,15 @@ void Graphics::printXY( int x,int y,const char *s,int opacity )
             }
             s1 += width;
         }
-    } else {
-        int startX = x;
-        for ( int i = 0; i < slen; i++ )
-        {
-            paintBMPClearType( startX,y,*((Sprite *)(font->getBmpData( s[i] ))),0,opacity );
-            startX += ((Sprite *)(font->getBmpData( s[i] )))->getWidth();
-        }
     }
-}
-
-int Graphics::getStrLen( const char *s,Font *font )
-{
-    if ( s == nullptr ) return 0;
-    int width = font->width();
-    int slen = (int)strlen( s );
-    if ( font->isBitmap() == false ) return slen * width;
     else {
-        width = 0;
-        for ( int i = 0; i < slen; i++ )
-            width += ((Sprite *)font->getBmpData( s[i] ))->getWidth();
-        return width;
+        int startX = x;
+        for ( int i = 0; i < slen; i++ ) {
+            //paintBMPClearType( startX,y,*((Sprite*)(font->getBmpData( s[i] ))),0,opacity );
+            //startX += ((Sprite*)(font->getBmpData( s[i] )))->getWidth();
+            paintBMPClearType( startX,y,font->getBmpData( s[i] ),0,opacity );
+            startX += font->getBmpData( s[i] ).getWidth();
+        }
     }
 }
 
@@ -899,7 +900,7 @@ void Graphics::printXY( int x,int y,const char *s,int opacity,Font& font )
     setFont( oldFont );
 }
 
-void Graphics::printXYSolid( int x,int y,int xSpacer,char *s,Color color /*, HRESULT *hres*/ )
+void Graphics::printXYSolid( int x,int y,int xSpacer,const char* s,Color color /*, HRESULT *hres*/ )
 {
     if ( s == nullptr ) return;
     int width = font->width();
@@ -908,23 +909,23 @@ void Graphics::printXYSolid( int x,int y,int xSpacer,char *s,Color color /*, HRE
     int stringWidth = (width + xSpacer) * slen;
 
     assert( (x + stringWidth) < ScreenWidth );
-    assert( (y + height)     < ScreenHeight );
+    assert( (y + height) < ScreenHeight );
 
     int i = x;
-    Color *s1 = (Color *)pSysBuffer;
+    Color* s1 = (Color*)pSysBuffer;
     s1 += x + ScreenWidth * y;
-    for ( int iChar = 0; iChar < slen; iChar++ )
-    {
+    for ( int iChar = 0; iChar < slen; iChar++ ) {
         unsigned char c = s[iChar];
-        char *charMask = font->getCharData( c );
-        Color    *s2 = s1;
-        for ( int py = 0; py < height; py++ )
-        {
+        //const char *charMask = font->getCharData( c );
+        std::vector<char>::const_iterator charMask = font->getCharData( s[iChar] ).cbegin();
+        Color* s2 = s1;
+        for ( int py = 0; py < height; py++ ) {
             unsigned char d = charMask[py];
-            for ( int px = 0; px < width; px++ )
-            {
-                if ( d & (1 << (7 - px)) ) *s2 = Color( 255,255,255 );
-                else                     *s2 = color;
+            for ( int px = 0; px < width; px++ ) {
+                if ( d & (1 << (7 - px)) ) 
+                    *s2 = Color( 255,255,255 );
+                else                     
+                    *s2 = color;
                 s2++;
             }
             s2 += ScreenWidth - width;
@@ -933,27 +934,47 @@ void Graphics::printXYSolid( int x,int y,int xSpacer,char *s,Color color /*, HRE
     }
 }
 
-void Graphics::paintSprite( int x,int y,const Sprite &sprite )
+void Graphics::paintSprite( int x,int y,const Sprite& sprite )
 {
-    if ( !sprite.isImagePresent() ) return;
-    if ( (x >= ScreenWidth) || (y >= ScreenHeight) ) return;
+    if ( !sprite.isImagePresent() )
+        return;
+    if ( (x >= ScreenWidth) || (y >= ScreenHeight) )
+        return;
     int xStart,yStart;
     int xEnd,yEnd;
     int xOffset,yOffset;
-    if ( x < 0 ) { xStart = 0; xOffset = -x; } else { xStart = x; xOffset = 0; }
-    if ( y < 0 ) { yStart = 0; yOffset = -y; } else { yStart = y; yOffset = 0; }
+    if ( x < 0 ) {
+        xStart = 0; 
+        xOffset = -x;
+    }
+    else {
+        xStart = x; 
+        xOffset = 0;
+    }
+    if ( y < 0 ) {
+        yStart = 0; 
+        yOffset = -y;
+    }
+    else {
+        yStart = y; 
+        yOffset = 0;
+    }
     xEnd = x + sprite.getWidth();
     yEnd = y + sprite.getHeight();
-    if ( (xEnd <= 0) || (yEnd <= 0) ) return;
-    if ( xEnd > ScreenWidth ) xEnd = ScreenWidth;
-    if ( yEnd > ScreenHeight ) yEnd = ScreenHeight;
-    Color *data = sprite.getPixelData() + yOffset * sprite.getWidth() + xOffset;
-    Color *s = ((Color*)pSysBuffer) + ScreenWidth * yStart + xStart;
+    if ( (xEnd <= 0) || (yEnd <= 0) ) 
+        return;
+    if ( xEnd > ScreenWidth ) 
+        xEnd = ScreenWidth;
+    if ( yEnd > ScreenHeight ) 
+        yEnd = ScreenHeight;
+    Color* data = sprite.getPixelData() + yOffset * sprite.getWidth() + xOffset;
+    Color* s = ((Color*)pSysBuffer) + ScreenWidth * yStart + xStart;
     int sNextLine = ScreenWidth - (xEnd - xStart);
     int dataNextLine = sprite.getWidth() - (xEnd - xStart);
-    for ( int j = yStart; j < yEnd; j++ )
-    {
-        for ( int i = xStart; i < xEnd; i++ ) { *s++ = *data++; }
+    for ( int j = yStart; j < yEnd; j++ ) {
+        for ( int i = xStart; i < xEnd; i++ ) { 
+            *s++ = *data++; 
+        }
         data += dataNextLine;
         s += sNextLine;
     }
@@ -1192,8 +1213,6 @@ void Graphics::paintBMPClearTypeColor( int x,int y,int startY,int endY,const Spr
     }
 }
 
-
-
 /*
 Specialized drawing functions for interface
 */
@@ -1278,21 +1297,14 @@ void Graphics::drawButtonPlusMinus( Rect r,int width )
     }
 }
 
-void Graphics::paintConsole( int x,int y,EvoConsole *console )
+void Graphics::paintConsole( int x,int y,EvoConsole& console )
 {
-    assert( console->columns > 0 );
-    assert( console->rows    > 0 );
-
-    char buf[2];
-    buf[1] = '\0';
-
-    for ( int r = 0; r < console->rows; r++ )
-        for ( int c = 0; c < console->columns; c++ )
-        {
-            buf[0] = console->data[r][c];
-            if ( !buf[0] ) buf[0] = ' ';
-            printXY( x + c * font->width(),y + r * font->height(),buf );
-        }
+    int yCurrent = y;
+    for ( int row = 0; row < console.getNrRows(); row++ ) {
+        //printXYSolid( x,yCurrent,0,console.getTextRow( row ).c_str(),Colors::Green );
+        printXY( x,yCurrent,console.getTextRow( row ).c_str() );
+        yCurrent += font->height();
+    }
 }
 
 void Graphics::printText( int x,int y,const char *text[] )

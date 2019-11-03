@@ -1,21 +1,25 @@
 ﻿#pragma once
 
+#include <sstream>
+#include <fstream>
 #include <vector>
 #include <string>
+#include <memory>
+#include <assert.h>
 
 /*
 MAX_LINE_LENGTH has an arbitrary high value, because the code will bug if
 the length of the line found in the ini file exceeds this number
 */
-#define INIFILE_MAX_LINE_LENGTH     300
-#define INIFILE_COMMENT_CHAR        ';'
+constexpr auto INIFILE_MAX_LINE_LENGTH = 300;
+constexpr auto INIFILE_COMMENT_CHAR = ';';
 
 /*
 A small pair value class for the more complex keys:
 */
 
-#define KEYPAIR_SEPARATOR   ':'
-#define KEYPAIR_NEXT        ','
+constexpr auto KEYPAIR_SEPARATOR    = ':';
+constexpr auto KEYPAIR_NEXT         = ',';
 class KeyPair
 {
 public:
@@ -73,6 +77,6 @@ private:
     bool                        iniFileLoaded_ = false;
     int                         currentRow_ = 0;
 private:
-    int     readFile( const std::string& filename );
-    char    *deleteWhiteSpace( char *buf ) const;
+    int				readFile( const std::string& filename );
+	std::string&	deleteWhiteSpace( std::string& buf ) const;
 };

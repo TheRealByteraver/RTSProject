@@ -1,8 +1,6 @@
 /*
-
   What follows is the description of the fileformat of
   TNT's internal font files.
-
 
 Offset:  Size(in bytes):  Description:
 -------  ---------------  ---------------------------------------------------
@@ -37,36 +35,37 @@ Offset:  Size(in bytes):  Description:
 
 ?   (1+NOBS*NORC)*NOCM    the data: all the characters.
      ^
-     ³
-     ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ  before each character, a byte that indicates
+     |
+     +------------------  before each character, a byte that indicates
                           the equivalent ascii code.
 
 
 EXAMPLE:
 --------
 
-          ÚÄÄÄÄÄÄÄÄÄÄÄÄÄ Used Bits   -\
-          ³                            > the mostleft bits are used first.
-          ³    ÚÄÄÄÄÄÄÄÄ UnUsed Bits -/
-          ³    ³
-          ³    ³
-          ³    ³   ÚÄÄÄÄ byte values: the data stored.
-        ÚÄÁÄ¿ ÚÁ¿  ³
-bit   : 76543 210  ³
-                  ÚÁ¿
-Byte 0: 00000 000   0 Ä¿               ÚÄÄ     ÄÄ¿
-Byte 1: 01110 000 112  ³               ³   111   ³
-Byte 2: 10001 000 136  ³               ³  1   1  ³
-Byte 3: 11111 000 248  ÃÄÄÄÄÄ Rows     ³  11111  ³
-Byte 4: 10001 000 136  ³               ³  1   1  ³
-Byte 5: 10001 000 136  ³               ³  1   1  ³
-Byte 6: 00000 000   0  ³               ³         ³
-Byte 7: 00000 000   0 ÄÙ               ÀÄÄ     ÄÄÙ
+          +------------- Used Bits   -\
+          |                            > the mostleft bits are used first.
+          |    +-------- UnUsed Bits -/
+          |    |
+          |    |
+          |    |   +---- byte values: the data stored.
+        /-+-\ /+\  |
+bit   : 76543 210  |
+                  /+\
+Byte 0: 00000 000   0 -\               +--     --+
+Byte 1: 01110 000 112  |               |   111   |
+Byte 2: 10001 000 136  |               |  1   1  |
+Byte 3: 11111 000 248  +----- Rows     |  11111  |
+Byte 4: 10001 000 136  |               |  1   1  |
+Byte 5: 10001 000 136  |               |  1   1  |
+Byte 6: 00000 000   0  |               |         |
+Byte 7: 00000 000   0 -/               +--     --+
 
 
    Letter "A" data sequence: 65 or 97, 0, 112, 136, 248, 136, 136, 0, 0
-                             ÀÄÄÂÄÄÄÙ
-                                ÀÄÄÄÄÄ byte index in ascii table.
+                             \--+---/
+                                |
+                                +----- byte index in ascii table.
 
   NOBS = 1 (5 bits fit in ONE byte)
   NORC = 8 (EIGHT rows)
@@ -82,12 +81,35 @@ Byte 7: 00000 000   0 ÄÙ               ÀÄÄ     ÄÄÙ
   - when bitmaps are stored, the ascii index is followed by one 32bit int:
     the width & the height of the bitmap. The height is in the upper 16 bits.
     The 24bit bitmap follows right after and is in rgb format.
-  - Key color?
- 
+  - Key color is black by default, other colors are part of the character.
 
   that's it for the file format description. have fun,
 
                      BYTERAVER/TNT.
+*/
+
+/*
+
+    Font interface:
+
+    Declare as:
+
+    Font    font( "TNTFontFile.tft" );
+
+    Check if the font is stored as bitmasks (monochrome) or as a bitmap (true 
+    color):
+
+    bool BitmapFont = font.isBitmap();
+
+    If the font is monochrome (stored as bitmasks) you'll have to decode it
+    yourself. See the file format description. Access the data like:
+
+    char scanline = font.getCharData( 'a' )[0]; 
+
+    This will get you the first line of pixel data of the letter 'a'.
+
+
+
 
 
 */
@@ -95,9 +117,11 @@ Byte 7: 00000 000   0 ÄÙ               ÀÄÄ     ÄÄÙ
 
 #include "sprite.h"
 
-#define CHAR_SPACE      32
-#define NR_OF_CHARS     256
-#define MAX_SCANLINES   256
+#include <string>
+
+constexpr auto CHAR_SPACE = 32;
+constexpr auto NR_OF_CHARS = 256;
+constexpr auto MAX_SCANLINES = 256;
 
 #pragma pack(push)
 #pragma pack (1)
@@ -105,7 +129,7 @@ struct TftHeader {
     char        id[20];          // file ID string
     char        name[30];        // name of font
     char        asciiz;          // asciiz end of string marker
-    char        eofSign ;        // end of file marker
+    char        eofSign;         // end of file marker
     short int   fVersion;        // actual file format version
     short int   cVersion;        // compatible with file format version
     char        isBitmap;        // 0 -=> bit mask, 1 -=> bit maps
@@ -120,7 +144,7 @@ struct TftHeader {
 };
 
 struct TftPalette {
-    char          nrColors    ; // nr of colors saved
+    char          nrColors; // nr of colors saved
     unsigned char paletteIndex; // index in color table of first color
 };
 #pragma pack(pop)
@@ -130,20 +154,28 @@ class Sprite;
 
 class Font {
 public:
-    Font();
-    ~Font();
-    int         width  () { return width_;  } 
-    int         height () { return height_; }
-    bool        isBitmap () { return isBitmap_; }
-    int         loadFont( const char *fileName );
-    char       *getCharData( unsigned char c ) { return charData_[c]; }
-    Sprite     *getBmpData( unsigned char c );
+    Font( const std::string& fileName )
+    {
+        loadFont( fileName );
+    }
+    int             width() const { return width_; }
+    int             height() const { return height_; }
+    bool            isBitmap() const { return isBitmap_; }
+    int             loadFont( const std::string& fileName );
+    const std::vector<char>& getCharData( unsigned char c ) const
+    {
+        return charData_[c];
+    }
+    const Sprite&   getBmpData( unsigned char c ) const
+    {
+        return bmpData_[c];
+    }
 private:
-    //bool        isLoaded_ = false;
-    int         width_;
-    int         height_;   // width & height in pixels of one char
-    bool        isBitmap_;
-    char       *charData_[NR_OF_CHARS];
-    Sprite     *bmpData_[NR_OF_CHARS];
+    int                 width_ = 0;
+    int                 height_ = 0; // width & height in pixels of one char
+    bool                isBitmap_ = false;
+    std::vector< std::vector<char> > 
+        charData_ = std::vector< std::vector<char> >( NR_OF_CHARS );
+    std::vector<Sprite> bmpData_ = std::vector<Sprite>( NR_OF_CHARS );
 };
 

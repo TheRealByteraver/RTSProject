@@ -25,297 +25,297 @@ void CreateDefaultSprites::createGreenPrairieWorld()
     // Now create & save the .ini file:
     std::ofstream greenPrairieWorldIni( path + GREENPRAIRIE_WORLD_NAME ".ini" );
     greenPrairieWorldIni << "; This describes the " << GREENPRAIRIE_WORLD_NAME
-        << " world spritesheet." << std::endl
+        << " world spritesheet.\n"
         << "; If a default world file is corrupt then delete it, the game will"
-        << " recreate it." << std::endl
-        << ";" << std::endl
+        << " recreate it.\n"
+        << ";\n"
         << "; In the [Main] section we define which default tileset we use, as "
-        << "well as the" << std::endl
-        << "; name of the world" << std::endl
-        << "[Main]" << std::endl
+        << "well as the\n"
+        << "; name of the world\n"
+        << "[Main]\n"
         << "MajorFileRevision = " << WORLD_MAJOR_FILE_REVISION 
-        << "      ; file version" << std::endl
-        << "MinorFileRevision = " << WORLD_MINOR_FILE_REVISION << std::endl
-        << "name = GreenPrairie" << std::endl
-        << "SourceFile = GreenPrairie.bmp" << std::endl
-        << ";" << std::endl
-        << "[Tiles]" << std::endl
-        << "Width=" << WORLD_TILE_DEFAULT_WIDTH << std::endl
-        << "Height=" << WORLD_TILE_DEFAULT_WIDTH << std::endl
-        << "Separator=" << TILE_SEPARATOR << std::endl
-        << "Offset=" << TILE_X_OFFSET << std::endl
-        << "NrOfTiles=" << NR_OF_TILES << std::endl
-        << ";" << std::endl
-        << "; This section defines and describes the " GREENPRAIRIE_WORLD_NAME " world doodad sprites." << std::endl
-        << "; The 'Walkable' mask describes if the tile can be walked upon by units." << std::endl
-        << "; A '1' means yes, a '0' means no." << std::endl
-        << "; The Terrain mask is a bit more tricky. It describes what kind of terrain" << std::endl
-        << "; the doodad can be placed upon. Each letter corresponds to a particular" << std::endl
-        << "; type of basic terrain: low water, high water, low ground, transition tiles, etc." << std::endl
-        << ";" << std::endl
-        << "[Doodad000]" << std::endl
-        << "name=RampRightwards" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
-        << "locationX=" << TILE_X_OFFSET << "     ; in pixels" << std::endl
-        << "locationY=" << TILE_Y_OFFSET << "     ; in pixels" << std::endl
-        << "horSize=6       ; in tiles" << std::endl
-        << "VerSize=6       ; in tiles" << std::endl
-        << "WalkableMask00=100001" << std::endl
-        << "WalkableMask01=111111" << std::endl
-        << "WalkableMask02=111111" << std::endl
-        << "WalkableMask03=111111" << std::endl
-        << "WalkableMask04=111111" << std::endl
-        << "WalkableMask05=100001" << std::endl
-        << "TerrainMask00=W@GGGG" << std::endl
-        << "TerrainMask01=W@GGGG" << std::endl
-        << "TerrainMask02=W@GGGG" << std::endl
-        << "TerrainMask03=W@GGGG" << std::endl
-        << "TerrainMask04=W@GGGG" << std::endl
-        << "TerrainMask05=W@GGGG" << std::endl
-        << ";" << std::endl
-        << "[Doodad001]" << std::endl
-        << "name=RampLeftwards" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
+        << "      ; file version\n"
+        << "MinorFileRevision = " << WORLD_MINOR_FILE_REVISION << "\n"
+        << "name = GreenPrairie\n"
+        << "SourceFile = GreenPrairie.bmp\n"
+        << ";\n"
+        << "[Tiles]\n"
+        << "Width=" << WORLD_TILE_DEFAULT_WIDTH << "\n"
+        << "Height=" << WORLD_TILE_DEFAULT_WIDTH << "\n"
+        << "Separator=" << TILE_SEPARATOR << "\n"
+        << "Offset=" << TILE_X_OFFSET << "\n"
+        << "NrOfTiles=" << NR_OF_TILES << "\n"
+        << ";\n"
+        << "; This section defines and describes the " GREENPRAIRIE_WORLD_NAME " world doodad sprites.\n"
+        << "; The 'Walkable' mask describes if the tile can be walked upon by units.\n"
+        << "; A '1' means yes, a '0' means no.\n"
+        << "; The Terrain mask is a bit more tricky. It describes what kind of terrain\n"
+        << "; the doodad can be placed upon. Each letter corresponds to a particular\n"
+        << "; type of basic terrain: low water, high water, low ground, transition tiles, etc.\n"
+        << ";\n"
+        << "[Doodad000]\n"
+        << "name=RampRightwards\n"
+        << "SourceFile=" << doodadBmp << "\n"
+        << "locationX=" << TILE_X_OFFSET << "     ; in pixels\n"
+        << "locationY=" << TILE_Y_OFFSET << "     ; in pixels\n"
+        << "horSize=6       ; in tiles\n"
+        << "VerSize=6       ; in tiles\n"
+        << "WalkableMask00=100001\n"
+        << "WalkableMask01=111111\n"
+        << "WalkableMask02=111111\n"
+        << "WalkableMask03=111111\n"
+        << "WalkableMask04=111111\n"
+        << "WalkableMask05=100001\n"
+        << "TerrainMask00=W@GGGG\n"
+        << "TerrainMask01=W@GGGG\n"
+        << "TerrainMask02=W@GGGG\n"
+        << "TerrainMask03=W@GGGG\n"
+        << "TerrainMask04=W@GGGG\n"
+        << "TerrainMask05=W@GGGG\n"
+        << ";\n"
+        << "[Doodad001]\n"
+        << "name=RampLeftwards\n"
+        << "SourceFile=" << doodadBmp << "\n"
         << "locationX=" << TILE_X_OFFSET + width_ * 6 + TILE_SEPARATOR 
-        << "     ; in pixels" << std::endl
-        << "locationY=" << TILE_Y_OFFSET << "     ; in pixels" << std::endl
-        << "horSize=6       ; in tiles" << std::endl
-        << "VerSize=6       ; in tiles" << std::endl
-        << "WalkableMask00=100001" << std::endl
-        << "WalkableMask01=111111" << std::endl
-        << "WalkableMask02=111111" << std::endl
-        << "WalkableMask03=111111" << std::endl
-        << "WalkableMask04=111111" << std::endl
-        << "WalkableMask05=100001" << std::endl
-        << "TerrainMask00=GGGG&W" << std::endl
-        << "TerrainMask01=GGGG&W" << std::endl
-        << "TerrainMask02=GGGG&W" << std::endl
-        << "TerrainMask03=GGGG&W" << std::endl
-        << "TerrainMask04=GGGG&W" << std::endl
-        << "TerrainMask05=GGGG&W" << std::endl
-        << ";" << std::endl
-        << "[Doodad002]" << std::endl
-        << "name=RampDownwards" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
+        << "     ; in pixels\n"
+        << "locationY=" << TILE_Y_OFFSET << "     ; in pixels\n"
+        << "horSize=6       ; in tiles\n"
+        << "VerSize=6       ; in tiles\n"
+        << "WalkableMask00=100001\n"
+        << "WalkableMask01=111111\n"
+        << "WalkableMask02=111111\n"
+        << "WalkableMask03=111111\n"
+        << "WalkableMask04=111111\n"
+        << "WalkableMask05=100001\n"
+        << "TerrainMask00=GGGG&W\n"
+        << "TerrainMask01=GGGG&W\n"
+        << "TerrainMask02=GGGG&W\n"
+        << "TerrainMask03=GGGG&W\n"
+        << "TerrainMask04=GGGG&W\n"
+        << "TerrainMask05=GGGG&W\n"
+        << ";\n"
+        << "[Doodad002]\n"
+        << "name=RampDownwards\n"
+        << "SourceFile=" << doodadBmp << "\n"
         << "locationX=" << TILE_X_OFFSET + (width_ * 6 + TILE_SEPARATOR) * 2 
-        << "     ; in pixels" << std::endl
-        << "locationY=" << TILE_Y_OFFSET << "     ; in pixels" << std::endl
-        << "horSize=6       ; in tiles" << std::endl
-        << "VerSize=6       ; in tiles" << std::endl
-        << "WalkableMask00=111111" << std::endl
-        << "WalkableMask01=011110" << std::endl
-        << "WalkableMask02=011110" << std::endl
-        << "WalkableMask03=011110" << std::endl
-        << "WalkableMask04=011110" << std::endl
-        << "WalkableMask05=111111" << std::endl
-        << "TerrainMask00=WWWWWW" << std::endl
-        << "TerrainMask01=''''''" << std::endl
-        << "TerrainMask02=GGGGGG" << std::endl
-        << "TerrainMask03=GGGGGG" << std::endl
-        << "TerrainMask04=GGGGGG" << std::endl
-        << "TerrainMask05=GGGGGG" << std::endl
-        << ";" << std::endl
-        << "[Doodad003]" << std::endl
-        << "name=RampUpwards" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
+        << "     ; in pixels\n"
+        << "locationY=" << TILE_Y_OFFSET << "     ; in pixels\n"
+        << "horSize=6       ; in tiles\n"
+        << "VerSize=6       ; in tiles\n"
+        << "WalkableMask00=111111\n"
+        << "WalkableMask01=011110\n"
+        << "WalkableMask02=011110\n"
+        << "WalkableMask03=011110\n"
+        << "WalkableMask04=011110\n"
+        << "WalkableMask05=111111\n"
+        << "TerrainMask00=WWWWWW\n"
+        << "TerrainMask01=''''''\n"
+        << "TerrainMask02=GGGGGG\n"
+        << "TerrainMask03=GGGGGG\n"
+        << "TerrainMask04=GGGGGG\n"
+        << "TerrainMask05=GGGGGG\n"
+        << ";\n"
+        << "[Doodad003]\n"
+        << "name=RampUpwards\n"
+        << "SourceFile=" << doodadBmp << "\n"
         << "locationX=" << TILE_X_OFFSET + (width_ * 6 + TILE_SEPARATOR) * 3 
-        << "     ; in pixels" << std::endl
-        << "locationY=" << TILE_Y_OFFSET << "     ; in pixels" << std::endl
-        << "horSize=6       ; in tiles" << std::endl
-        << "VerSize=6       ; in tiles" << std::endl
-        << "WalkableMask00=111111" << std::endl
-        << "WalkableMask01=011110" << std::endl
-        << "WalkableMask02=011110" << std::endl
-        << "WalkableMask03=011110" << std::endl
-        << "WalkableMask04=011110" << std::endl
-        << "WalkableMask05=111111" << std::endl
-        << "TerrainMask00=GGGGGG" << std::endl
-        << "TerrainMask01=GGGGGG" << std::endl
-        << "TerrainMask02=GGGGGG" << std::endl
-        << "TerrainMask03=GGGGGG" << std::endl
-        << "TerrainMask04=######" << std::endl
-        << "TerrainMask05=WWWWWW" << std::endl
+        << "     ; in pixels\n"
+        << "locationY=" << TILE_Y_OFFSET << "     ; in pixels\n"
+        << "horSize=6       ; in tiles\n"
+        << "VerSize=6       ; in tiles\n"
+        << "WalkableMask00=111111\n"
+        << "WalkableMask01=011110\n"
+        << "WalkableMask02=011110\n"
+        << "WalkableMask03=011110\n"
+        << "WalkableMask04=011110\n"
+        << "WalkableMask05=111111\n"
+        << "TerrainMask00=GGGGGG\n"
+        << "TerrainMask01=GGGGGG\n"
+        << "TerrainMask02=GGGGGG\n"
+        << "TerrainMask03=GGGGGG\n"
+        << "TerrainMask04=######\n"
+        << "TerrainMask05=WWWWWW\n"
         // tar pit smooth edges:
-        << ";" << std::endl
-        << "[Doodad004]" << std::endl
-        << "name=LowTarPitSmoothDiagonalTopLeft" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
-        << "locationX=" << TILE_X_OFFSET << "     ; in pixels" << std::endl
+        << ";\n"
+        << "[Doodad004]\n"
+        << "name=LowTarPitSmoothDiagonalTopLeft\n"
+        << "SourceFile=" << doodadBmp << "\n"
+        << "locationX=" << TILE_X_OFFSET << "     ; in pixels\n"
         << "locationY=" << TILE_Y_OFFSET + height_ * 6 + TILE_SEPARATOR 
-            << "     ; in pixels" << std::endl
-        << "horSize=2       ; in tiles" << std::endl
-        << "VerSize=2       ; in tiles" << std::endl
-        << "WalkableMask00=00" << std::endl
-        << "WalkableMask01=00" << std::endl
-        << "TerrainMask00=G4" << std::endl
-        << "TerrainMask01=6F" << std::endl
-        << ";" << std::endl
+            << "     ; in pixels\n"
+        << "horSize=2       ; in tiles\n"
+        << "VerSize=2       ; in tiles\n"
+        << "WalkableMask00=00\n"
+        << "WalkableMask01=00\n"
+        << "TerrainMask00=G4\n"
+        << "TerrainMask01=6F\n"
+        << ";\n"
 
-        << "[Doodad005]" << std::endl
-        << "name=LowTarPitSmoothDiagonalTopRight" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
+        << "[Doodad005]\n"
+        << "name=LowTarPitSmoothDiagonalTopRight\n"
+        << "SourceFile=" << doodadBmp << "\n"
         << "locationX=" << TILE_X_OFFSET + width_ * 2 + TILE_SEPARATOR 
-            << "     ; in pixels" << std::endl
+            << "     ; in pixels\n"
         << "locationY=" << TILE_Y_OFFSET + height_ * 6 + TILE_SEPARATOR 
-            << "     ; in pixels" << std::endl
-        << "horSize=2       ; in tiles" << std::endl
-        << "VerSize=2       ; in tiles" << std::endl
-        << "WalkableMask00=00" << std::endl
-        << "WalkableMask01=00" << std::endl
-        << "TerrainMask00=5G" << std::endl
-        << "TerrainMask01=E6" << std::endl
-        << ";" << std::endl
+            << "     ; in pixels\n"
+        << "horSize=2       ; in tiles\n"
+        << "VerSize=2       ; in tiles\n"
+        << "WalkableMask00=00\n"
+        << "WalkableMask01=00\n"
+        << "TerrainMask00=5G\n"
+        << "TerrainMask01=E6\n"
+        << ";\n"
 
-        << "[Doodad006]" << std::endl
-        << "name=LowTarPitSmoothDiagonalBottomLeft" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
+        << "[Doodad006]\n"
+        << "name=LowTarPitSmoothDiagonalBottomLeft\n"
+        << "SourceFile=" << doodadBmp << "\n"
         << "locationX=" << TILE_X_OFFSET + (width_ * 2 + TILE_SEPARATOR) * 2 
-            << "     ; in pixels" << std::endl
+            << "     ; in pixels\n"
         << "locationY=" << TILE_Y_OFFSET + height_ * 6 + TILE_SEPARATOR 
-            << "     ; in pixels" << std::endl
-        << "horSize=2       ; in tiles" << std::endl
-        << "VerSize=2       ; in tiles" << std::endl
-        << "WalkableMask00=00" << std::endl
-        << "WalkableMask01=00" << std::endl
-        << "TerrainMask00=7D" << std::endl
-        << "TerrainMask01=G4" << std::endl
-        << ";" << std::endl
+            << "     ; in pixels\n"
+        << "horSize=2       ; in tiles\n"
+        << "VerSize=2       ; in tiles\n"
+        << "WalkableMask00=00\n"
+        << "WalkableMask01=00\n"
+        << "TerrainMask00=7D\n"
+        << "TerrainMask01=G4\n"
+        << ";\n"
 
-        << "[Doodad007]" << std::endl
-        << "name=LowTarPitSmoothDiagonalBottomRight" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
+        << "[Doodad007]\n"
+        << "name=LowTarPitSmoothDiagonalBottomRight\n"
+        << "SourceFile=" << doodadBmp << "\n"
         << "locationX=" << TILE_X_OFFSET + (width_ * 2 + TILE_SEPARATOR) * 3 
-            << "     ; in pixels" << std::endl
+            << "     ; in pixels\n"
         << "locationY=" << TILE_Y_OFFSET + height_ * 6 + TILE_SEPARATOR 
-            << "     ; in pixels" << std::endl
-        << "horSize=2       ; in tiles" << std::endl
-        << "VerSize=2       ; in tiles" << std::endl
-        << "WalkableMask00=00" << std::endl
-        << "WalkableMask01=00" << std::endl
-        << "TerrainMask00=C7" << std::endl
-        << "TerrainMask01=5G" << std::endl
+            << "     ; in pixels\n"
+        << "horSize=2       ; in tiles\n"
+        << "VerSize=2       ; in tiles\n"
+        << "WalkableMask00=00\n"
+        << "WalkableMask01=00\n"
+        << "TerrainMask00=C7\n"
+        << "TerrainMask01=5G\n"
 
         // From high to low terrain smooth edges:
-        << ";" << std::endl
-        << "[Doodad008]" << std::endl
-        << "name=HighTerrainSmoothDiagonalTopLeft" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
+        << ";\n"
+        << "[Doodad008]\n"
+        << "name=HighTerrainSmoothDiagonalTopLeft\n"
+        << "SourceFile=" << doodadBmp << "\n"
         << "locationX=" << TILE_X_OFFSET + (width_ * 2 + TILE_SEPARATOR) * 4 
-            << "     ; in pixels" << std::endl
+            << "     ; in pixels\n"
         << "locationY=" << TILE_Y_OFFSET + height_ * 6 + TILE_SEPARATOR 
-            << "     ; in pixels" << std::endl
-        << "horSize=2       ; in tiles" << std::endl
-        << "VerSize=2       ; in tiles" << std::endl
-        << "WalkableMask00=00" << std::endl
-        << "WalkableMask01=01" << std::endl
-        << "TerrainMask00=G&" << std::endl
-        << "TerrainMask01=#-" << std::endl
-        << ";" << std::endl
+            << "     ; in pixels\n"
+        << "horSize=2       ; in tiles\n"
+        << "VerSize=2       ; in tiles\n"
+        << "WalkableMask00=00\n"
+        << "WalkableMask01=01\n"
+        << "TerrainMask00=G&\n"
+        << "TerrainMask01=#-\n"
+        << ";\n"
 
-        << "[Doodad009]" << std::endl
-        << "name=HighTerrainSmoothDiagonalTopRight" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
+        << "[Doodad009]\n"
+        << "name=HighTerrainSmoothDiagonalTopRight\n"
+        << "SourceFile=" << doodadBmp << "\n"
         << "locationX=" << TILE_X_OFFSET + (width_ * 2 + TILE_SEPARATOR) * 5 
-            << "     ; in pixels" << std::endl
+            << "     ; in pixels\n"
         << "locationY=" << TILE_Y_OFFSET + height_ * 6 + TILE_SEPARATOR 
-            << "     ; in pixels" << std::endl
-        << "horSize=2       ; in tiles" << std::endl
-        << "VerSize=2       ; in tiles" << std::endl
-        << "WalkableMask00=00" << std::endl
-        << "WalkableMask01=10" << std::endl
-        << "TerrainMask00=@G" << std::endl
-        << "TerrainMask01=)#" << std::endl
-        << ";" << std::endl
+            << "     ; in pixels\n"
+        << "horSize=2       ; in tiles\n"
+        << "VerSize=2       ; in tiles\n"
+        << "WalkableMask00=00\n"
+        << "WalkableMask01=10\n"
+        << "TerrainMask00=@G\n"
+        << "TerrainMask01=)#\n"
+        << ";\n"
 
-        << "[Doodad010]" << std::endl
-        << "name=HighTerrainSmoothDiagonalBottomLeft" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
+        << "[Doodad010]\n"
+        << "name=HighTerrainSmoothDiagonalBottomLeft\n"
+        << "SourceFile=" << doodadBmp << "\n"
         << "locationX=" << TILE_X_OFFSET + (width_ * 2 + TILE_SEPARATOR) * 6 
-            << "     ; in pixels" << std::endl
+            << "     ; in pixels\n"
         << "locationY=" << TILE_Y_OFFSET + height_ * 6 + TILE_SEPARATOR 
-            << "     ; in pixels" << std::endl
-        << "horSize=2       ; in tiles" << std::endl
-        << "VerSize=2       ; in tiles" << std::endl
-        << "WalkableMask00=01" << std::endl
-        << "WalkableMask01=00" << std::endl
-        << "TerrainMask00='}" << std::endl
-        << "TerrainMask01=G&" << std::endl
-        << ";" << std::endl
+            << "     ; in pixels\n"
+        << "horSize=2       ; in tiles\n"
+        << "VerSize=2       ; in tiles\n"
+        << "WalkableMask00=01\n"
+        << "WalkableMask01=00\n"
+        << "TerrainMask00='}\n"
+        << "TerrainMask01=G&\n"
+        << ";\n"
 
-        << "[Doodad011]" << std::endl
-        << "name=HighTerrainSmoothDiagonalBottomRight" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
+        << "[Doodad011]\n"
+        << "name=HighTerrainSmoothDiagonalBottomRight\n"
+        << "SourceFile=" << doodadBmp << "\n"
         << "locationX=" << TILE_X_OFFSET + (width_ * 2 + TILE_SEPARATOR) * 7 
-            << "     ; in pixels" << std::endl
+            << "     ; in pixels\n"
         << "locationY=" << TILE_Y_OFFSET + height_ * 6 + TILE_SEPARATOR 
-            << "     ; in pixels" << std::endl
-        << "horSize=2       ; in tiles" << std::endl
-        << "VerSize=2       ; in tiles" << std::endl
-        << "WalkableMask00=10" << std::endl
-        << "WalkableMask01=00" << std::endl
-        << "TerrainMask00={'" << std::endl
-        << "TerrainMask01=@G" << std::endl
+            << "     ; in pixels\n"
+        << "horSize=2       ; in tiles\n"
+        << "VerSize=2       ; in tiles\n"
+        << "WalkableMask00=10\n"
+        << "WalkableMask01=00\n"
+        << "TerrainMask00={'\n"
+        << "TerrainMask01=@G\n"
 
         // High Water smooth edges:
-        << ";" << std::endl
-        << "[Doodad012]" << std::endl
-        << "name=HighWaterSmoothDiagonalTopLeft" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
+        << ";\n"
+        << "[Doodad012]\n"
+        << "name=HighWaterSmoothDiagonalTopLeft\n"
+        << "SourceFile=" << doodadBmp << "\n"
         << "locationX=" << TILE_X_OFFSET + (width_ * 2 + TILE_SEPARATOR) * 8 
-            << "     ; in pixels" << std::endl
+            << "     ; in pixels\n"
         << "locationY=" << TILE_Y_OFFSET + height_ * 6 + TILE_SEPARATOR 
-            << "     ; in pixels" << std::endl
-        << "horSize=2       ; in tiles" << std::endl
-        << "VerSize=2       ; in tiles" << std::endl
-        << "WalkableMask00=00" << std::endl
-        << "WalkableMask01=00" << std::endl
-        << "TerrainMask00=W~" << std::endl
-        << "TerrainMask01=\\>" << std::endl
-        << ";" << std::endl
+            << "     ; in pixels\n"
+        << "horSize=2       ; in tiles\n"
+        << "VerSize=2       ; in tiles\n"
+        << "WalkableMask00=00\n"
+        << "WalkableMask01=00\n"
+        << "TerrainMask00=W~\n"
+        << "TerrainMask01=\\>\n"
+        << ";\n"
 
-        << "[Doodad013]" << std::endl
-        << "name=HighWaterSmoothDiagonalTopRight" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
+        << "[Doodad013]\n"
+        << "name=HighWaterSmoothDiagonalTopRight\n"
+        << "SourceFile=" << doodadBmp << "\n"
         << "locationX=" << TILE_X_OFFSET + (width_ * 2 + TILE_SEPARATOR) * 9 
-            << "     ; in pixels" << std::endl
+            << "     ; in pixels\n"
         << "locationY=" << TILE_Y_OFFSET + height_ * 6 + TILE_SEPARATOR 
-            << "     ; in pixels" << std::endl
-        << "horSize=2       ; in tiles" << std::endl
-        << "VerSize=2       ; in tiles" << std::endl
-        << "WalkableMask00=00" << std::endl
-        << "WalkableMask01=00" << std::endl
-        << "TerrainMask00=/W" << std::endl
-        << "TerrainMask01=<\\" << std::endl
-        << ";" << std::endl
+            << "     ; in pixels\n"
+        << "horSize=2       ; in tiles\n"
+        << "VerSize=2       ; in tiles\n"
+        << "WalkableMask00=00\n"
+        << "WalkableMask01=00\n"
+        << "TerrainMask00=/W\n"
+        << "TerrainMask01=<\\\n"
+        << ";\n"
 
-        << "[Doodad014]" << std::endl
-        << "name=HighWaterSmoothDiagonalBottomLeft" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
+        << "[Doodad014]\n"
+        << "name=HighWaterSmoothDiagonalBottomLeft\n"
+        << "SourceFile=" << doodadBmp << "\n"
         << "locationX=" << TILE_X_OFFSET + (width_ * 2 + TILE_SEPARATOR) * 10 
-            << "     ; in pixels" << std::endl
+            << "     ; in pixels\n"
         << "locationY=" << TILE_Y_OFFSET + height_ * 6 + TILE_SEPARATOR 
-            << "     ; in pixels" << std::endl
-        << "horSize=2       ; in tiles" << std::endl
-        << "VerSize=2       ; in tiles" << std::endl
-        << "WalkableMask00=00" << std::endl
-        << "WalkableMask01=00" << std::endl
-        << "TerrainMask00=:$" << std::endl
-        << "TerrainMask01=W~" << std::endl
-        << ";" << std::endl
+            << "     ; in pixels\n"
+        << "horSize=2       ; in tiles\n"
+        << "VerSize=2       ; in tiles\n"
+        << "WalkableMask00=00\n"
+        << "WalkableMask01=00\n"
+        << "TerrainMask00=:$\n"
+        << "TerrainMask01=W~\n"
+        << ";\n"
 
-        << "[Doodad015]" << std::endl
-        << "name=HighWaterSmoothDiagonalBottomRight" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
+        << "[Doodad015]\n"
+        << "name=HighWaterSmoothDiagonalBottomRight\n"
+        << "SourceFile=" << doodadBmp << "\n"
         << "locationX=" << TILE_X_OFFSET + (width_ * 2 + TILE_SEPARATOR) * 11 
-            << "     ; in pixels" << std::endl
+            << "     ; in pixels\n"
         << "locationY=" << TILE_Y_OFFSET + height_ * 6 + TILE_SEPARATOR 
-            << "     ; in pixels" << std::endl
-        << "horSize=2       ; in tiles" << std::endl
-        << "VerSize=2       ; in tiles" << std::endl
-        << "WalkableMask00=00" << std::endl
-        << "WalkableMask01=00" << std::endl
-        << "TerrainMask00=%:" << std::endl
-        << "TerrainMask01=/W" << std::endl
+            << "     ; in pixels\n"
+        << "horSize=2       ; in tiles\n"
+        << "VerSize=2       ; in tiles\n"
+        << "WalkableMask00=00\n"
+        << "WalkableMask01=00\n"
+        << "TerrainMask00=%:\n"
+        << "TerrainMask01=/W\n"
         ;
     // close the ini file:
     greenPrairieWorldIni.close();
@@ -340,298 +340,298 @@ void CreateDefaultSprites::createDesertWorld()
     // Now create & save the .ini file:
     std::ofstream desertWorldIni( path + DESERT_WORLD_NAME ".ini" );
     desertWorldIni << "; This describes the " << DESERT_WORLD_NAME 
-        << " world spritesheet." << std::endl
+        << " world spritesheet.\n"
         << "; If a default world file is corrupt then delete it, the game will"
-        << " recreate it." << std::endl
-        << ";" << std::endl
+        << " recreate it.\n"
+        << ";\n"
         << "; In the [Main] section we define which default tileset we use, as "
-        << "well as the" << std::endl
-        << "; name of the world" << std::endl
-        << "[Main]" << std::endl
+        << "well as the\n"
+        << "; name of the world\n"
+        << "[Main]\n"
         << "MajorFileRevision = " << WORLD_MAJOR_FILE_REVISION
-        << "      ; file version" << std::endl
-        << "MinorFileRevision = " << WORLD_MINOR_FILE_REVISION << std::endl
-        << "name = Desert" << std::endl
-        << "SourceFile = Desert.bmp" << std::endl
-        << ";" << std::endl
-        << "[Tiles]" << std::endl
-        << "Width=" << WORLD_TILE_DEFAULT_WIDTH << std::endl
-        << "Height=" << WORLD_TILE_DEFAULT_WIDTH << std::endl
-        << "Separator=" << TILE_SEPARATOR << std::endl
-        << "Offset=" << TILE_X_OFFSET << std::endl
-        << "NrOfTiles=" << NR_OF_TILES << std::endl
-        << ";" << std::endl
-        << "; This section defines and describes the " DESERT_WORLD_NAME " world doodad sprites." << std::endl
-        << "; The 'Walkable' mask describes if the tile can be walked upon by units." << std::endl
-        << "; A '1' means yes, a '0' means no." << std::endl
-        << "; The Terrain mask is a bit more tricky. It describes what kind of terrain" << std::endl
-        << "; the doodad can be placed upon. Each letter corresponds to a particular" << std::endl
-        << "; type of basic terrain: low water, high water, low ground, transition tiles, etc." << std::endl
-        << ";" << std::endl
-        << "[Doodad000]" << std::endl
-        << "name=RampRightwards" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
-        << "locationX=" << TILE_X_OFFSET << "     ; in pixels" << std::endl
-        << "locationY=" << TILE_Y_OFFSET << "     ; in pixels" << std::endl
-        << "horSize=6       ; in tiles" << std::endl
-        << "VerSize=6       ; in tiles" << std::endl
-        << "WalkableMask00=100001" << std::endl
-        << "WalkableMask01=111111" << std::endl
-        << "WalkableMask02=111111" << std::endl
-        << "WalkableMask03=111111" << std::endl
-        << "WalkableMask04=111111" << std::endl
-        << "WalkableMask05=100001" << std::endl
-        << "TerrainMask00=W@GGGG" << std::endl
-        << "TerrainMask01=W@GGGG" << std::endl
-        << "TerrainMask02=W@GGGG" << std::endl
-        << "TerrainMask03=W@GGGG" << std::endl
-        << "TerrainMask04=W@GGGG" << std::endl
-        << "TerrainMask05=W@GGGG" << std::endl
-        << ";" << std::endl
-        << "[Doodad001]" << std::endl
-        << "name=RampLeftwards" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
+        << "      ; file version\n"
+        << "MinorFileRevision = " << WORLD_MINOR_FILE_REVISION << "\n"
+        << "name = Desert\n"
+        << "SourceFile = Desert.bmp\n"
+        << ";\n"
+        << "[Tiles]\n"
+        << "Width=" << WORLD_TILE_DEFAULT_WIDTH << "\n"
+        << "Height=" << WORLD_TILE_DEFAULT_WIDTH << "\n"
+        << "Separator=" << TILE_SEPARATOR << "\n"
+        << "Offset=" << TILE_X_OFFSET << "\n"
+        << "NrOfTiles=" << NR_OF_TILES << "\n"
+        << ";\n"
+        << "; This section defines and describes the " DESERT_WORLD_NAME " world doodad sprites.\n"
+        << "; The 'Walkable' mask describes if the tile can be walked upon by units.\n"
+        << "; A '1' means yes, a '0' means no.\n"
+        << "; The Terrain mask is a bit more tricky. It describes what kind of terrain\n"
+        << "; the doodad can be placed upon. Each letter corresponds to a particular\n"
+        << "; type of basic terrain: low water, high water, low ground, transition tiles, etc.\n"
+        << ";\n"
+        << "[Doodad000]\n"
+        << "name=RampRightwards\n"
+        << "SourceFile=" << doodadBmp << "\n"
+        << "locationX=" << TILE_X_OFFSET << "     ; in pixels\n"
+        << "locationY=" << TILE_Y_OFFSET << "     ; in pixels\n"
+        << "horSize=6       ; in tiles\n"
+        << "VerSize=6       ; in tiles\n"
+        << "WalkableMask00=100001\n"
+        << "WalkableMask01=111111\n"
+        << "WalkableMask02=111111\n"
+        << "WalkableMask03=111111\n"
+        << "WalkableMask04=111111\n"
+        << "WalkableMask05=100001\n"
+        << "TerrainMask00=W@GGGG\n"
+        << "TerrainMask01=W@GGGG\n"
+        << "TerrainMask02=W@GGGG\n"
+        << "TerrainMask03=W@GGGG\n"
+        << "TerrainMask04=W@GGGG\n"
+        << "TerrainMask05=W@GGGG\n"
+        << ";\n"
+        << "[Doodad001]\n"
+        << "name=RampLeftwards\n"
+        << "SourceFile=" << doodadBmp << "\n"
         << "locationX=" << TILE_X_OFFSET + width_ * 6 + TILE_SEPARATOR 
-        << "     ; in pixels" << std::endl
-        << "locationY=" << TILE_Y_OFFSET << "     ; in pixels" << std::endl
-        << "horSize=6       ; in tiles" << std::endl
-        << "VerSize=6       ; in tiles" << std::endl
-        << "WalkableMask00=100001" << std::endl
-        << "WalkableMask01=111111" << std::endl
-        << "WalkableMask02=111111" << std::endl
-        << "WalkableMask03=111111" << std::endl
-        << "WalkableMask04=111111" << std::endl
-        << "WalkableMask05=100001" << std::endl
-        << "TerrainMask00=GGGG&W" << std::endl
-        << "TerrainMask01=GGGG&W" << std::endl
-        << "TerrainMask02=GGGG&W" << std::endl
-        << "TerrainMask03=GGGG&W" << std::endl
-        << "TerrainMask04=GGGG&W" << std::endl
-        << "TerrainMask05=GGGG&W" << std::endl
-        << ";" << std::endl
-        << "[Doodad002]" << std::endl
-        << "name=RampDownwards" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
+        << "     ; in pixels\n"
+        << "locationY=" << TILE_Y_OFFSET << "     ; in pixels\n"
+        << "horSize=6       ; in tiles\n"
+        << "VerSize=6       ; in tiles\n"
+        << "WalkableMask00=100001\n"
+        << "WalkableMask01=111111\n"
+        << "WalkableMask02=111111\n"
+        << "WalkableMask03=111111\n"
+        << "WalkableMask04=111111\n"
+        << "WalkableMask05=100001\n"
+        << "TerrainMask00=GGGG&W\n"
+        << "TerrainMask01=GGGG&W\n"
+        << "TerrainMask02=GGGG&W\n"
+        << "TerrainMask03=GGGG&W\n"
+        << "TerrainMask04=GGGG&W\n"
+        << "TerrainMask05=GGGG&W\n"
+        << ";\n"
+        << "[Doodad002]\n"
+        << "name=RampDownwards\n"
+        << "SourceFile=" << doodadBmp << "\n"
         << "locationX=" << TILE_X_OFFSET + (width_ * 6 + TILE_SEPARATOR) * 2 
-        << "     ; in pixels" << std::endl
-        << "locationY=" << TILE_Y_OFFSET << "     ; in pixels" << std::endl
-        << "horSize=6       ; in tiles" << std::endl
-        << "VerSize=6       ; in tiles" << std::endl
-        << "WalkableMask00=111111" << std::endl
-        << "WalkableMask01=011110" << std::endl
-        << "WalkableMask02=011110" << std::endl
-        << "WalkableMask03=011110" << std::endl
-        << "WalkableMask04=011110" << std::endl
-        << "WalkableMask05=111111" << std::endl
-        << "TerrainMask00=WWWWWW" << std::endl
-        << "TerrainMask01=''''''" << std::endl
-        << "TerrainMask02=GGGGGG" << std::endl
-        << "TerrainMask03=GGGGGG" << std::endl
-        << "TerrainMask04=GGGGGG" << std::endl
-        << "TerrainMask05=GGGGGG" << std::endl
-        << ";" << std::endl
-        << "[Doodad003]" << std::endl
-        << "name=RampUpwards" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
+        << "     ; in pixels\n"
+        << "locationY=" << TILE_Y_OFFSET << "     ; in pixels\n"
+        << "horSize=6       ; in tiles\n"
+        << "VerSize=6       ; in tiles\n"
+        << "WalkableMask00=111111\n"
+        << "WalkableMask01=011110\n"
+        << "WalkableMask02=011110\n"
+        << "WalkableMask03=011110\n"
+        << "WalkableMask04=011110\n"
+        << "WalkableMask05=111111\n"
+        << "TerrainMask00=WWWWWW\n"
+        << "TerrainMask01=''''''\n"
+        << "TerrainMask02=GGGGGG\n"
+        << "TerrainMask03=GGGGGG\n"
+        << "TerrainMask04=GGGGGG\n"
+        << "TerrainMask05=GGGGGG\n"
+        << ";\n"
+        << "[Doodad003]\n"
+        << "name=RampUpwards\n"
+        << "SourceFile=" << doodadBmp << "\n"
         << "locationX=" << TILE_X_OFFSET + (width_ * 6 + TILE_SEPARATOR ) * 3 
-        << "     ; in pixels" << std::endl
-        << "locationY=" << TILE_Y_OFFSET << "     ; in pixels" << std::endl
-        << "horSize=6       ; in tiles" << std::endl
-        << "VerSize=6       ; in tiles" << std::endl
-        << "WalkableMask00=111111" << std::endl
-        << "WalkableMask01=011110" << std::endl
-        << "WalkableMask02=011110" << std::endl
-        << "WalkableMask03=011110" << std::endl
-        << "WalkableMask04=011110" << std::endl
-        << "WalkableMask05=111111" << std::endl
-        << "TerrainMask00=GGGGGG" << std::endl
-        << "TerrainMask01=GGGGGG" << std::endl
-        << "TerrainMask02=GGGGGG" << std::endl
-        << "TerrainMask03=GGGGGG" << std::endl
-        << "TerrainMask04=######" << std::endl
-        << "TerrainMask05=WWWWWW" << std::endl
+        << "     ; in pixels\n"
+        << "locationY=" << TILE_Y_OFFSET << "     ; in pixels\n"
+        << "horSize=6       ; in tiles\n"
+        << "VerSize=6       ; in tiles\n"
+        << "WalkableMask00=111111\n"
+        << "WalkableMask01=011110\n"
+        << "WalkableMask02=011110\n"
+        << "WalkableMask03=011110\n"
+        << "WalkableMask04=011110\n"
+        << "WalkableMask05=111111\n"
+        << "TerrainMask00=GGGGGG\n"
+        << "TerrainMask01=GGGGGG\n"
+        << "TerrainMask02=GGGGGG\n"
+        << "TerrainMask03=GGGGGG\n"
+        << "TerrainMask04=######\n"
+        << "TerrainMask05=WWWWWW\n"
 
         // tar pit smooth edges:
-        << ";" << std::endl
-        << "[Doodad004]" << std::endl
-        << "name=LowTarPitSmoothDiagonalTopLeft" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
-        << "locationX=" << TILE_X_OFFSET << "     ; in pixels" << std::endl
+        << ";\n"
+        << "[Doodad004]\n"
+        << "name=LowTarPitSmoothDiagonalTopLeft\n"
+        << "SourceFile=" << doodadBmp << "\n"
+        << "locationX=" << TILE_X_OFFSET << "     ; in pixels\n"
         << "locationY=" << TILE_Y_OFFSET + height_ * 6 + TILE_SEPARATOR 
-        << "     ; in pixels" << std::endl
-        << "horSize=2       ; in tiles" << std::endl
-        << "VerSize=2       ; in tiles" << std::endl
-        << "WalkableMask00=00" << std::endl
-        << "WalkableMask01=00" << std::endl
-        << "TerrainMask00=G4" << std::endl
-        << "TerrainMask01=6F" << std::endl
-        << ";" << std::endl
+        << "     ; in pixels\n"
+        << "horSize=2       ; in tiles\n"
+        << "VerSize=2       ; in tiles\n"
+        << "WalkableMask00=00\n"
+        << "WalkableMask01=00\n"
+        << "TerrainMask00=G4\n"
+        << "TerrainMask01=6F\n"
+        << ";\n"
 
-        << "[Doodad005]" << std::endl
-        << "name=LowTarPitSmoothDiagonalTopRight" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
+        << "[Doodad005]\n"
+        << "name=LowTarPitSmoothDiagonalTopRight\n"
+        << "SourceFile=" << doodadBmp << "\n"
         << "locationX=" << TILE_X_OFFSET + width_ * 2 + TILE_SEPARATOR 
-        << "     ; in pixels" << std::endl
+        << "     ; in pixels\n"
         << "locationY=" << TILE_Y_OFFSET + height_ * 6 + TILE_SEPARATOR 
-        << "     ; in pixels" << std::endl
-        << "horSize=2       ; in tiles" << std::endl
-        << "VerSize=2       ; in tiles" << std::endl
-        << "WalkableMask00=00" << std::endl
-        << "WalkableMask01=00" << std::endl
-        << "TerrainMask00=5G" << std::endl
-        << "TerrainMask01=E6" << std::endl
-        << ";" << std::endl
+        << "     ; in pixels\n"
+        << "horSize=2       ; in tiles\n"
+        << "VerSize=2       ; in tiles\n"
+        << "WalkableMask00=00\n"
+        << "WalkableMask01=00\n"
+        << "TerrainMask00=5G\n"
+        << "TerrainMask01=E6\n"
+        << ";\n"
 
-        << "[Doodad006]" << std::endl
-        << "name=LowTarPitSmoothDiagonalBottomLeft" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
+        << "[Doodad006]\n"
+        << "name=LowTarPitSmoothDiagonalBottomLeft\n"
+        << "SourceFile=" << doodadBmp << "\n"
         << "locationX=" << TILE_X_OFFSET + (width_ * 2 + TILE_SEPARATOR) * 2 
-        << "     ; in pixels" << std::endl
+        << "     ; in pixels\n"
         << "locationY=" << TILE_Y_OFFSET + height_ * 6 + TILE_SEPARATOR 
-        << "     ; in pixels" << std::endl
-        << "horSize=2       ; in tiles" << std::endl
-        << "VerSize=2       ; in tiles" << std::endl
-        << "WalkableMask00=00" << std::endl
-        << "WalkableMask01=00" << std::endl
-        << "TerrainMask00=7D" << std::endl
-        << "TerrainMask01=G4" << std::endl
-        << ";" << std::endl
+        << "     ; in pixels\n"
+        << "horSize=2       ; in tiles\n"
+        << "VerSize=2       ; in tiles\n"
+        << "WalkableMask00=00\n"
+        << "WalkableMask01=00\n"
+        << "TerrainMask00=7D\n"
+        << "TerrainMask01=G4\n"
+        << ";\n"
 
-        << "[Doodad007]" << std::endl
-        << "name=LowTarPitSmoothDiagonalBottomRight" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
+        << "[Doodad007]\n"
+        << "name=LowTarPitSmoothDiagonalBottomRight\n"
+        << "SourceFile=" << doodadBmp << "\n"
         << "locationX=" << TILE_X_OFFSET + (width_ * 2 + TILE_SEPARATOR) * 3 
-        << "     ; in pixels" << std::endl
+        << "     ; in pixels\n"
         << "locationY=" << TILE_Y_OFFSET + height_ * 6 + TILE_SEPARATOR 
-        << "     ; in pixels" << std::endl
-        << "horSize=2       ; in tiles" << std::endl
-        << "VerSize=2       ; in tiles" << std::endl
-        << "WalkableMask00=00" << std::endl
-        << "WalkableMask01=00" << std::endl
-        << "TerrainMask00=C7" << std::endl
-        << "TerrainMask01=5G" << std::endl
+        << "     ; in pixels\n"
+        << "horSize=2       ; in tiles\n"
+        << "VerSize=2       ; in tiles\n"
+        << "WalkableMask00=00\n"
+        << "WalkableMask01=00\n"
+        << "TerrainMask00=C7\n"
+        << "TerrainMask01=5G\n"
 
         // From high to low terrain smooth edges:
-        << ";" << std::endl
-        << "[Doodad008]" << std::endl
-        << "name=HighTerrainSmoothDiagonalTopLeft" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
+        << ";\n"
+        << "[Doodad008]\n"
+        << "name=HighTerrainSmoothDiagonalTopLeft\n"
+        << "SourceFile=" << doodadBmp << "\n"
         << "locationX=" << TILE_X_OFFSET + (width_ * 2 + TILE_SEPARATOR) * 4 
-        << "     ; in pixels" << std::endl
+        << "     ; in pixels\n"
         << "locationY=" << TILE_Y_OFFSET + height_ * 6 + TILE_SEPARATOR 
-        << "     ; in pixels" << std::endl
-        << "horSize=2       ; in tiles" << std::endl
-        << "VerSize=2       ; in tiles" << std::endl
-        << "WalkableMask00=00" << std::endl
-        << "WalkableMask01=01" << std::endl
-        << "TerrainMask00=G&" << std::endl
-        << "TerrainMask01=#-" << std::endl
-        << ";" << std::endl
+        << "     ; in pixels\n"
+        << "horSize=2       ; in tiles\n"
+        << "VerSize=2       ; in tiles\n"
+        << "WalkableMask00=00\n"
+        << "WalkableMask01=01\n"
+        << "TerrainMask00=G&\n"
+        << "TerrainMask01=#-\n"
+        << ";\n"
 
-        << "[Doodad009]" << std::endl
-        << "name=HighTerrainSmoothDiagonalTopRight" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
+        << "[Doodad009]\n"
+        << "name=HighTerrainSmoothDiagonalTopRight\n"
+        << "SourceFile=" << doodadBmp << "\n"
         << "locationX=" << TILE_X_OFFSET + (width_ * 2 + TILE_SEPARATOR) * 5 
-        << "     ; in pixels" << std::endl
+        << "     ; in pixels\n"
         << "locationY=" << TILE_Y_OFFSET + height_ * 6 + TILE_SEPARATOR 
-        << "     ; in pixels" << std::endl
-        << "horSize=2       ; in tiles" << std::endl
-        << "VerSize=2       ; in tiles" << std::endl
-        << "WalkableMask00=00" << std::endl
-        << "WalkableMask01=10" << std::endl
-        << "TerrainMask00=@G" << std::endl
-        << "TerrainMask01=)#" << std::endl
-        << ";" << std::endl
+        << "     ; in pixels\n"
+        << "horSize=2       ; in tiles\n"
+        << "VerSize=2       ; in tiles\n"
+        << "WalkableMask00=00\n"
+        << "WalkableMask01=10\n"
+        << "TerrainMask00=@G\n"
+        << "TerrainMask01=)#\n"
+        << ";\n"
 
-        << "[Doodad010]" << std::endl
-        << "name=HighTerrainSmoothDiagonalBottomLeft" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
+        << "[Doodad010]\n"
+        << "name=HighTerrainSmoothDiagonalBottomLeft\n"
+        << "SourceFile=" << doodadBmp << "\n"
         << "locationX=" << TILE_X_OFFSET + (width_ * 2 + TILE_SEPARATOR) * 6 
-        << "     ; in pixels" << std::endl
+        << "     ; in pixels\n"
         << "locationY=" << TILE_Y_OFFSET + height_ * 6 + TILE_SEPARATOR 
-        << "     ; in pixels" << std::endl
-        << "horSize=2       ; in tiles" << std::endl
-        << "VerSize=2       ; in tiles" << std::endl
-        << "WalkableMask00=01" << std::endl
-        << "WalkableMask01=00" << std::endl
-        << "TerrainMask00='}" << std::endl
-        << "TerrainMask01=G&" << std::endl
-        << ";" << std::endl
+        << "     ; in pixels\n"
+        << "horSize=2       ; in tiles\n"
+        << "VerSize=2       ; in tiles\n"
+        << "WalkableMask00=01\n"
+        << "WalkableMask01=00\n"
+        << "TerrainMask00='}\n"
+        << "TerrainMask01=G&\n"
+        << ";\n"
 
-        << "[Doodad011]" << std::endl
-        << "name=HighTerrainSmoothDiagonalBottomRight" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
+        << "[Doodad011]\n"
+        << "name=HighTerrainSmoothDiagonalBottomRight\n"
+        << "SourceFile=" << doodadBmp << "\n"
         << "locationX=" << TILE_X_OFFSET + (width_ * 2 + TILE_SEPARATOR) * 7 
-        << "     ; in pixels" << std::endl
+        << "     ; in pixels\n"
         << "locationY=" << TILE_Y_OFFSET + height_ * 6 + TILE_SEPARATOR 
-        << "     ; in pixels" << std::endl
-        << "horSize=2       ; in tiles" << std::endl
-        << "VerSize=2       ; in tiles" << std::endl
-        << "WalkableMask00=10" << std::endl
-        << "WalkableMask01=00" << std::endl
-        << "TerrainMask00={'" << std::endl
-        << "TerrainMask01=@G" << std::endl
+        << "     ; in pixels\n"
+        << "horSize=2       ; in tiles\n"
+        << "VerSize=2       ; in tiles\n"
+        << "WalkableMask00=10\n"
+        << "WalkableMask01=00\n"
+        << "TerrainMask00={'\n"
+        << "TerrainMask01=@G\n"
 
         // High Water smooth edges:
-        << ";" << std::endl
-        << "[Doodad012]" << std::endl
-        << "name=HighWaterSmoothDiagonalTopLeft" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
+        << ";\n"
+        << "[Doodad012]\n"
+        << "name=HighWaterSmoothDiagonalTopLeft\n"
+        << "SourceFile=" << doodadBmp << "\n"
         << "locationX=" << TILE_X_OFFSET + (width_ * 2 + TILE_SEPARATOR) * 8 
-        << "     ; in pixels" << std::endl
+        << "     ; in pixels\n"
         << "locationY=" << TILE_Y_OFFSET + height_ * 6 + TILE_SEPARATOR 
-        << "     ; in pixels" << std::endl
-        << "horSize=2       ; in tiles" << std::endl
-        << "VerSize=2       ; in tiles" << std::endl
-        << "WalkableMask00=00" << std::endl
-        << "WalkableMask01=00" << std::endl
-        << "TerrainMask00=W~" << std::endl
-        << "TerrainMask01=\\>" << std::endl
-        << ";" << std::endl
+        << "     ; in pixels\n"
+        << "horSize=2       ; in tiles\n"
+        << "VerSize=2       ; in tiles\n"
+        << "WalkableMask00=00\n"
+        << "WalkableMask01=00\n"
+        << "TerrainMask00=W~\n"
+        << "TerrainMask01=\\>\n"
+        << ";\n"
 
-        << "[Doodad013]" << std::endl
-        << "name=HighWaterSmoothDiagonalTopRight" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
+        << "[Doodad013]\n"
+        << "name=HighWaterSmoothDiagonalTopRight\n"
+        << "SourceFile=" << doodadBmp << "\n"
         << "locationX=" << TILE_X_OFFSET + (width_ * 2 + TILE_SEPARATOR) * 9 
-        << "     ; in pixels" << std::endl
+        << "     ; in pixels\n"
         << "locationY=" << TILE_Y_OFFSET + height_ * 6 + TILE_SEPARATOR 
-        << "     ; in pixels" << std::endl
-        << "horSize=2       ; in tiles" << std::endl
-        << "VerSize=2       ; in tiles" << std::endl
-        << "WalkableMask00=00" << std::endl
-        << "WalkableMask01=00" << std::endl
-        << "TerrainMask00=/W" << std::endl
-        << "TerrainMask01=<\\" << std::endl
-        << ";" << std::endl
+        << "     ; in pixels\n"
+        << "horSize=2       ; in tiles\n"
+        << "VerSize=2       ; in tiles\n"
+        << "WalkableMask00=00\n"
+        << "WalkableMask01=00\n"
+        << "TerrainMask00=/W\n"
+        << "TerrainMask01=<\\\n"
+        << ";\n"
 
-        << "[Doodad014]" << std::endl
-        << "name=HighWaterSmoothDiagonalBottomLeft" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
+        << "[Doodad014]\n"
+        << "name=HighWaterSmoothDiagonalBottomLeft\n"
+        << "SourceFile=" << doodadBmp << "\n"
         << "locationX=" << TILE_X_OFFSET + (width_ * 2 + TILE_SEPARATOR) * 10 
-        << "     ; in pixels" << std::endl
+        << "     ; in pixels\n"
         << "locationY=" << TILE_Y_OFFSET + height_ * 6 + TILE_SEPARATOR 
-        << "     ; in pixels" << std::endl
-        << "horSize=2       ; in tiles" << std::endl
-        << "VerSize=2       ; in tiles" << std::endl
-        << "WalkableMask00=00" << std::endl
-        << "WalkableMask01=00" << std::endl
-        << "TerrainMask00=:$" << std::endl
-        << "TerrainMask01=W~" << std::endl
-        << ";" << std::endl
+        << "     ; in pixels\n"
+        << "horSize=2       ; in tiles\n"
+        << "VerSize=2       ; in tiles\n"
+        << "WalkableMask00=00\n"
+        << "WalkableMask01=00\n"
+        << "TerrainMask00=:$\n"
+        << "TerrainMask01=W~\n"
+        << ";\n"
 
-        << "[Doodad015]" << std::endl
-        << "name=HighWaterSmoothDiagonalBottomRight" << std::endl
-        << "SourceFile=" << doodadBmp << std::endl
+        << "[Doodad015]\n"
+        << "name=HighWaterSmoothDiagonalBottomRight\n"
+        << "SourceFile=" << doodadBmp << "\n"
         << "locationX=" << TILE_X_OFFSET + (width_ * 2 + TILE_SEPARATOR) * 11 
-        << "     ; in pixels" << std::endl
+        << "     ; in pixels\n"
         << "locationY=" << TILE_Y_OFFSET + height_ * 6 + TILE_SEPARATOR 
-        << "     ; in pixels" << std::endl
-        << "horSize=2       ; in tiles" << std::endl
-        << "VerSize=2       ; in tiles" << std::endl
-        << "WalkableMask00=00" << std::endl
-        << "WalkableMask01=00" << std::endl
-        << "TerrainMask00=%:" << std::endl
-        << "TerrainMask01=/W" << std::endl
+        << "     ; in pixels\n"
+        << "horSize=2       ; in tiles\n"
+        << "VerSize=2       ; in tiles\n"
+        << "WalkableMask00=00\n"
+        << "WalkableMask01=00\n"
+        << "TerrainMask00=%:\n"
+        << "TerrainMask01=/W\n"
             ;
     // close the ini file:
     desertWorldIni.close();

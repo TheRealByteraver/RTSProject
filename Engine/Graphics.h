@@ -176,8 +176,8 @@ public:
     void    printXY( int x,int y,const char *s );
     void    printXY( int x,int y,const char *s,int opacity );
     void    printXY( int x,int y,const char *s,int opacity,Font& font );
-    void    printXYSolid( int x,int y,int xSpacer,char *s,Color color /*, HRESULT *hres*/ );
-    void    paintConsole( int x,int y,EvoConsole *console );
+    void    printXYSolid( int x,int y,int xSpacer,const char *s,Color color /*, HRESULT *hres*/ );
+    void    paintConsole( int x,int y,EvoConsole& console );
     void    paintSprite( int x,int y,const Sprite &sprite );
     void    paintSpriteSection( int x,int y,Rect area,const Sprite &sprite );
     void    paintSpriteKeyed( int x,int y,const Sprite &sprite,Color keyColor );

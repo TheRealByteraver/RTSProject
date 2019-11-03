@@ -65,13 +65,25 @@ private:
 	/********************************/
 	/*  User Variables              */
 	/********************************/
+    int                     debugCounter = 0;
     int                     frameNr = 0;
     gamestate               gameState = introstate;
-    Font                    font;
-    Font                    neuropolXBMP;
+    Font&                   font = Font( 
+        std::string( GAME_FOLDER ) +
+        defaults.mediaFolder() +
+        std::string( "\\") + 
+        defaults.smallFontFile()
+    );
+    Font                    neuropolXBMP = Font(
+        std::string( GAME_FOLDER ) +
+        defaults.mediaFolder() +
+        std::string( "\\neuropolX.tft" )
+    );
     GameScreens             gameScreens;
     CampaignEditor          campaignEditor;
     Intro                   intro;
+    EvoConsole              evoConsole = EvoConsole( 80,50 );
+
     //Terrain                 terrain;
     //World                   world;
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include "MainWindow.h"
 #include "graphics.h"
 #include "Globals.h"
@@ -14,12 +16,12 @@
 
 
 
-#define MENU_FILE_NEW               0
-#define MENU_FILE_OPEN              1
-#define MENU_FILE_SAVE              2
-#define MENU_FILE_SAVE_AS           3
-#define MENU_FILE_EXIT              4
-#define MENU_FILE_NR_MENUS          5
+constexpr auto MENU_FILE_NEW = 0;
+constexpr auto MENU_FILE_OPEN = 1;
+constexpr auto MENU_FILE_SAVE = 2;
+constexpr auto MENU_FILE_SAVE_AS = 3;
+constexpr auto MENU_FILE_EXIT = 4;
+constexpr auto MENU_FILE_NR_MENUS = 5;
 
 const char *menufiletitles[];
 /*
@@ -92,25 +94,25 @@ public:
             / font.height();
     }
 private:
-    int     xOrig_;
-    int     yOrig_;
+    int     xOrig_ = 0;
+    int     yOrig_ = 0;
     Font   *font_ = nullptr;
-    int     nrOfMenus_;
+    int     nrOfMenus_ = 0;
     Sprite  image_;
     Rect    dimensions_ = Rect( 0,0,0,0 );
 };
 
 
 // Mouse delay timer constants, in frames (1/60 of a second)
-#define MOUSE_LEFT_CLICK_DELAY          15
-#define MOUSE_SCROLL_START_DELAY        20
-#define MOUSE_NO_DELAY                  0
-#define MOUSE_SCROLL_SPEED              10  // higher = slower
+constexpr auto MOUSE_LEFT_CLICK_DELAY = 15;
+constexpr auto MOUSE_SCROLL_START_DELAY = 20;
+constexpr auto MOUSE_NO_DELAY = 0;
+constexpr auto MOUSE_SCROLL_SPEED = 10;  // higher = slower
 
 // keep track of which palette is visible in the side bar:
-#define BASIC_TERRAIN_PALETTE           0
-#define DOODAD_PALETTE                  1
-#define NR_OF_PALETTES                  2
+constexpr auto BASIC_TERRAIN_PALETTE = 0;
+constexpr auto DOODAD_PALETTE = 1;
+constexpr auto NR_OF_PALETTES = 2;
 
 /*
 For the minimap.
@@ -122,9 +124,9 @@ A zoom level of 2 means 2x2 pixels per tile (1x1), ideal for when the map
 is 64x64 (or smaller)
 */
 
-#define ZOOM_QUARTER_PIXEL_PER_TILE     0
-#define ZOOM_ONE_PIXEL_PER_TILE         1
-#define ZOOM_FOUR_PIXELS_PER_TILE       2
+constexpr auto ZOOM_QUARTER_PIXEL_PER_TILE = 0;
+constexpr auto ZOOM_ONE_PIXEL_PER_TILE = 1;
+constexpr auto ZOOM_FOUR_PIXELS_PER_TILE = 2;
 
 class Palette
 {
@@ -151,11 +153,13 @@ public:
         Mouse& mouseRef,
         Keyboard& keyboardRef
     );
+    /*
     ~CampaignEditor() 
     {
         if ( doodadLocationMap_ != nullptr )
             delete doodadLocationMap_;
     }
+    */
     void            draw();
     void            handleInput();
     bool            isInitialized() const { return isInitialized_; }
@@ -226,7 +230,6 @@ private:
     World           world_;
     Terrain         terrain_;
 
-
     // This section contains al kinds of variables for the menu system
     // and the windows as well as their input handling:
     // Menu title list and coordinate handling:
@@ -272,7 +275,8 @@ private:
     bool            isTerrainSaved_ = false;
     // this pointer is a two dimensional boolean map that tells if a given 
     // tile has a doodad on top of it or not:
-    bool           *doodadLocationMap_ = nullptr;
+    //bool           *doodadLocationMap_ = nullptr;
+    std::unique_ptr<bool[]> doodadLocationMap_;
     // these coordinates keep track of our location (in tiles) on the map:
     int             TerrainDrawXOrig_;
     int             TerrainDrawYOrig_;
@@ -285,10 +289,10 @@ private:
     // these variables are used to draw the minimap (the radar screen):
     struct Minimap
     {
-        int             xOrig;
-        int             yOrig;
+        int             xOrig = 0;
+        int             yOrig = 0;
         Sprite          image;
-        Rect            cursorCoords;
+        Rect            cursorCoords = Rect( 0,0,0,0 );
         int             zoomLevel = ZOOM_ONE_PIXEL_PER_TILE;
     } minimap_;
 };

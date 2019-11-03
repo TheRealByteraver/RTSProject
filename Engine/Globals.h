@@ -11,8 +11,8 @@
 #include <fstream>
 
 // folders:
-//#define GAME_FOLDER                 "c:\\RTSMedia\\" // debug, should be ".\\"
-#define GAME_FOLDER                 ".\\"
+#define GAME_FOLDER                 "c:\\RTSMedia\\" // debug, should be ".\\"
+//#define GAME_FOLDER                 ".\\"
 
 // files:
 #define MASTER_INIFILE_FILENAME     "RTSProject.ini"
@@ -20,16 +20,16 @@
 #define DESERT_WORLD_NAME           "desert"
 #define DOODAD_SUFFIX               "ddd"
 
-#define WORLD_MAJOR_FILE_REVISION   1
-#define WORLD_MINOR_FILE_REVISION   0
+constexpr auto WORLD_MAJOR_FILE_REVISION = 1;
+constexpr auto WORLD_MINOR_FILE_REVISION = 0;
 
 // map dimension constants
-#define MIN_TERRAIN_WIDTH           64
-#define MIN_TERRAIN_HEIGHT          64
-#define MAX_TERRAIN_WIDTH           256
-#define MAX_TERRAIN_HEIGHT          256
-#define DEFAULT_TERRAIN_WIDTH       96
-#define DEFAULT_TERRAIN_HEIGHT      96
+constexpr auto MIN_TERRAIN_WIDTH = 64;
+constexpr auto MIN_TERRAIN_HEIGHT = 64;
+constexpr auto MAX_TERRAIN_WIDTH = 256;
+constexpr auto MAX_TERRAIN_HEIGHT = 256;
+constexpr auto DEFAULT_TERRAIN_WIDTH = 96;
+constexpr auto DEFAULT_TERRAIN_HEIGHT = 96;
 
 
 /*

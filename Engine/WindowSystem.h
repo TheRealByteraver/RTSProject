@@ -67,8 +67,10 @@ SMART POINTERS:
 source: https://www.youtube.com/watch?v=WCTiFVlQFZU&index=39&list=PLqCJpWy5Fohfil0gvjzgdV4h29R9kDKtZ
 
 - Basic rule: always use smart pointers, new & delete are outdated
-- As arguments to a function, pass unique pointers by reference, unless you need to 
-- transfer ownership, then transfer by value
+- As arguments to a function, pass the underlying object by reference or const reference
+- As arguments to a functor or function pointer supplied to the standard algorithms, 
+  pass unique_ptr by reference or const reference
+- If you are transferring ownership, then transfer by value
 
 - include <memory> for unique pointer use
 - Create a pointer to a class:
@@ -402,7 +404,8 @@ private:
             int windowFat = wdwDesiredHeight - (int)optionsList_.size() * radioBtnOptionHeight_;
             int maxNrListItems = (dimConstraint_.height() - windowFat) / radioBtnOptionHeight_;
             if ( maxNrListItems < 0 ) maxNrListItems = 0; // fail safe?
-            optionsList_._Pop_back_n( optionsList_.size() - maxNrListItems );
+            //optionsList_._Pop_back_n( optionsList_.size() - maxNrListItems );
+			optionsList_.erase( optionsList_.end() - maxNrListItems,optionsList_.end() );
             wdwDesiredHeight = windowFat + maxNrListItems * radioBtnOptionHeight_;
         }
         // start drawing:
@@ -638,10 +641,10 @@ private:
     int                         clickedButton_;
 };
 
-#define SCROLL_BAR_MIN_SIZE                 (3 + (4 + FRAME_WIDTH) * 2)
-#define SCROLL_BAR_HORIZONTAL               true
-#define SCROLL_BAR_VERTICAL                 false
-#define SCROLL_BAR_DEFAULT_BUTTON_WIDTH     16
+constexpr auto SCROLL_BAR_MIN_SIZE = (3 + (4 + FRAME_WIDTH) * 2);
+constexpr auto SCROLL_BAR_HORIZONTAL = true;
+constexpr auto SCROLL_BAR_VERTICAL = false;
+constexpr auto SCROLL_BAR_DEFAULT_BUTTON_WIDTH = 16;
 
 class ScrollBar : public WinElement
 {

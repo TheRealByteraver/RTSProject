@@ -23,12 +23,24 @@
 #include "Math.h"
 #include "Graphics.h"
 
-
-
-
 #include <stdlib.h>  
 #include <stdio.h>  
 #include <time.h>
+
+const char* testStrings[] = {
+    "0 Line number \n",
+    "1 Line number - this line is longer than 80 characters and should therefor spill to the next line.\n",
+    "2 Next line will be appended to this one (no break): ",
+    "3 This line has no line break.",
+    "4 This should start on a new line. End with a space! ",
+    "5 All right now just another line, with break this time.\n",
+    "\n6 Break at beginning & end of line.\n",
+    "7 line number 7. no breaks ",
+    " - 8 - ",
+    "\n9 line number. This one started on a new line but shouldn't make the page scroll",
+//  "01234567890123456789012345678901234567890123456789012345678901234567890123456789"
+    nullptr 
+};
 
 
 Game::Game( MainWindow& wnd )
@@ -39,6 +51,8 @@ Game::Game( MainWindow& wnd )
     // set the current status of the game:
     gameState = terraineditorstate; // debug, should be "introstate", set in game.h
     gameState = introstate; // temp
+
+    /*
     // load the bare minimum:
     std::string path( GAME_FOLDER );
     path += defaults.mediaFolder() + "\\" + defaults.smallFontFile();
@@ -53,23 +67,23 @@ Game::Game( MainWindow& wnd )
         PostQuitMessage( 0 ); 
         return;        
     }
+    */
     gfx.setFont( &font );
     // show a loading screen:
     gfx.BeginFrame();
     UpdateModel();
     gfx.printXY( 0,0,"Loading..." );
     gfx.EndFrame();
+
+
     // load other (bigger) font:
+    /*
     path.assign( GAME_FOLDER );
     path += defaults.mediaFolder() + "\\" + "neuropolX.tft";
     error = neuropolXBMP.loadFont( path.c_str() );
-
+    */
     // Init the campaign editor
     campaignEditor.init( wnd,gfx,font,mouse,wnd.kbd );
-    //int i; masterIniFile.getKeyValue( "unknownSection","unknownkey",i );  // debug test
-
-    //srand( (unsigned)time( NULL ) ); // done in Globals class
-    frameNr = 0;
 }
 
 /*
@@ -214,8 +228,9 @@ void sincInterpolationDemo( Graphics& gfx )
     }
     
     // sinc interpolation: prepare buffer
-    FPT *buf = new FPT[wdwWidth];
-    memset( buf,0,sizeof( FPT ) * wdwWidth );
+    //FPT *buf = new FPT[wdwWidth];
+    std::unique_ptr<FPT[]> buf = std::make_unique<FPT[]>(wdwWidth);
+    memset( buf.get(),0,sizeof( FPT ) * wdwWidth );
 
     for ( int s = 0; s < nrOfSamplePoints; s++ ) {
         for ( int x = (s - N) * sampleInterval; x < (s + N) * sampleInterval; x++ ) {
@@ -223,7 +238,7 @@ void sincInterpolationDemo( Graphics& gfx )
             FPT f2;
             if ( s >= 0 && s < nrOfSamplePoints )
                 f2 = sinc( realX ) * (FPT)samplePoints[s];
-            else 
+            else
                 f2 = 0;
             if ( (x >= 0) && (x < wdwWidth) )
                 buf[x] += f2;
@@ -252,7 +267,7 @@ void sincInterpolationDemo( Graphics& gfx )
         );
         lastY = buf[x];
     }
-    delete buf;
+    //delete buf;
     // draw history:
     const int legendElemWidth = 30;
     const int legendX = xStart + legendElemWidth + 16;
@@ -287,7 +302,7 @@ void sincInterpolationDemo( Graphics& gfx )
     gfx.printXY( xStart + 8,legendY,tmpStr.c_str() );
 }
 
-void    doFloodFillTest( Graphics& gfx )
+void doFloodFillTest( Graphics& gfx )
 {
     // draw polygon and do a floodfill test:
     gfx.drawLine( 10,10,200,70,Colors::Red );
@@ -306,7 +321,7 @@ void    doFloodFillTest( Graphics& gfx )
     gfx.floodFill( 170,280,Colors::Red,Colors::Blue );
 }
 
-void    doCubicBezier( Graphics& gfx )
+void doCubicBezier( Graphics& gfx )
 {
     struct Point {
         int x;
@@ -443,12 +458,20 @@ void Game::ComposeFrame()
     switch ( gameState )
     {
         case    introstate:
-        {          
+        {
+            //Console test
+            //if ( (frameNr % 15) == 0 ) {
+            //    evoConsole.Print( testStrings[debugCounter % 10] );
+            //    debugCounter++;
+            //}
+            //gfx.drawBlock( 0,0,Graphics::ScreenWidth - 1,Graphics::ScreenHeight - 1,Colors::Gray );
+            //gfx.paintConsole( 0,0,evoConsole );
+
             //sincInterpolationDemo( gfx );
-            intro.updateFrame( gfx,neuropolXBMP );
             //doFloodFillTest( gfx );
             //doCubicBezier( gfx );
-            
+
+            intro.updateFrame( gfx,neuropolXBMP );
             break;
         }
         case    menustate:
@@ -474,12 +497,4 @@ void Game::ComposeFrame()
             break;
         }
     }
-    /*
-    gfx.drawBlock(0,0,33 * 16,33 * 4,Colors::Red);
-    for ( int i = 0; i < 64; i++ )
-        gfx.paintSprite( 1 + (i % 16) * 33, 1 + (i / 16) * 33,world.getTile( i ) );    
-    */
-    //gfx.paintSprite(0,50,createDefaultSprites.getSpriteLibrary() );
-    //gfx.paintSprite( 100,100,Sprite() );
-    //PostMessage( HWND( wnd ),WM_CLOSE,0,0 ); // proper way to exit program?
 }

@@ -10,11 +10,12 @@ const char *menufiletitles[] =
     nullptr
 };
 
-#define DIMENSION_64x64             0
-#define DIMENSION_96x96             1
-#define DIMENSION_128x128           2
-#define DIMENSION_192x192           3
-#define DIMENSION_256x256           4
+constexpr auto DIMENSION_64x64 = 0;
+constexpr auto DIMENSION_96x96 = 1;
+constexpr auto DIMENSION_128x128 = 2;
+constexpr auto DIMENSION_192x192 = 3;
+constexpr auto DIMENSION_256x256 = 4;
+
 const char *terraindimensions[] =
 { 
     "64x64",
@@ -97,8 +98,8 @@ const char *filemenuexittext[] =
     nullptr
 };
 
-#define BUTTON_OK                   0
-#define BUTTON_CANCEL               1
+constexpr auto BUTTON_OK = 0;
+constexpr auto BUTTON_CANCEL = 1;
 const char *buttonsokcancel[] =
 {
     "  Ok  ",
@@ -1764,9 +1765,10 @@ bool CampaignEditor::canPlaceDoodadAtLocation( int x,int y,const Doodad& doodad 
 */
 void CampaignEditor::initDoodadLocationMap()
 {
-    if ( doodadLocationMap_ != nullptr ) delete doodadLocationMap_;
+    //if ( doodadLocationMap_ != nullptr ) delete doodadLocationMap_;
     int size = terrain_.getRows() * terrain_.getColumns();
-    doodadLocationMap_ = new bool[size];
+    //doodadLocationMap_ = new bool[size];
+    doodadLocationMap_ = std::make_unique<bool[]> ( size );
     for ( int i = 0; i < size; i++ ) doodadLocationMap_[i] = false;
     // now put the doodads in there:
     const std::vector<DoodadLocation>& doodadList = terrain_.getDoodadList();
